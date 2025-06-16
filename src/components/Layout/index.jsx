@@ -309,27 +309,30 @@ const Container = () => {
     }
     if (!isSuccess && canUseBSB) {
       setBsbUsedTotal(prev => prev + bsbUsed);
-    }
-    if (isSuccess) {
+    } if (isSuccess) {
       newStack.push({ time: new Date().toLocaleTimeString() });
       logMsg = `+${stack.length} → +${stack.length + 1} : สำเร็จ (${rate * 100}%)`;
     } else if (canUseBSB) {
+      // ใช้ BSB ป้องกันการลดระดับและการหายของไอเทม (ทั้งหินธรรมดาและแครช)
       setBsbCount(prev => prev - bsbUsed);
-      logMsg = `+${stack.length} → +${stack.length} : ล้มเหลว (ใช้ Black Smith Blessing ${bsbUsed} ชิ้น ป้องกันลดระดับ) (${rate * 100}%)`;
+      logMsg = `+${stack.length} → +${stack.length} : ล้มเหลว (ใช้ Black Smith Blessing ${bsbUsed} ชิ้น ป้องกัน${useCash ? 'ลดระดับ' : 'ไอเทมหาย'}) (${rate * 100}%)`;
     } else if (useCash && stack.length > 0) {
+      // หินแครชไม่ใช้ BSB - ลดระดับ
       newStack = newStack.slice(0, -1);
       logMsg = `+${stack.length} → +${stack.length - 1} : ล้มเหลว (ลดระดับ) (${rate * 100}%)`;
     } else if (!useCash) {
+      // หินธรรมดาไม่ใช้ BSB - ไอเทมหาย
       setIsItemLost(true);
       newStack = [];
       logMsg = `+${stack.length} → +0 : ล้มเหลว (ไอเทมหาย) (${rate * 100}%)`;
       playFailSound = true;
-    }
-    setStack(newStack);
+    } setStack(newStack);
     setLog(prev => [...prev, { msg: logMsg }]);
     setIsFail(!isSuccess);
+
+    // เช็คเงื่อนไขการเล่นเสียงและสิ้นสุดเกม
     if (!isSuccess && !useCash && !canUseBSB) {
-      // ถ้าไอเทมหาย ให้เล่นเสียง fail
+      // หินธรรมดาล้มเหลวและไม่ใช้ BSB = ไอเทมหาย
       const soundEffectFailOnly = new Audio(souneEffectFail);
       soundEffectFailOnly.play();
       soundEffectFailOnly.onended = () => {
@@ -414,12 +417,10 @@ const Container = () => {
             <button className="wait-btn" onClick={handleBackToWait}>
               กลับไป
             </button>
-          )}
-
-          <button
+          )}          <button
             className="refine-btn"
             onClick={handleRefine}
-            disabled={isPlaying || mode === 'process' || (mode === 'fail' && !useCash)}
+            disabled={isPlaying || mode === 'process' || (mode === 'fail' && isItemLost)}
           >
             {stack.length === 0 ? 'อัพเกรด' : 'เริ่มอีกครั้ง'}
             <div style={{ fontSize: '14px', color: '#000000' }}>Rate: ({Math.floor(currentRate)}%)</div>
