@@ -71,8 +71,6 @@
 .button-row {
   position: absolute;
   left: 0;
-  right: 0px;
-  bottom: -167px;
   z-index: 2;
   display: flex;
   flex-direction: row;
@@ -82,8 +80,37 @@
   min-height: 48px;
   pointer-events: auto;
 }
-.button-row.restart {
+.button-row.wait,
+.button-row.process {
+  right: 0px;
+  bottom: -167px;
+}
+.button-row.success {
   right: -160px;
+  bottom: -175px;
+}
+.button-row.fail {
+  position: absolute;
+  left: 0;
+  right: -159px;
+  bottom: -174px;
+  z-index: 2;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  pointer-events: auto;
+}
+.button-row.fail .wait-btn {
+  position: absolute;
+  top: 18px;
+  right: 350px;
+  
+}
+.button-row.restart {
+  right: -80px;
   bottom: -175px;
 }
 .refine-btn, .wait-btn {
@@ -114,6 +141,8 @@
   background: #23272f;
   color: #ffcc33;
   border: 1px solid #ffcc33;
+  margin-left: -36px;
+  margin-top: -17px;
 }
 .stack-log {
   background: #181a20;
