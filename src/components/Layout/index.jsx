@@ -484,13 +484,14 @@ const Container = () => {
             />
           ))}
         </div>
-        <div className="button-row">
+        <div className={`button-row${stack.length !== 0 ? ' restart' : ''}`}>
           {mode === 'fail' && (
             <button className="wait-btn" onClick={handleBackToWait}>
               กลับไป
             </button>
-          )}          <button
-            className="refine-btn"
+          )}
+          <button
+            className={`refine-btn${stack.length === 0 ? ' upgrade' : ''}`}
             onClick={handleRefine}
             disabled={isPlaying || mode === 'process' || (mode === 'fail' && isItemLost)}
           >

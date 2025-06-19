@@ -72,7 +72,7 @@
   position: absolute;
   left: 0;
   right: 0px;
-  bottom: -135px;
+  bottom: -167px;
   z-index: 2;
   display: flex;
   flex-direction: row;
@@ -81,6 +81,10 @@
   gap: 12px;
   min-height: 48px;
   pointer-events: auto;
+}
+.button-row.restart {
+  right: -160px;
+  bottom: -175px;
 }
 .refine-btn, .wait-btn {
   background: linear-gradient(90deg, #ffb347 0%, #ffcc33 100%);
@@ -98,7 +102,7 @@
 .refine-btn.upgrade {
   background: linear-gradient(90deg, #4755ff 0%, #33ecff 100%);
   color: #fff;
-  width: 124px;
+  width: 130px;
 }
 
 .refine-btn:disabled {
