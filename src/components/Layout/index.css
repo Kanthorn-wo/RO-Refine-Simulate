@@ -1,7 +1,7 @@
 /* ปรับ UI ให้ดูทันสมัยและสวยงาม */
 .container-refine {
   width: 100%;
-  max-width: 450px; /* ขยายความกว้างกล่อง */
+
   background: #23272f;
   border-radius: 18px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.18);
@@ -20,13 +20,26 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   max-width: 350px;
   width: 100%;
   box-sizing: border-box;
   row-gap: 18px;
+  position: relative;
 }
-.container-refine img {
+
+.refine-frame .refine-frames-wrapper {
+  width: 100%;
+  min-height: 220px;
+  max-width: 350px;
+  position: relative;
+  margin-bottom: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.refine-frame img {
   border-radius: 12px;
   border: 2px solid #444;
 
@@ -34,27 +47,60 @@
   width: 100%;
   height: auto;
   object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  box-sizing: border-box;
 }
-.button-row {
+
+.refine-frames-wrapper .button-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 18px;
+  z-index: 2;
   display: flex;
   flex-direction: row;
   justify-content: center;
   align-items: center;
   gap: 12px;
-  margin-bottom: 16px;
-  min-height: 48px; /* กันขยับเมื่อปุ่มหาย/โผล่ */
+  min-height: 48px;
+  pointer-events: auto;
+}
+.button-row {
+  position: absolute;
+  left: 0;
+  right: 0px;
+  bottom: -135px;
+  z-index: 2;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  pointer-events: auto;
 }
 .refine-btn, .wait-btn {
   background: linear-gradient(90deg, #ffb347 0%, #ffcc33 100%);
   color: #23272f;
   font-weight: bold;
   border: none;
-  border-radius: 8px;
+  border-radius: 3px;
   cursor: pointer;
   padding: 10px;
-  box-shadow: 0 2px 8px rgba(255,204,51,0.12);
+  box-shadow: 0 2px 8px rgba(255, 204, 51, 0.12);
   transition: background 0.2s, transform 0.2s;
+  width: 130px;
 }
+
+.refine-btn.upgrade {
+  background: linear-gradient(90deg, #4755ff 0%, #33ecff 100%);
+  color: #fff;
+  width: 124px;
+}
+
 .refine-btn:disabled {
   background: #bdbdbd;
   color: #888;
@@ -119,7 +165,7 @@
   border-radius: 10px;
   margin-top: 22px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-  max-width: 420px;
+  
 
 }
 .item-summary-title {
@@ -160,7 +206,6 @@
   border-radius: 8px;
   padding: 14px 18px 10px 18px;
   box-shadow: 0 1px 6px rgba(0,0,0,0.10);
-  max-width: 420px;
   margin-left: auto;
   margin-right: auto;
 }
