@@ -59,7 +59,8 @@ const getFrameSrc = (type, index) => {
     prefix = 'bg_refining_fail_';
   }
   let num = index.toString().padStart(2, '0');
-  return `/src/assets/images/${folder}/${prefix}${num}.bmp`;
+  // เปลี่ยน path เป็น public
+  return `/images/${folder}/${prefix}${num}.bmp`;
 };
 
 // ฟังก์ชันสร้าง array ของ path รูปแต่ละประเภท
