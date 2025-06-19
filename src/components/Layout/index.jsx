@@ -348,12 +348,7 @@ const Container = () => {
         </div>
       </div>
       <div className='refine-frame'>
-        <div style={{ marginBottom: 12, fontSize: '1.2rem', color: '#ffcc33', fontWeight: 'bold' }}>
-          ระดับการตีบวก: +{stack.length}
-          {lastResult === 'success' && <span style={{ color: '#4caf50', marginLeft: 12 }}>สำเร็จ!</span>}
-          {lastResult === 'fail' && !isItemLost && <span style={{ color: '#e53935', marginLeft: 12 }}>ล้มเหลว</span>}
-          {isItemLost && <div style={{ color: '#e53935', marginLeft: 12 }}>ไอเทมหาย!</div>}
-        </div>
+
         <div className="refine-options">
           <label className="refine-option-label">
             <input type="checkbox" checked={useCash} onChange={e => setUseCash(e.target.checked)} />
@@ -400,6 +395,12 @@ const Container = () => {
               ))}
             </select>
           </div>
+        </div>
+        <div style={{ marginBottom: 12, fontSize: '1.2rem', color: '#ffcc33', fontWeight: 'bold' }}>
+          ระดับการตีบวก: +{stack.length}
+          {lastResult === 'success' && <span style={{ color: '#4caf50', marginLeft: 12 }}>สำเร็จ!</span>}
+          {lastResult === 'fail' && !isItemLost && <span style={{ color: '#e53935', marginLeft: 12 }}>ล้มเหลว</span>}
+          {isItemLost && <div style={{ color: '#e53935', marginLeft: 12 }}>ไอเทมหาย!</div>}
         </div>
         <div style={{ position: 'relative', width: '100%', height: 'auto', minHeight: 220, maxWidth: 350 }}>
           {/* Render all frames for current mode, show only the current index */}
@@ -484,18 +485,20 @@ const Container = () => {
             />
           ))}
         </div>
-        <div className={`button-row${stack.length !== 0 ? ' restart' : ''}`}>
+        <div
+          className={`button-row ${mode}`}
+        >
           {mode === 'fail' && (
             <button className="wait-btn" onClick={handleBackToWait}>
               กลับไป
             </button>
           )}
           <button
-            className={`refine-btn${stack.length === 0 ? ' upgrade' : ''}`}
+            className={`refine-btn${((stack.length === 0 && (mode !== 'success' || !isSuccessLoop))) ? ' upgrade' : ''}`}
             onClick={handleRefine}
             disabled={isPlaying || mode === 'process' || (mode === 'fail' && isItemLost)}
           >
-            {stack.length === 0 ? 'อัพเกรด' : 'เริ่มอีกครั้ง'}
+            {(stack.length === 0 && (mode !== 'success' || !isSuccessLoop)) ? 'อัพเกรด' : 'เริ่มอีกครั้ง'}
             <div style={{ fontSize: '14px', color: '#000000' }}>Rate: ({Math.floor(currentRate)}%)</div>
           </button>
         </div>
