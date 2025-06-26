@@ -301,7 +301,7 @@ const Container = () => {
   const successFrames = getAllFrameSrcs('success');
   const failFrames = getAllFrameSrcs('fail');
 
-  // Preload images once on mount
+
   useEffect(() => {
     const allFrames = [
       ...waitingFrames,
