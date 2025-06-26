@@ -9,7 +9,7 @@ on:
 jobs:
   daily-update:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -17,28 +17,28 @@ jobs:
           # ใช้ PAT แทน GITHUB_TOKEN หากมีปัญหา
           token: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
           fetch-depth: 0
-        
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "18"
           cache: "npm"
-        
+
       - name: Install dependencies
         run: npm install
-      
+
       - name: Update daily data
         run: npm run update-data
-      
+
       - name: Build project
         run: npm run build
-      
+
       - name: Commit and push if changed
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add .
-          
+
           # เช็คว่ามีการเปลี่ยนแปลงหรือไม่
           if git diff --staged --quiet; then
             echo "✅ No changes to commit"
@@ -54,7 +54,7 @@ jobs:
             
             echo "✅ Successfully pushed changes"
           fi
-      
+
       - name: Deploy to GitHub Pages
         if: success()
         uses: peaceiris/actions-gh-pages@v4
