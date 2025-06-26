@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import './index.css'
+import DateTimeDisplay from '../DateTimeDisplay';
+import DailyInfoPanel from '../DailyInfoPanel';
 import souneEffect01 from 'assets/sounds/bs_refine_1.wav';
 import souneEffect02 from 'assets/sounds/bs_refine_2.wav';
 import souneEffectSuccess from 'assets/sounds/bs_refine_success.wav';
@@ -317,6 +319,12 @@ const Container = () => {
 
   return (
     <div className="container-refine">
+      {/* แสดงวันที่และเวลาปัจจุบัน */}
+      <DateTimeDisplay />
+
+      {/* แสดงข้อมูลประจำวัน */}
+      <DailyInfoPanel />
+
       {/* Dropdown เลือกประเภทไอเท็ม */}
 
       {/* ตารางอัตราสำเร็จ */}
