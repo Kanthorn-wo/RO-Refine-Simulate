@@ -22,3 +22,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Auto-generated contribution files (comment out to include in git)
+# .auto-config/
+# .performance/
+# .activity/
+# .system/
+# .maintenance/
+# logs/
+# metrics/
