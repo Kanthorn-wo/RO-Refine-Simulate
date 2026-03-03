@@ -1,11 +1,11 @@
 // สร้างไฟล์ข้อมูลที่อัพเดตทุกวัน
 export const dailyData = {
-  "lastUpdated": "2026-03-02T01:13:27.941Z",
-  "dayOfYear": 61,
-  "updateCount": 613,
+  "lastUpdated": "2026-03-03T01:15:54.384Z",
+  "dayOfYear": 62,
+  "updateCount": 657,
   "randomTip": "🔥 เคล็ดลับ: ตีบวกช่วงเช้าๆ อาจจะโชคดีกว่า!",
-  "specialEvent": "🎉 วันนี้เป็นวันมงคล! อัตราสำเร็จอาจจะสูงขึ้น!",
-  "version": "v1.0.2"
+  "specialEvent": null,
+  "version": "v1.0.3"
 };
 
 // ฟังก์ชันสร้างข้อมูลสถิติแบบสุ่ม
