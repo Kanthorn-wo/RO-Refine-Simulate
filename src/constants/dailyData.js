@@ -1,11 +1,11 @@
 // สร้างไฟล์ข้อมูลที่อัพเดตทุกวัน
 export const dailyData = {
-  "lastUpdated": "2026-03-06T01:17:09.350Z",
-  "dayOfYear": 65,
-  "updateCount": 766,
-  "randomTip": "🎯 เคล็ดลับ: หินแครชมีอัตราสำเร็จสูงกว่าหินธรรมดา",
+  "lastUpdated": "2026-03-07T01:09:06.209Z",
+  "dayOfYear": 66,
+  "updateCount": 795,
+  "randomTip": "✨ เคล็ดลับ: อย่าลืมเซฟข้อมูลก่อนตีบวกระดับสูง",
   "specialEvent": null,
-  "version": "v1.0.6"
+  "version": "v1.0.7"
 };
 
 // ฟังก์ชันสร้างข้อมูลสถิติแบบสุ่ม
