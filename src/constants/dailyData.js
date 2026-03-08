@@ -1,11 +1,11 @@
 // สร้างไฟล์ข้อมูลที่อัพเดตทุกวัน
 export const dailyData = {
-  "lastUpdated": "2026-03-07T01:09:06.209Z",
-  "dayOfYear": 66,
-  "updateCount": 795,
-  "randomTip": "✨ เคล็ดลับ: อย่าลืมเซฟข้อมูลก่อนตีบวกระดับสูง",
+  "lastUpdated": "2026-03-08T01:14:42.981Z",
+  "dayOfYear": 67,
+  "updateCount": 851,
+  "randomTip": "🛡️ เคล็ดลับ: Armor Lv.1 เสี่ยงน้อยที่สุดในการตีบวก",
   "specialEvent": null,
-  "version": "v1.0.7"
+  "version": "v1.0.8"
 };
 
 // ฟังก์ชันสร้างข้อมูลสถิติแบบสุ่ม
