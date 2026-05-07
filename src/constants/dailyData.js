@@ -1,11 +1,11 @@
 // สร้างไฟล์ข้อมูลที่อัพเดตทุกวัน
 export const dailyData = {
-  "lastUpdated": "2026-05-06T00:22:36.550Z",
-  "dayOfYear": 126,
-  "updateCount": 187,
-  "randomTip": "💰 เคล็ดลับ: วางแผนการใช้ BSB ให้ดีก่อนตีบวกระดับสูง",
+  "lastUpdated": "2026-05-07T00:23:12.775Z",
+  "dayOfYear": 127,
+  "updateCount": 427,
+  "randomTip": "⚔️ เคล็ดลับ: Weapon Lv.1 มีอัตราสำเร็จสูงสุดถึง +10",
   "specialEvent": null,
-  "version": "v1.0.6"
+  "version": "v1.0.7"
 };
 
 // ฟังก์ชันสร้างข้อมูลสถิติแบบสุ่ม
