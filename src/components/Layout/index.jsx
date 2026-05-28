@@ -10,26 +10,27 @@ import souneEffectFail from 'assets/sounds/bs_refine_failed.wav';
 import normalStoneImg from 'assets/images/blacksmith_blessing.png';
 import cashStoneImg from 'assets/images/blacksmith_blessing.png';
 import bsbImg from 'assets/images/blacksmith_blessing.png';
-import { REFINE_RATES_NORMAL, REFINE_RATES_CASH, BSB_REQUIRED } from '../../constants/refineConfig';
+import { BSB_REQUIRED_NORMAL, BSB_REQUIRED_EVENT } from '../../constants/refineConfig';
 
-// ตารางอัตราสำเร็จการตีบวก (%) แยก normal/cash ตามประเภทไอเท็ม
-const REFINE_RATES_TABLE_NORMAL = {
-  armor1: [100, 100, 100, 100, 60, 40, 20, 20, 20, 9, 20, 20, 16, 16, 15, 15, 14, 14, 10, 10],
-  armor2: [100, 100, 80, 80, 80, 60, 40, 40, 40, 18, 16, 16, 16, 16, 14, 14, 14, 14, 10, 10],
-  weapon1: [100, 100, 100, 100, 100, 100, 100, 100, 100, 19, 40, 40, 35, 35, 30, 30, 20, 20, 15, 15],
-  weapon2: [100, 100, 100, 100, 100, 100, 95, 60, 20, 19, 40, 40, 35, 35, 30, 30, 20, 20, 15, 15],
-  weapon3: [100, 100, 100, 100, 80, 60, 40, 20, 20, 9, 20, 20, 16, 16, 15, 15, 14, 14, 10, 10],
-  weapon4: [100, 100, 100, 80, 80, 60, 40, 40, 40, 18, 16, 16, 16, 16, 14, 14, 14, 14, 10, 10],
-  weapon5: [100, 100, 100, 80, 60, 60, 40, 40, 40, 18, 16, 16, 16, 16, 14, 14, 14, 14, 10, 10],
+// ตารางอัตราสำเร็จการตีบวก (%) แยก rate ปกติ / rate ช่วง event
+// หินปกติ -> RATE_NORMAL, หินแครช -> RATE_EVENT
+const RATE_NORMAL = {
+  armor1:  [100, 100, 100, 100,  60,  40,  40,  20,  20,   9,  20,  20,  16,  16,  15,  15,  14,  14,  10,  10],
+  armor2:  [100, 100, 100,  80,  80,  60,  60,  40,  40,  18,  16,  16,  16,  16,  14,  14,  14,  14,  10,  10],
+  weapon1: [100, 100, 100, 100, 100, 100, 100,  60,  40,  19,  40,  40,  35,  35,  30,  30,  20,  20,  15,  15],
+  weapon2: [100, 100, 100, 100, 100, 100,  60,  50,  20,  19,  40,  40,  35,  35,  30,  30,  20,  20,  15,  15],
+  weapon3: [100, 100, 100, 100, 100,  60,  50,  20,  20,  19,  40,  40,  35,  35,  30,  30,  20,  20,  15,  15],
+  weapon4: [100, 100, 100, 100,  60,  40,  40,  20,  20,   9,  20,  20,  16,  16,  15,  15,  14,  14,  10,  10],
+  weapon5: [100, 100, 100,  80,  80,  60,  60,  40,  40,  18,  16,  16,  16,  16,  14,  14,  14,  14,  10,  10],
 };
-const REFINE_RATES_TABLE_CASH = {
-  armor1: [100, 100, 100, 100, 95, 80, 80, 60, 50, 35, 20, 20, 16, 16, 15, 15, 14, 14, 10, 10],
-  armor2: [100, 100, 100, 95, 85, 70, 65, 55, 45, 25, 20, 20, 20, 20, 15, 15, 15, 15, 10, 10],
-  weapon1: [100, 100, 100, 100, 100, 100, 100, 95, 85, 55, 40, 40, 35, 35, 30, 30, 20, 20, 15, 15],
-  weapon2: [100, 100, 100, 100, 100, 100, 95, 85, 60, 45, 40, 40, 35, 35, 30, 30, 20, 20, 15, 15],
-  weapon3: [100, 100, 100, 100, 100, 95, 90, 70, 60, 45, 40, 40, 35, 35, 30, 30, 20, 20, 15, 15],
-  weapon4: [100, 100, 100, 95, 95, 80, 80, 60, 50, 35, 20, 20, 16, 16, 15, 15, 14, 14, 10, 10],
-  weapon5: [100, 100, 100, 95, 85, 70, 65, 55, 45, 25, 20, 20, 20, 20, 15, 15, 15, 15, 10, 10],
+const RATE_EVENT = {
+  armor1:  [100, 100, 100, 100,  95,  80,  80,  60,  50,  35,  20,  20,  16,  16,  15,  15,  14,  14,  10,  10],
+  armor2:  [100, 100, 100,  95,  85,  70,  65,  55,  45,  25,  20,  20,  20,  20,  15,  15,  15,  15,  10,  10],
+  weapon1: [100, 100, 100, 100, 100, 100, 100,  95,  85,  55,  40,  40,  35,  35,  30,  30,  20,  20,  15,  15],
+  weapon2: [100, 100, 100, 100, 100, 100,  95,  85,  60,  45,  40,  40,  35,  35,  30,  30,  20,  20,  15,  15],
+  weapon3: [100, 100, 100, 100, 100,  95,  90,  70,  60,  45,  40,  40,  35,  35,  30,  30,  20,  20,  15,  15],
+  weapon4: [100, 100, 100,  95,  85,  70,  65,  55,  45,  25,  20,  20,  20,  20,  15,  15,  15,  15,  10,  10],
+  weapon5: [100, 100, 100,  95,  85,  70,  65,  55,  45,  25,  20,  20,  20,  20,  15,  15,  15,  15,  10,  10],
 };
 const ITEM_TYPE_LABELS = {
   armor1: 'Armor Lv.1',
@@ -78,6 +79,42 @@ const frameCount = {
   fail: 20,
 };
 
+// สีของ keyword ที่ใช้เน้นในข้อความ Stack log
+const LOG_KEYWORD_COLORS = {
+  'สำเร็จ': '#4caf50',
+  'ล้มเหลว': '#e53935',
+  'แตก': '#e53935',
+  'ไอเทมหาย': '#ff5252',
+};
+
+const renderColoredLog = (msg) => {
+  const pattern = new RegExp(`(${Object.keys(LOG_KEYWORD_COLORS).join('|')})`, 'g');
+  return msg.split(pattern).map((part, i) => {
+    const color = LOG_KEYWORD_COLORS[part];
+    return color
+      ? <span key={i} style={{ color, fontWeight: 'bold' }}>{part}</span>
+      : <React.Fragment key={i}>{part}</React.Fragment>;
+  });
+};
+
+// Tag เล็ก ๆ ที่แสดงก่อนข้อความใน Stack log: ไอเท็ม / ชนิดหิน / BSB
+const LOG_TAG_BASE = {
+  display: 'inline-block',
+  padding: '1px 6px',
+  borderRadius: 4,
+  fontSize: '0.78em',
+  marginRight: 6,
+  fontWeight: 'bold',
+  verticalAlign: 'middle',
+  whiteSpace: 'nowrap',
+};
+const LOG_TAG_STYLES = {
+  item:        { ...LOG_TAG_BASE, background: '#3a2e1e', color: '#ffb347' },
+  stoneNormal: { ...LOG_TAG_BASE, background: '#1e2a3a', color: '#7ec0ff' },
+  stoneCash:   { ...LOG_TAG_BASE, background: '#3a3220', color: '#ffcc33' },
+  bsb:         { ...LOG_TAG_BASE, background: '#1e3a23', color: '#66bb6a' },
+};
+
 const Container = () => {
   const [index, setIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -92,7 +129,9 @@ const Container = () => {
   const [useBSB, setUseBSB] = useState(false);
   const [bsbCount, setBsbCount] = useState(30000); // จำนวน BSB เริ่มต้น
   const [itemType, setItemType] = useState('armor1'); // เพิ่ม state สำหรับประเภทไอเท็ม
-  const rateTableType = useCash ? 'cash' : 'normal'; // 'normal' หรือ 'cash'
+  const [isEventRate, setIsEventRate] = useState(false); // false = Normal Rate, true = Event Rate Up
+  const rateTableType = isEventRate ? 'event' : 'normal'; // 'normal' หรือ 'event'
+  const bsbTable = isEventRate ? BSB_REQUIRED_EVENT : BSB_REQUIRED_NORMAL;
   const intervalRef = useRef(null);
 
   // แสดงภาพ wait แบบวนลูปเมื่อไม่ได้ process
@@ -195,17 +234,24 @@ const Container = () => {
     // คำนวณ level ปัจจุบัน (stack.length + 1)
     const currentLevel = stack.length + 1;
     // ดึงอัตราสำเร็จจากตารางตามประเภทและชนิดหิน
-    const rateArr = useCash ? REFINE_RATES_TABLE_CASH : REFINE_RATES_TABLE_NORMAL;
+    const rateArr = isEventRate ? RATE_EVENT : RATE_NORMAL;
     const rate = rateArr[itemType][Math.min(currentLevel - 1, 19)] / 100;
-    const isSuccess = Math.random() < rate;
+    const roll = Math.random();
+    const isSuccess = roll < rate;
+    // รายละเอียดการสุ่ม: บอกโอกาสติด/แตก แล้วระบุว่าผลออกฝั่งไหน ที่ค่ากี่ %
+    const rollPct = roll * 100;
+    const successPct = rate * 100;
+    const failPct = 100 - successPct;
+    const rollDetail = `โอกาสติด ${successPct.toFixed(2)}% / โอกาสแตก ${failPct.toFixed(2)}% → ผลออกฝั่ง${isSuccess ? 'สำเร็จ' : 'แตก'} ที่ ${rollPct.toFixed(2)}%`;
     let newStack = [...stack];
     let logMsg = '';
     let playFailSound = false;
     let bsbUsed = 0;
     // เช็ค BSB เงื่อนไข
     let canUseBSB = false;
-    if (useBSB && currentLevel >= 7 && currentLevel <= 14) {
-      bsbUsed = BSB_REQUIRED[currentLevel - 1] || 0;
+    // BSB ใช้ได้แค่ตีจาก +7 ถึง +14 → +15 เท่านั้น (currentLevel 8..15)
+    if (useBSB && currentLevel >= 8 && currentLevel <= 15) {
+      bsbUsed = bsbTable[currentLevel - 1] || 0;
       canUseBSB = bsbCount >= bsbUsed && bsbUsed > 0;
     }
     // นับจำนวนไอเทมที่ใช้
@@ -219,42 +265,50 @@ const Container = () => {
     }
     if (isSuccess) {
       newStack.push({ time: new Date().toLocaleTimeString() });
-      logMsg = `+${stack.length} → +${stack.length + 1} : สำเร็จ (${rate * 100}%)`;
+      logMsg = `+${stack.length} → +${stack.length + 1} : สำเร็จ`;
     } else if (canUseBSB) {
       // ใช้ BSB ป้องกันการลดระดับและการหายของไอเทม (ทั้งหินธรรมดาและแครช)
       setBsbCount(prev => prev - bsbUsed);
-      logMsg = `+${stack.length} → +${stack.length} : ล้มเหลว (ใช้ Black Smith Blessing ${bsbUsed} ชิ้น ป้องกัน${useCash ? 'ลดระดับ' : 'ไอเทมหาย'}) (${rate * 100}%)`;
+      logMsg = `+${stack.length} → +${stack.length} : ล้มเหลว (ใช้ Black Smith Blessing ${bsbUsed} ชิ้น ป้องกัน${useCash ? 'ลดระดับ' : 'ไอเทมหาย'})`;
     } else if ((itemType === 'weapon5' || itemType === 'armor2') && !isSuccess) {
       // เงื่อนไขพิเศษสำหรับ Weapon Lv.5 และ Armor Lv.2
       if (useCash && stack.length > 0) {
         // หินแครช ลด 1 ระดับ
         newStack = newStack.slice(0, -1);
-        logMsg = `+${stack.length} → +${stack.length - 1} : ล้มเหลว (ลดระดับ 1 ขั้น) (${rate * 100}%)`;
+        logMsg = `+${stack.length} → +${stack.length - 1} : ล้มเหลว (ลดระดับ 1 ขั้น)`;
       } else if (!useCash && stack.length > 0) {
         // หินธรรมดา ลด 3 ระดับ
         const newLevel = Math.max(0, stack.length - 3);
         newStack = newStack.slice(0, newLevel);
-        logMsg = `+${stack.length} → +${newLevel} : ล้มเหลว (ลดระดับ 3 ขั้น) (${rate * 100}%)`;
+        logMsg = `+${stack.length} → +${newLevel} : ล้มเหลว (ลดระดับ 3 ขั้น)`;
       } else if (!useCash && stack.length === 0) {
         // กรณี +0 อยู่แล้ว (กัน array underflow)
         setIsItemLost(true);
         newStack = [];
-        logMsg = `+0 → +0 : ล้มเหลว (ไอเทมหาย) (${rate * 100}%)`;
+        logMsg = `+0 → +0 : ล้มเหลว (ไอเทมหาย)`;
         playFailSound = true;
       }
     } else if (useCash && stack.length > 0) {
       // หินแครชไม่ใช้ BSB - ลดระดับ (ประเภทอื่น)
       newStack = newStack.slice(0, -1);
-      logMsg = `+${stack.length} → +${stack.length - 1} : ล้มเหลว (ลดระดับ) (${rate * 100}%)`;
+      logMsg = `+${stack.length} → +${stack.length - 1} : ล้มเหลว (ลดระดับ)`;
     } else if (!useCash) {
       // หินธรรมดาไม่ใช้ BSB - ไอเทมหาย (ประเภทอื่น)
       setIsItemLost(true);
       newStack = [];
-      logMsg = `+${stack.length} → +0 : ล้มเหลว (ไอเทมหาย) (${rate * 100}%)`;
+      logMsg = `+${stack.length} → +0 : ล้มเหลว (ไอเทมหาย)`;
       playFailSound = true;
     }
+    logMsg = `${logMsg} — ${rollDetail}`;
     setStack(newStack);
-    setLog(prev => [...prev, { msg: logMsg }]);
+    setLog(prev => [...prev, {
+      msg: logMsg,
+      itemType,
+      useCash,
+      useBSB,
+      bsbConsumed: (!isSuccess && canUseBSB) ? bsbUsed : 0,
+      isSuccess,
+    }]);
     setIsFail(!isSuccess);
 
     // เช็คเงื่อนไขการเล่นเสียงและสิ้นสุดเกม
@@ -295,7 +349,7 @@ const Container = () => {
   // คำนวณอัตราสำเร็จปัจจุบัน
   const currentLevel = stack.length + 1;
   // ดึงอัตราสำเร็จจากตารางตามประเภทและชนิดหิน
-  const currentRate = (rateTableType === 'cash' ? REFINE_RATES_TABLE_CASH : REFINE_RATES_TABLE_NORMAL)[itemType][Math.min(currentLevel - 1, 19)];
+  const currentRate = (rateTableType === 'event' ? RATE_EVENT : RATE_NORMAL)[itemType][Math.min(currentLevel - 1, 19)];
 
   // preload all frames for each mode
   const waitingFrames = getAllFrameSrcs('waiting');
@@ -329,7 +383,44 @@ const Container = () => {
 
       {/* ตารางอัตราสำเร็จ */}
       <div style={{ marginBottom: 18, background: '#181a20', borderRadius: 8, padding: 12, color: '#fff', marginLeft: 'auto', marginRight: 'auto', fontSize: '0.98em', overflowX: 'auto' }}>
-        <b style={{ color: '#ffcc33' }}>ตารางอัตราสำเร็จการตีบวก (%)</b>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+          <b style={{ color: '#ffcc33' }}>
+            ตารางอัตราสำเร็จการตีบวก (%) — {isEventRate ? 'Event Rate Up' : 'Normal Rate'}
+          </b>
+          <div role="group" aria-label="Rate mode" style={{ display: 'inline-flex', border: '1px solid #555', borderRadius: 6, overflow: 'hidden' }}>
+            <button
+              type="button"
+              onClick={() => setIsEventRate(false)}
+              style={{
+                padding: '6px 12px',
+                background: !isEventRate ? '#ffcc33' : 'transparent',
+                color: !isEventRate ? '#181a20' : '#bbb',
+                border: 'none',
+                fontWeight: !isEventRate ? 'bold' : 'normal',
+                cursor: 'pointer',
+                fontSize: '0.95em',
+              }}
+            >
+              Normal Rate
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsEventRate(true)}
+              style={{
+                padding: '6px 12px',
+                background: isEventRate ? '#ffcc33' : 'transparent',
+                color: isEventRate ? '#181a20' : '#bbb',
+                border: 'none',
+                borderLeft: '1px solid #555',
+                fontWeight: isEventRate ? 'bold' : 'normal',
+                cursor: 'pointer',
+                fontSize: '0.95em',
+              }}
+            >
+              Event Rate Up
+            </button>
+          </div>
+        </div>
         <div style={{ width: '100%', overflowX: 'auto' }}>
           <table style={{ minWidth: 520, width: '100%', marginTop: 8, borderCollapse: 'collapse', fontSize: '0.98em', tableLayout: 'fixed' }}>
             <thead>
@@ -346,7 +437,7 @@ const Container = () => {
                   <td style={{ color: '#ffcc33', padding: 4, border: '1px solid #333', fontWeight: 'bold', textAlign: 'center' }}>+{i + 1}</td>
                   {Object.keys(ITEM_TYPE_LABELS).map(type => (
                     <td key={type} style={{ color: type === itemType ? '#fff' : '#bbb', padding: 4, border: '1px solid #333', fontWeight: type === itemType ? 'bold' : 'normal', textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {(useCash ? REFINE_RATES_TABLE_CASH : REFINE_RATES_TABLE_NORMAL)[type][i]}%
+                      {(isEventRate ? RATE_EVENT : RATE_NORMAL)[type][i]}%
                     </td>
                   ))}
                 </tr>
@@ -366,16 +457,16 @@ const Container = () => {
             <input
               type="checkbox"
               checked={useBSB}
-              disabled={stack.length < 7 || stack.length > 13 || bsbCount < (BSB_REQUIRED[stack.length] || 0)}
+              disabled={stack.length < 7 || stack.length > 14 || bsbCount < (bsbTable[stack.length] || 0)}
               onChange={e => setUseBSB(e.target.checked)}
             />
             ใช้ BSB
             <span className="refine-bsb-info">
               (มี {bsbCount} ชิ้น)
             </span>
-            {stack.length >= 7 && stack.length <= 13 && BSB_REQUIRED[stack.length] > 0 && (
-              <span className={`refine-bsb-need ${bsbCount >= BSB_REQUIRED[stack.length] ? 'enough' : 'not-enough'}`}>
-                ต้องใช้ {BSB_REQUIRED[stack.length]} ชิ้น
+            {stack.length >= 7 && stack.length <= 14 && bsbTable[stack.length] > 0 && (
+              <span className={`refine-bsb-need ${bsbCount >= bsbTable[stack.length] ? 'enough' : 'not-enough'}`}>
+                ต้องใช้ {bsbTable[stack.length]} ชิ้น
               </span>
             )}
           </label>
@@ -386,7 +477,18 @@ const Container = () => {
             <select
               id="item-type"
               value={itemType}
-              onChange={e => setItemType(e.target.value)}
+              onChange={e => {
+                // เปลี่ยนไอเท็ม = เริ่มตีบวกใหม่ตั้งแต่ +0 และเคลียร์ผลลัพธ์ค้าง
+                setItemType(e.target.value);
+                setStack([]);
+                setMode('wait');
+                setIndex(0);
+                setIsFail(false);
+                setIsItemLost(false);
+                setIsSuccessLoop(false);
+                setLastResult(null);
+                setIsPlaying(false);
+              }}
               style={{
                 padding: '6px 12px',
                 borderRadius: 6,
@@ -404,13 +506,19 @@ const Container = () => {
             </select>
           </div>
         </div>
+        {/* แถบสถานะ BSB เหนือระดับ — ใช้ minHeight สำรองพื้นที่ กันเลย์เอาต์ขยับเวลาเปิด/ปิด */}
+        <div style={{ minHeight: '1.4em', fontSize: '0.95em', color: '#66bb6a', fontWeight: 'bold', marginBottom: 4 }}>
+          {useBSB && stack.length >= 7 && stack.length <= 14 && bsbCount >= (bsbTable[stack.length] || 0) && (
+            <>กำลังใช้ BSB ({bsbTable[stack.length]} ชิ้น)</>
+          )}
+        </div>
         <div style={{ marginBottom: 12, fontSize: '1.2rem', color: '#ffcc33', fontWeight: 'bold' }}>
           ระดับการตีบวก: +{stack.length}
           {lastResult === 'success' && <span style={{ color: '#4caf50', marginLeft: 12 }}>สำเร็จ!</span>}
           {lastResult === 'fail' && !isItemLost && <span style={{ color: '#e53935', marginLeft: 12 }}>ล้มเหลว</span>}
           {isItemLost && <div style={{ color: '#e53935', marginLeft: 12 }}>ไอเทมหาย!</div>}
         </div>
-        <div style={{ position: 'relative', width: '100%', height: 'auto', minHeight: 220, maxWidth: 350 }}>
+        <div style={{ position: 'relative', width: '100%', maxWidth: 350, aspectRatio: '262 / 301' }}>
           {/* Render all frames for current mode, show only the current index */}
           {mode === 'wait' && waitingFrames.map((src, i) => (
             <img
@@ -518,7 +626,20 @@ const Container = () => {
       }}>
         <ul>
           {log.map((item, idx) => (
-            <li key={idx}>{item.msg} <span style={{ color: '#888', marginLeft: 8 }}>{item.time}</span></li>
+            <li key={idx} style={{ marginBottom: 6 }}>
+              {item.itemType && ITEM_TYPE_LABELS[item.itemType] && (
+                <span style={LOG_TAG_STYLES.item}>{ITEM_TYPE_LABELS[item.itemType]}</span>
+              )}
+              <span style={item.useCash ? LOG_TAG_STYLES.stoneCash : LOG_TAG_STYLES.stoneNormal}>
+                {item.useCash ? 'หิน Cash' : 'หินปกติ'}
+              </span>
+              {item.useBSB && (
+                <span style={LOG_TAG_STYLES.bsb}>
+                  BSB{item.bsbConsumed > 0 ? ` ×${item.bsbConsumed}` : ''}
+                </span>
+              )}
+              {renderColoredLog(item.msg)}
+            </li>
           ))}
         </ul>
       </div>

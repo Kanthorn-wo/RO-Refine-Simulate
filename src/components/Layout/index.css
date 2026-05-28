@@ -16,7 +16,7 @@
 }
 
 .refine-frame{
-  min-height: fit-content; 
+  min-height: fit-content;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -54,64 +54,15 @@
   box-sizing: border-box;
 }
 
-.refine-frames-wrapper .button-row {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 18px;
-  z-index: 2;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-  min-height: 48px;
-  pointer-events: auto;
-}
 .button-row {
-  position: absolute;
-  left: 0;
-  z-index: 2;
   display: flex;
   flex-direction: row;
   justify-content: center;
   align-items: center;
   gap: 12px;
   min-height: 48px;
-  pointer-events: auto;
-}
-.button-row.wait,
-.button-row.process {
-  right: 0px;
-  bottom: -167px;
-}
-.button-row.success {
-  right: -160px;
-  bottom: -175px;
-}
-.button-row.fail {
-  position: absolute;
-  left: 0;
-  right: -159px;
-  bottom: -174px;
-  z-index: 2;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-  min-height: 48px;
-  pointer-events: auto;
-}
-.button-row.fail .wait-btn {
-  position: absolute;
-  top: 18px;
-  right: 350px;
-  
-}
-.button-row.restart {
-  right: -80px;
-  bottom: -175px;
+  width: 100%;
+  margin-top: 8px;
 }
 .refine-btn, .wait-btn {
   background: linear-gradient(90deg, #ffb347 0%, #ffcc33 100%);
@@ -141,8 +92,6 @@
   background: #23272f;
   color: #ffcc33;
   border: 1px solid #ffcc33;
-  margin-left: -36px;
-  margin-top: -17px;
 }
 .stack-log {
   background: #181a20;
@@ -152,15 +101,13 @@
   margin-top: 0px;
   font-size: 1rem;
   text-align: left;
-  max-height: 180px;
-  min-height: 120px; 
+  min-height: 160px;
+  max-height: 280px;
   overflow-y: auto;
   box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-  word-break: break-all; /* ตัดบรรทัดอัตโนมัติ ไม่ดันกล่อง */
+  overflow-wrap: anywhere; /* ตัดบรรทัดอัตโนมัติ ไม่ดันกล่อง */
   width: 100%;
   box-sizing: border-box;
-  max-width: 350px;
-  max-height: 120px;
 }
 .stack-log-label {
   color: #fff;
