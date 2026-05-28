@@ -1,9 +1,9 @@
 // สร้างไฟล์ข้อมูลที่อัพเดตทุกวัน
 export const dailyData = {
-  "lastUpdated": "2026-05-28T00:26:21.983Z",
+  "lastUpdated": "2026-05-28T13:34:53.635Z",
   "dayOfYear": 148,
-  "updateCount": 297,
-  "randomTip": "✨ เคล็ดลับ: อย่าลืมเซฟข้อมูลก่อนตีบวกระดับสูง",
+  "updateCount": 797,
+  "randomTip": "💰 เคล็ดลับ: วางแผนการใช้ BSB ให้ดีก่อนตีบวกระดับสูง",
   "specialEvent": null,
   "version": "v1.0.28"
 };
