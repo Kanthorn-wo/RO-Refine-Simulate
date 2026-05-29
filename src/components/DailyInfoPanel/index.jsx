@@ -15,96 +15,53 @@ const DailyInfoPanel = () => {
   }, []);
 
   return (
-    <div style={{
-      background: 'linear-gradient(45deg, #2c3e50, #34495e)',
-      padding: '15px',
-      borderRadius: '10px',
-      margin: '10px 0',
-      color: 'white',
-      border: '1px solid #4a5568'
-    }}>
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '10px'
-      }}>
-        <h3 style={{ margin: 0, color: '#ffd700' }}>📊 ข้อมูลประจำวัน</h3>
+    <div className="rounded-2xl border border-slate-600/60 bg-gradient-to-br from-slate-800 to-slate-700 p-4 text-white shadow-lg shadow-black/30">
+      <div className="mb-2.5 flex items-center justify-between">
+        <h3 className="m-0 text-yellow-300">📊 ข้อมูลประจำวัน</h3>
         <button
           onClick={() => setShowDetails(!showDetails)}
-          style={{
-            background: 'transparent',
-            border: '1px solid #ffd700',
-            color: '#ffd700',
-            padding: '5px 10px',
-            borderRadius: '5px',
-            cursor: 'pointer'
-          }}
+          className="rounded-md border border-yellow-300 bg-transparent px-2.5 py-1 text-sm text-yellow-300 transition-colors hover:bg-yellow-300/10"
         >
           {showDetails ? '▲ ซ่อน' : '▼ แสดง'}
         </button>
       </div>
 
-      <div style={{ marginBottom: '10px' }}>
-        <span style={{ color: '#81c784' }}>{dailyData.randomTip}</span>
+      <div className="mb-2.5">
+        <span className="text-green-300">{dailyData.randomTip}</span>
       </div>
 
       {dailyData.specialEvent && (
-        <div style={{
-          background: 'rgba(255, 215, 0, 0.1)',
-          padding: '8px',
-          borderRadius: '5px',
-          margin: '8px 0',
-          border: '1px solid #ffd700',
-          color: '#ffd700'
-        }}>
+        <div className="my-2 rounded-md border border-yellow-300 bg-yellow-300/10 p-2 text-yellow-300">
           {dailyData.specialEvent}
         </div>
       )}
 
       {showDetails && (
-        <div style={{
-          marginTop: '15px',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '10px'
-        }}>
-          <div style={{ background: 'rgba(255,255,255,0.1)', padding: '10px', borderRadius: '5px' }}>
-            <div style={{ color: '#90caf9' }}>🎯 การตีบวกวันนี้</div>
-            <div style={{ fontSize: '1.2em', fontWeight: 'bold' }}>{stats.totalRefines}</div>
+        <div className="mt-4 grid gap-2.5 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]">
+          <div className="rounded-md bg-white/10 p-2.5">
+            <div className="text-sky-300">🎯 การตีบวกวันนี้</div>
+            <div className="text-lg font-bold">{stats.totalRefines}</div>
           </div>
-          <div style={{ background: 'rgba(255,255,255,0.1)', padding: '10px', borderRadius: '5px' }}>
-            <div style={{ color: '#a5d6a7' }}>✅ อัตราสำเร็จเฉลี่ย</div>
-            <div style={{ fontSize: '1.2em', fontWeight: 'bold' }}>{stats.successRate}</div>
+          <div className="rounded-md bg-white/10 p-2.5">
+            <div className="text-green-300">✅ อัตราสำเร็จเฉลี่ย</div>
+            <div className="text-lg font-bold">{stats.successRate}</div>
           </div>
-          <div style={{ background: 'rgba(255,255,255,0.1)', padding: '10px', borderRadius: '5px' }}>
-            <div style={{ color: '#ffab91' }}>🔥 ไอเทมยอดนิยม</div>
-            <div style={{ fontSize: '1.2em', fontWeight: 'bold' }}>{stats.mostPopularItem}</div>
+          <div className="rounded-md bg-white/10 p-2.5">
+            <div className="text-orange-300">🔥 ไอเทมยอดนิยม</div>
+            <div className="text-lg font-bold">{stats.mostPopularItem}</div>
           </div>
-          <div style={{ background: 'rgba(255,255,255,0.1)', padding: '10px', borderRadius: '5px' }}>
-            <div style={{ color: '#f8bbd9' }}>🍀 ชั่วโมงมงคล</div>
-            <div style={{ fontSize: '1.2em', fontWeight: 'bold' }}>{stats.luckyHour}</div>
+          <div className="rounded-md bg-white/10 p-2.5">
+            <div className="text-pink-300">🍀 ชั่วโมงมงคล</div>
+            <div className="text-lg font-bold">{stats.luckyHour}</div>
           </div>
         </div>
       )}
 
-      <div style={{
-        marginTop: '10px',
-        padding: '8px',
-        background: 'rgba(76, 175, 80, 0.2)',
-        borderRadius: '5px',
-        textAlign: 'center',
-        color: '#81c784'
-      }}>
+      <div className="mt-2.5 rounded-md bg-green-500/20 p-2 text-center text-green-300">
         {stats.dailyBonus}
       </div>
 
-      <div style={{
-        marginTop: '10px',
-        textAlign: 'right',
-        fontSize: '0.8em',
-        color: '#bbb'
-      }}>
+      <div className="mt-2.5 text-right text-xs text-slate-400">
         {dailyData.version} | อัพเดต: {new Date(dailyData.lastUpdated).toLocaleString('th-TH')}
       </div>
     </div>
