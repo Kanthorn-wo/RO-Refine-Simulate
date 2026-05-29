@@ -11,26 +11,57 @@ import cashStoneImg from 'assets/images/blacksmith_blessing.png';
 import bsbImg from 'assets/images/blacksmith_blessing.png';
 import { BSB_REQUIRED_NORMAL, BSB_REQUIRED_EVENT } from '../../constants/refineConfig';
 
-// ตารางอัตราสำเร็จการตีบวก (%) แยก rate ปกติ / rate ช่วง event
-// หินปกติ -> RATE_NORMAL, หินแครช -> RATE_EVENT
-const RATE_NORMAL = {
-  armor1:  [100, 100, 100, 100,  60,  40,  40,  20,  20,   9,  20,  20,  16,  16,  15,  15,  14,  14,  10,  10],
-  armor2:  [100, 100, 100,  80,  80,  60,  60,  40,  40,  18,  16,  16,  16,  16,  14,  14,  14,  14,  10,  10],
-  weapon1: [100, 100, 100, 100, 100, 100, 100,  60,  40,  19,  40,  40,  35,  35,  30,  30,  20,  20,  15,  15],
-  weapon2: [100, 100, 100, 100, 100, 100,  60,  50,  20,  19,  40,  40,  35,  35,  30,  30,  20,  20,  15,  15],
-  weapon3: [100, 100, 100, 100, 100,  60,  50,  20,  20,  19,  40,  40,  35,  35,  30,  30,  20,  20,  15,  15],
-  weapon4: [100, 100, 100, 100,  60,  40,  40,  20,  20,   9,  20,  20,  16,  16,  15,  15,  14,  14,  10,  10],
-  weapon5: [100, 100, 100,  80,  80,  60,  60,  40,  40,  18,  16,  16,  16,  16,  14,  14,  14,  14,  10,  10],
+// ตารางอัตราสำเร็จการตีบวก (%) — 4 ชุด ตามแกน: มี/ไม่มี event × หินปกติ/หินแครช (Cash)
+// index 0 = ระดับ +1 ... index 19 = ระดับ +20
+//  - noevent: รูป "แร่ธรรมดา" (normal) และ "HD/Enriched" (cash)
+//  - event:   รูป Grade & Refine Rate Up (ตารางซ้าย = normal, ตารางขวา = cash)
+// หมายเหตุ: คู่ noevent ในต้นฉบับไม่มีคอลัมน์ Armor Lv.2 / Weapon Lv.5 จึงใช้เรทเดิม (คัดจากคู่ event)
+const RATE_TABLES = {
+  noevent: {
+    normal: {
+      armor1:  [100, 100, 100, 100,  60,  40,  40,  20,  20,   9,   8,   8,   8,   8,   7,   7,   7,   7,   5,   5],
+      armor2:  [100, 100, 100,  80,  80,  60,  60,  40,  40,  18,  16,  16,  16,  16,  14,  14,  14,  14,  10,  10],
+      weapon1: [100, 100, 100, 100, 100, 100, 100,  60,  40,  19,  18,  18,  18,  18,  18,  17,  17,  17,  15,  15],
+      weapon2: [100, 100, 100, 100, 100, 100,  60,  40,  20,  19,  18,  18,  18,  18,  18,  17,  17,  17,  15,  15],
+      weapon3: [100, 100, 100, 100, 100,  60,  50,  20,  20,  19,  18,  18,  18,  18,  18,  17,  17,  17,  15,  15],
+      weapon4: [100, 100, 100, 100,  60,  40,  40,  20,  20,   9,   8,   8,   8,   8,   7,   7,   7,   7,   5,   5],
+      weapon5: [100, 100, 100,  80,  80,  60,  60,  40,  40,  18,  16,  16,  16,  16,  14,  14,  14,  14,  10,  10],
+    },
+    cash: {
+      armor1:  [100, 100, 100, 100,  90,  70,  70,  40,  40,  20,   8,   8,   8,   8,   7,   7,   7,   7,   5,   5],
+      armor2:  [100, 100, 100,  95,  85,  70,  65,  55,  45,  25,  20,  20,  20,  20,  15,  15,  15,  15,  10,  10],
+      weapon1: [100, 100, 100, 100, 100, 100, 100,  90,  70,  30,  18,  18,  18,  18,  18,  17,  17,  17,  15,  15],
+      weapon2: [100, 100, 100, 100, 100, 100,  90,  70,  40,  30,  18,  18,  18,  18,  18,  17,  17,  17,  15,  15],
+      weapon3: [100, 100, 100, 100, 100,  90,  80,  40,  40,  30,  18,  18,  18,  18,  18,  17,  17,  17,  15,  15],
+      weapon4: [100, 100, 100, 100,  90,  70,  70,  40,  40,  20,   8,   8,   8,   8,   7,   7,   7,   7,   5,   5],
+      weapon5: [100, 100, 100,  95,  85,  70,  65,  55,  45,  25,  20,  20,  20,  20,  15,  15,  15,  15,  10,  10],
+    },
+  },
+  event: {
+    normal: {
+      armor1:  [100, 100, 100, 100,  60,  40,  40,  20,  20,   9,  20,  20,  16,  16,  15,  15,  14,  14,  10,  10],
+      armor2:  [100, 100, 100,  80,  80,  60,  60,  40,  40,  18,  16,  16,  16,  16,  14,  14,  14,  14,  10,  10],
+      weapon1: [100, 100, 100, 100, 100, 100, 100,  60,  40,  19,  40,  40,  35,  35,  30,  30,  20,  20,  15,  15],
+      weapon2: [100, 100, 100, 100, 100, 100,  60,  50,  20,  19,  40,  40,  35,  35,  30,  30,  20,  20,  15,  15],
+      weapon3: [100, 100, 100, 100, 100,  60,  50,  20,  20,  19,  40,  40,  35,  35,  30,  30,  20,  20,  15,  15],
+      weapon4: [100, 100, 100, 100,  60,  40,  40,  20,  20,   9,  20,  20,  16,  16,  15,  15,  14,  14,  10,  10],
+      weapon5: [100, 100, 100,  80,  80,  60,  60,  40,  40,  18,  16,  16,  16,  16,  14,  14,  14,  14,  10,  10],
+    },
+    cash: {
+      armor1:  [100, 100, 100, 100,  95,  80,  80,  60,  50,  35,  20,  20,  16,  16,  15,  15,  14,  14,  10,  10],
+      armor2:  [100, 100, 100,  95,  85,  70,  65,  55,  45,  25,  20,  20,  20,  20,  15,  15,  15,  15,  10,  10],
+      weapon1: [100, 100, 100, 100, 100, 100, 100,  95,  85,  55,  40,  40,  35,  35,  30,  30,  20,  20,  15,  15],
+      weapon2: [100, 100, 100, 100, 100, 100,  95,  85,  60,  45,  40,  40,  35,  35,  30,  30,  20,  20,  15,  15],
+      weapon3: [100, 100, 100, 100, 100,  95,  90,  70,  60,  45,  40,  40,  35,  35,  30,  30,  20,  20,  15,  15],
+      weapon4: [100, 100, 100, 100,  95,  80,  80,  60,  50,  35,  20,  20,  16,  16,  15,  15,  14,  14,  10,  10],
+      weapon5: [100, 100, 100,  95,  85,  70,  65,  55,  45,  25,  20,  20,  20,  20,  15,  15,  15,  15,  10,  10],
+    },
+  },
 };
-const RATE_EVENT = {
-  armor1:  [100, 100, 100, 100,  95,  80,  80,  60,  50,  35,  20,  20,  16,  16,  15,  15,  14,  14,  10,  10],
-  armor2:  [100, 100, 100,  95,  85,  70,  65,  55,  45,  25,  20,  20,  20,  20,  15,  15,  15,  15,  10,  10],
-  weapon1: [100, 100, 100, 100, 100, 100, 100,  95,  85,  55,  40,  40,  35,  35,  30,  30,  20,  20,  15,  15],
-  weapon2: [100, 100, 100, 100, 100, 100,  95,  85,  60,  45,  40,  40,  35,  35,  30,  30,  20,  20,  15,  15],
-  weapon3: [100, 100, 100, 100, 100,  95,  90,  70,  60,  45,  40,  40,  35,  35,  30,  30,  20,  20,  15,  15],
-  weapon4: [100, 100, 100,  95,  85,  70,  65,  55,  45,  25,  20,  20,  20,  20,  15,  15,  15,  15,  10,  10],
-  weapon5: [100, 100, 100,  95,  85,  70,  65,  55,  45,  25,  20,  20,  20,  20,  15,  15,  15,  15,  10,  10],
-};
+
+// เลือกตาราง rate ตามสถานะ event และชนิดหิน
+const getRateTable = (isEventRate, useCash) =>
+  RATE_TABLES[isEventRate ? 'event' : 'noevent'][useCash ? 'cash' : 'normal'];
 // API ของ divine-pride สำหรับค้นไอเทมจาก ID
 // หมายเหตุ: เว็บเป็น static site คีย์นี้จะถูก build ติดไปกับ JS และเป็นสาธารณะ
 const DIVINE_PRIDE_API_KEY = '7a8b539b5e6171b362a6ef264e43dffc';
@@ -43,6 +74,62 @@ const ITEM_TYPE_LABELS = {
   weapon3: 'Weapon Lv.3',
   weapon4: 'Weapon Lv.4',
   weapon5: 'Weapon Lv.5',
+};
+
+// แร่ที่ใช้ตีบวกตามประเภทไอเท็ม (ประเภททั่วไป): low = +1-10, high = +11-20
+const ORE_BY_TYPE = {
+  armor1:  { low: 'Elunium',      high: 'Carnium' },
+  weapon1: { low: 'Phracon',      high: 'Bradium' },
+  weapon2: { low: 'Emveretarcon', high: 'Bradium' },
+  weapon3: { low: 'Oridecon',     high: 'Bradium' },
+  weapon4: { low: 'Oridecon',     high: 'Bradium' },
+};
+
+// แร่พิเศษของ Weapon Lv.5 / Armor Lv.2 — แยก 3 ช่วงระดับ × ชนิดหิน (normal = หินปกติ, cash = หินแครช)
+// ช่วง: low = +0-10, mid = +11-14, high = +15-20
+const SPECIAL_ORE = {
+  weapon5: {
+    low:  { normal: 'Etherdeocon',      cash: 'Enriched Etherdeocon' },
+    mid:  { normal: 'HD Etherdeocon',   cash: 'Ether Bradium' },
+    high: { normal: 'HD Ether Bradium', cash: 'Ether Bradium' },
+  },
+  armor2: {
+    low:  { normal: 'Ethernium',        cash: 'Enriched Ethernium' },
+    mid:  { normal: 'HD Ethernium',     cash: 'Ether Carnium' },
+    high: { normal: 'HD Ether Carnium', cash: 'Ether Carnium' },
+  },
+};
+
+// สีจุดนำหน้าแร่แต่ละชนิด (ใช้ในชิป/สรุป)
+const ORE_COLORS = {
+  Elunium: 'bg-sky-400',
+  Carnium: 'bg-cyan-300',
+  Phracon: 'bg-slate-300',
+  Emveretarcon: 'bg-zinc-300',
+  Oridecon: 'bg-orange-400',
+  Bradium: 'bg-rose-400',
+  Etherdeocon: 'bg-amber-400',
+  'Enriched Etherdeocon': 'bg-amber-300',
+  'HD Etherdeocon': 'bg-yellow-400',
+  'Ether Bradium': 'bg-red-400',
+  'HD Ether Bradium': 'bg-red-300',
+  Ethernium: 'bg-teal-300',
+  'Enriched Ethernium': 'bg-teal-200',
+  'HD Ethernium': 'bg-emerald-400',
+  'Ether Carnium': 'bg-emerald-300',
+  'HD Ether Carnium': 'bg-green-300',
+};
+
+// แร่ที่ใช้ตามประเภทไอเท็ม + ระดับปัจจุบัน (level = +N ที่กำลังจะตีต่อ) + ชนิดหิน
+const getOreName = (itemType, level, useCash) => {
+  const special = SPECIAL_ORE[itemType];
+  if (special) {
+    const range = level <= 10 ? 'low' : level <= 14 ? 'mid' : 'high';
+    return special[range][useCash ? 'cash' : 'normal'];
+  }
+  const m = ORE_BY_TYPE[itemType];
+  if (!m) return null;
+  return level <= 10 ? m.low : m.high;
 };
 
 // ฟังก์ชันสร้าง path ของภาพแต่ละเฟรมแบบ dynamic
@@ -133,8 +220,7 @@ const Container = () => {
   const [log, setLog] = useState([]); // log สำหรับแสดงผลทุก action
   const [useBSB, setUseBSB] = useState(false);
   const [itemType, setItemType] = useState('armor1'); // เพิ่ม state สำหรับประเภทไอเท็ม
-  const [isEventRate, setIsEventRate] = useState(false); // false = Normal Rate, true = Event Rate Up
-  const rateTableType = isEventRate ? 'event' : 'normal'; // 'normal' หรือ 'event'
+  const [isEventRate, setIsEventRate] = useState(false); // false = ไม่มี event, true = Event Rate Up
   const bsbTable = isEventRate ? BSB_REQUIRED_EVENT : BSB_REQUIRED_NORMAL;
   const intervalRef = useRef(null);
 
@@ -229,6 +315,7 @@ const Container = () => {
   const [normalStoneUsed, setNormalStoneUsed] = useState(0);
   const [cashStoneUsed, setCashStoneUsed] = useState(0);
   const [bsbUsedTotal, setBsbUsedTotal] = useState(0);
+  const [oreUsed, setOreUsed] = useState({}); // นับแร่ที่ใช้ แยกตามชื่อแร่
   // สกุลเงินที่ใช้คำนวณราคา ('zenny' | 'baht') และราคาต่อหน่วยของแต่ละไอเทม
   const [currency, setCurrency] = useState('zenny');
   const [prices, setPrices] = useState({ normal: '', cash: '', bsb: '' });
@@ -251,7 +338,7 @@ const Container = () => {
     // คำนวณ level ปัจจุบัน (stack.length + 1)
     const currentLevel = stack.length + 1;
     // ดึงอัตราสำเร็จจากตารางตามประเภทและชนิดหิน
-    const rateArr = isEventRate ? RATE_EVENT : RATE_NORMAL;
+    const rateArr = getRateTable(isEventRate, useCash);
     const rate = rateArr[itemType][Math.min(currentLevel - 1, 19)] / 100;
     const roll = Math.random();
     const isSuccess = roll < rate;
@@ -275,6 +362,11 @@ const Container = () => {
       setCashStoneUsed(prev => prev + 1);
     } else {
       setNormalStoneUsed(prev => prev + 1);
+    }
+    // นับแร่ที่ใช้ตามประเภทไอเท็มและระดับเป้าหมาย
+    const oreName = getOreName(itemType, stack.length, useCash);
+    if (oreName) {
+      setOreUsed(prev => ({ ...prev, [oreName]: (prev[oreName] || 0) + 1 }));
     }
     if (!isSuccess && canUseBSB) {
       setBsbUsedTotal(prev => prev + bsbUsed);
@@ -442,7 +534,9 @@ const Container = () => {
   // คำนวณอัตราสำเร็จปัจจุบัน
   const currentLevel = stack.length + 1;
   // ดึงอัตราสำเร็จจากตารางตามประเภทและชนิดหิน
-  const currentRate = (rateTableType === 'event' ? RATE_EVENT : RATE_NORMAL)[itemType][Math.min(currentLevel - 1, 19)];
+  const currentRate = getRateTable(isEventRate, useCash)[itemType][Math.min(currentLevel - 1, 19)];
+  // แร่ที่จะใช้ในการตีครั้งถัดไป (ตามระดับปัจจุบัน + ชนิดหิน)
+  const nextOre = getOreName(itemType, stack.length, useCash);
 
   // preload all frames for each mode
   const waitingFrames = getAllFrameSrcs('waiting');
@@ -487,7 +581,7 @@ const Container = () => {
       <div className="rounded-2xl border border-slate-700/60 bg-[#181a20]/90 p-4 shadow-lg shadow-black/30">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <b className="text-amber-300">
-            ตารางอัตราสำเร็จการตีบวก (%) — {isEventRate ? 'Event Rate Up' : 'Normal Rate'}
+            ตารางอัตราสำเร็จการตีบวก (%) — {isEventRate ? 'Event Rate Up' : 'ไม่มี Event'} · {useCash ? 'หินแครช (Cash)' : 'หินปกติ'}
           </b>
           <div role="group" aria-label="Rate mode" className="inline-flex overflow-hidden rounded-lg border border-slate-600">
             <button
@@ -497,7 +591,7 @@ const Container = () => {
                 !isEventRate ? 'bg-amber-400 font-bold text-slate-900' : 'bg-transparent text-slate-400 hover:text-slate-200'
               }`}
             >
-              Normal Rate
+              ไม่มี Event
             </button>
             <button
               type="button"
@@ -531,7 +625,7 @@ const Container = () => {
                         type === itemType ? 'font-bold text-white' : 'text-slate-400'
                       }`}
                     >
-                      {(isEventRate ? RATE_EVENT : RATE_NORMAL)[type][i]}%
+                      {getRateTable(isEventRate, useCash)[type][i]}%
                     </td>
                   ))}
                 </tr>
@@ -793,6 +887,14 @@ const Container = () => {
           {mode === 'fail' && renderFrames(failFrames, 'fail')}
         </div>
 
+        {/* แร่ที่จะใช้ในการตีครั้งถัดไป (ตามระดับปัจจุบัน + ชนิดหิน) */}
+        {nextOre && (
+          <div className="inline-flex items-center gap-2 rounded-full border border-slate-600 bg-[#0f1117] px-3 py-1.5 text-sm">
+            <span className={`h-2.5 w-2.5 rounded-full ${ORE_COLORS[nextOre] || 'bg-slate-400'}`} />
+            <span className="text-slate-400">แร่ที่จะใช้:</span>
+            <span className="font-semibold text-amber-300">{nextOre}</span>
+          </div>
+        )}
         <div className="flex min-h-[48px] w-full items-center justify-center gap-3">
           {mode === 'fail' && (
             <button
@@ -859,10 +961,15 @@ const Container = () => {
         const num = (v) => Number(v) || 0;
         const unitLabel = currency === 'baht' ? '฿' : 'Zenny';
         const fmt = (v) => (currency === 'baht' ? `฿${num(v).toLocaleString('en-US')}` : `${num(v).toLocaleString('en-US')} Zenny`);
+        // แถวแร่ที่ใช้ (เฉพาะที่ใช้ไปแล้ว) ต่อท้ายแถวหิน/BSB
+        const oreRows = Object.entries(oreUsed)
+          .filter(([, qty]) => qty > 0)
+          .map(([name, qty]) => ({ key: `ore:${name}`, label: name, unit: 'ก้อน', qty, oreColor: ORE_COLORS[name] || 'bg-slate-400' }));
         const rows = [
           { key: 'normal', label: 'หินตีบวกธรรมดา', unit: 'ก้อน', qty: normalStoneUsed, icon: normalStoneImg },
           { key: 'cash', label: 'หินตีบวก Cash', unit: 'ก้อน', qty: cashStoneUsed, icon: cashStoneImg },
           { key: 'bsb', label: 'Black Smith Blessing', unit: 'ชิ้น', qty: bsbUsedTotal, icon: bsbImg },
+          ...oreRows,
         ];
         const grandTotal = rows.reduce((sum, r) => sum + r.qty * num(prices[r.key]), 0);
         return (
@@ -893,7 +1000,13 @@ const Container = () => {
             <ul className="space-y-2">
               {rows.map((r) => (
                 <li key={r.key} className="flex flex-wrap items-center gap-x-2 gap-y-1.5 rounded-lg bg-[#0f1117] px-3 py-2.5 text-sm">
-                  <img src={r.icon} alt={r.key} className="h-[22px] w-[22px] object-contain" />
+                  {r.icon ? (
+                    <img src={r.icon} alt={r.key} className="h-[22px] w-[22px] object-contain" />
+                  ) : (
+                    <span className="flex h-[22px] w-[22px] items-center justify-center">
+                      <span className={`h-3 w-3 rounded-full ${r.oreColor}`} />
+                    </span>
+                  )}
                   <span className="min-w-[120px] font-medium text-amber-400">{r.label}:</span>
                   <span className="font-bold text-white">{r.qty}</span>
                   <span className="text-slate-400">{r.unit}</span>
@@ -902,7 +1015,7 @@ const Container = () => {
                     type="number"
                     min="0"
                     inputMode="numeric"
-                    value={prices[r.key]}
+                    value={prices[r.key] ?? ''}
                     onChange={(e) => setPrices((p) => ({ ...p, [r.key]: e.target.value }))}
                     placeholder="ราคา/หน่วย"
                     className="w-24 rounded-md border border-slate-600 bg-[#181a20] px-2 py-1 text-right text-white outline-none transition-colors focus-visible:border-amber-400 focus-visible:ring-2 focus-visible:ring-amber-300/30 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
