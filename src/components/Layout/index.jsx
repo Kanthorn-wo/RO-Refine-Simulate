@@ -81,7 +81,23 @@ const getPlannedStone = (rules, level) => {
   for (const r of [...rules].sort((a, b) => a.from - b.from)) {
     if (r.from <= level) stone = r.stone;
   }
-  if (stone === 'enriched' && level > 10) stone = 'normal'; // Enriched ใช้ได้ +1-10 เท่านั้น
+  if (stone === 'enriched' && level > 10) stone = 'normal';
+  return stone;
+};
+
+// ระดับต่ำสุดที่หินชนิดนี้ใช้ได้จริงในเกม (level = stack.length ก่อนตี)
+const getStoneMinLevel = (stone, itemType) => {
+  const isSpecial = itemType === 'weapon5' || itemType === 'armor2';
+  if (stone === 'hd') return isSpecial ? 10 : 7;
+  return 0;
+};
+
+// validate หินที่ auto วางแผนไว้ว่าใช้ได้จริงที่ระดับนี้ไหม — ถ้าไม่ fallback เป็น normal
+const getEffectiveStone = (stone, itemType, level) => {
+  if (level < getStoneMinLevel(stone, itemType)) return 'normal';
+  const isSpecial = itemType === 'weapon5' || itemType === 'armor2';
+  if (stone === 'enriched' && level >= 10) return 'normal';
+  if (stone === 'hd' && isSpecial && level < 10) return 'normal';
   return stone;
 };
 // API ของ divine-pride สำหรับค้นไอเทมจาก ID
@@ -108,18 +124,17 @@ const ORE_BY_TYPE = {
   weapon4: { normal: { low: 'Oridecon',     high: 'Bradium' }, cash: { low: 'HD Oridecon', high: 'HD Bradium' }, enriched: { low: 'Enriched Oridecon' } },
 };
 
-// แร่พิเศษของ Weapon Lv.5 / Armor Lv.2 — แยก 3 ช่วงระดับ × ชนิดหิน (normal = หินปกติ, cash = หินแครช)
-// ช่วง: low = +0-10, mid = +11-14, high = +15-20
+// แร่พิเศษของ Weapon Lv.5 / Armor Lv.2 — แยก 2 ช่วง × 3 ชนิดหิน
+// low (+0~9): normal(-3), enriched(-1), hd=ไม่มี
+// high (+10+): normal(-3), enriched=ไม่มี, hd=แตก
 const SPECIAL_ORE = {
   weapon5: {
-    low:  { normal: 'Etherdeocon',      cash: 'Enriched Etherdeocon' },
-    mid:  { normal: 'HD Etherdeocon',   cash: 'Ether Bradium' },
-    high: { normal: 'HD Ether Bradium', cash: 'Ether Bradium' },
+    low:  { normal: 'Etherdeocon',    enriched: 'Enriched Etherdeocon', hd: null },
+    high: { normal: 'Etel Bradium',   enriched: null,                   hd: 'HD Etel Bradium' },
   },
   armor2: {
-    low:  { normal: 'Ethernium',        cash: 'Enriched Ethernium' },
-    mid:  { normal: 'HD Ethernium',     cash: 'Ether Carnium' },
-    high: { normal: 'HD Ether Carnium', cash: 'Ether Carnium' },
+    low:  { normal: 'Ethernium',      enriched: 'Enriched Ethernium',   hd: null },
+    high: { normal: 'Etel Carnium',   enriched: null,                   hd: 'HD Etel Carnium' },
   },
 };
 
@@ -139,14 +154,12 @@ const ORE_COLORS = {
   'Enriched Elunium': 'bg-indigo-200',
   Etherdeocon: 'bg-amber-400',
   'Enriched Etherdeocon': 'bg-amber-300',
-  'HD Etherdeocon': 'bg-yellow-400',
-  'Ether Bradium': 'bg-red-400',
-  'HD Ether Bradium': 'bg-red-300',
   Ethernium: 'bg-teal-300',
   'Enriched Ethernium': 'bg-teal-200',
-  'HD Ethernium': 'bg-emerald-400',
-  'Ether Carnium': 'bg-emerald-300',
-  'HD Ether Carnium': 'bg-green-300',
+  'Etel Bradium': 'bg-red-400',
+  'HD Etel Bradium': 'bg-red-300',
+  'Etel Carnium': 'bg-emerald-300',
+  'HD Etel Carnium': 'bg-green-300',
 };
 
 // รูปไอคอนแร่ (ถ้าไม่มีรูปจะ fallback เป็นจุดสีจาก ORE_COLORS)
@@ -163,21 +176,32 @@ const ORE_IMAGES = {
   'HD Carnium': '/images/ores/hd-carnium.png',
   'Enriched Oridecon': '/images/ores/enriched-oridecon.png',
   'Enriched Elunium': '/images/ores/enriched-elunium.png',
+  Etherdeocon: '/images/ores/etherdeocon.png',
+  'Enriched Etherdeocon': '/images/ores/enriched-etherdeocon.png',
+  Ethernium: '/images/ores/ethernium.png',
+  'Enriched Ethernium': '/images/ores/enriched-ethernium.png',
+  'Etel Bradium': '/images/ores/etel-bradium.png',
+  'HD Etel Bradium': '/images/ores/hd-etel-bradium.png',
+  'Etel Carnium': '/images/ores/etel-carnium.png',
+  'HD Etel Carnium': '/images/ores/hd-etel-carnium.png',
 };
 
-// แร่ที่ใช้ตามประเภทไอเท็ม + ระดับปัจจุบัน (level = +N ที่กำลังจะตีต่อ) + ชนิดหิน
+// แร่ที่ใช้ตามประเภทไอเท็ม + ระดับปัจจุบัน (level = stack.length = ระดับก่อนตี) + ชนิดหิน
+// boundary: level < 10 = low range (+0→+1 ถึง +9→+10), level >= 10 = high range (+10→+11 เป็นต้นไป)
 const getOreName = (itemType, level, useCash, useEnriched) => {
   const special = SPECIAL_ORE[itemType];
   if (special) {
-    const range = level <= 10 ? 'low' : level <= 14 ? 'mid' : 'high';
-    return special[range][useCash ? 'cash' : 'normal'];
+    const set = level < 10 ? special.low : special.high;
+    if (useEnriched && set.enriched) return set.enriched;
+    if (useCash && set.hd) return set.hd;
+    return set.normal; // fallback: normal ถ้าหินที่เลือกไม่มีในช่วงนี้
   }
   const m = ORE_BY_TYPE[itemType];
   if (!m) return null;
-  // Enriched ใช้เฉพาะ +1-10 (ไม่มีสาย high) — เกิน 10 fallback เป็นหินปกติ high
-  if (useEnriched && m.enriched && level <= 10) return m.enriched.low;
+  // Enriched ใช้เฉพาะ level < 10 — หลังจากนั้น fallback เป็นหินปกติ high
+  if (useEnriched && m.enriched && level < 10) return m.enriched.low;
   const set = useCash ? m.cash : m.normal;
-  return level <= 10 ? set.low : set.high;
+  return level < 10 ? set.low : set.high; // FIX: เดิม <= 10 ทำให้ +10→+11 ใช้หินผิด
 };
 
 // ฟังก์ชันสร้าง path ของภาพแต่ละเฟรมแบบ dynamic
@@ -234,6 +258,35 @@ const renderColoredLog = (msg) => {
       : <React.Fragment key={i}>{part}</React.Fragment>;
   });
 };
+
+// ตารางอ้างอิงหินตีบวกทั้งหมด — ไม่ซ้ำซ้อน, แยกกลุ่มด้วย section header
+// note: '+โอกาส' = Enriched เพิ่มอัตราสำเร็จ
+const STONE_REFERENCE = [
+  { section: 'Weapon Lv.1 ~ 4' },
+  { ore: 'Phracon',              for: 'Weapon Lv.1',   range: '+1~+10',  fail: 'ไอเทมหาย',  note: '',        img: '/images/ores/phracon.png' },
+  { ore: 'Emveretarcon',         for: 'Weapon Lv.2',   range: '+1~+10',  fail: 'ไอเทมหาย',  note: '',        img: '/images/ores/emveretarcon.png' },
+  { ore: 'Oridecon',             for: 'Weapon Lv.3~4', range: '+1~+10',  fail: 'ไอเทมหาย',  note: '',        img: '/images/ores/oridecon.png' },
+  { ore: 'Enriched Oridecon',    for: 'Weapon Lv.1~4', range: '+1~+10',  fail: 'ไอเทมหาย',  note: '+โอกาส', img: '/images/ores/enriched-oridecon.png' },
+  { ore: 'HD Oridecon',          for: 'Weapon Lv.1~4', range: '+7~+10',  fail: 'ลดระดับ −1', note: '',        img: '/images/ores/hd-oridecon.png' },
+  { ore: 'Bradium',              for: 'Weapon Lv.1~4', range: '+11~+20', fail: 'ไอเทมหาย',  note: '',        img: '/images/ores/bradium.png' },
+  { ore: 'HD Bradium',           for: 'Weapon Lv.1~4', range: '+11~+20', fail: 'ลดระดับ −1', note: '',        img: '/images/ores/hd-bradium.png' },
+  { section: 'Weapon Lv.5' },
+  { ore: 'Etherdeocon',          for: 'Weapon Lv.5',   range: '+1~+10',  fail: 'ลดระดับ −3', note: '',        img: '/images/ores/etherdeocon.png' },
+  { ore: 'Enriched Etherdeocon', for: 'Weapon Lv.5',   range: '+1~+10',  fail: 'ลดระดับ −1', note: '+โอกาส', img: '/images/ores/enriched-etherdeocon.png' },
+  { ore: 'Etel Bradium',         for: 'Weapon Lv.5',   range: '+11~+20', fail: 'ไอเทมหาย',  note: '',        img: '/images/ores/etel-bradium.png' },
+  { ore: 'HD Etel Bradium',      for: 'Weapon Lv.5',   range: '+11~+20', fail: 'ไอเทมหาย',  note: '',        img: '/images/ores/hd-etel-bradium.png' },
+  { section: 'Armor Lv.1' },
+  { ore: 'Elunium',              for: 'Armor Lv.1',    range: '+1~+10',  fail: 'ไอเทมหาย',  note: '',        img: '/images/ores/elunium.png' },
+  { ore: 'Enriched Elunium',     for: 'Armor Lv.1',    range: '+1~+10',  fail: 'ไอเทมหาย',  note: '+โอกาส', img: '/images/ores/enriched-elunium.png' },
+  { ore: 'HD Elunium',           for: 'Armor Lv.1',    range: '+7~+10',  fail: 'ลดระดับ −1', note: '',        img: '/images/ores/hd-elunium.png' },
+  { ore: 'Carnium',              for: 'Armor Lv.1',    range: '+11~+20', fail: 'ไอเทมหาย',  note: '',        img: '/images/ores/carnium.png' },
+  { ore: 'HD Carnium',           for: 'Armor Lv.1',    range: '+11~+20', fail: 'ลดระดับ −1', note: '',        img: '/images/ores/hd-carnium.png' },
+  { section: 'Armor Lv.2' },
+  { ore: 'Ethernium',            for: 'Armor Lv.2',    range: '+1~+10',  fail: 'ลดระดับ −3', note: '',        img: '/images/ores/ethernium.png' },
+  { ore: 'Enriched Ethernium',   for: 'Armor Lv.2',    range: '+1~+10',  fail: 'ลดระดับ −1', note: '+โอกาส', img: '/images/ores/enriched-ethernium.png' },
+  { ore: 'Etel Carnium',         for: 'Armor Lv.2',    range: '+11~+20', fail: 'ไอเทมหาย',  note: '',        img: '/images/ores/etel-carnium.png' },
+  { ore: 'HD Etel Carnium',      for: 'Armor Lv.2',    range: '+11~+20', fail: 'ไอเทมหาย',  note: '',        img: '/images/ores/hd-etel-carnium.png' },
+];
 
 // Toggle switch แบบ reusable
 const Toggle = ({ checked, onChange, disabled = false, activeColor = 'bg-amber-400' }) => (
@@ -374,6 +427,7 @@ const Container = () => {
   const [apiLoading, setApiLoading] = useState(false);
   const [apiError, setApiError] = useState('');
   const [showItemInfo, setShowItemInfo] = useState(false); // accordion ข้อมูลไอเทม
+  const [showStoneModal, setShowStoneModal] = useState(false);
   // ระบบ Auto ตีบวก: ตีอัตโนมัติจนถึงเป้าหมายที่ตั้งไว้
   const [autoRefine, setAutoRefine] = useState(false); // เปิด/ปิดโหมด auto
   const [autoTarget, setAutoTarget] = useState(10); // เป้าหมายระดับ (+N) ที่จะตีถึง
@@ -430,29 +484,19 @@ const Container = () => {
       // ใช้ BSB ป้องกันการลดระดับและการหายของไอเทม (ทั้งหินธรรมดาและแครช)
       logMsg = `+${stack.length} → +${stack.length} : ล้มเหลว (ใช้ BSB ${bsbUsed} ชิ้น ป้องกัน${useCash ? 'ลดระดับ' : 'ไอเทมหาย'})`;
     } else if (itemType === 'weapon5' || itemType === 'armor2') {
-      // เงื่อนไขพิเศษสำหรับ Weapon Lv.5 และ Armor Lv.2
       if (stack.length >= 10) {
-        // +10 ขึ้นไป: ล้มเหลว = ไอเทมถูกทำลายทันที ไม่ว่าจะใช้หินชนิดใด
-        // (กันได้ด้วย BSB ในช่วงที่ใช้ได้ +7→+14 ซึ่งถูกเช็คก่อนหน้านี้แล้ว)
+        // High range (+10+): ล้มแล้วหายทุกกรณี (ทั้ง Etel ปกติ และ HD Etel)
+        // BSB ในช่วงที่ใช้ได้จะถูกเช็คและจัดการก่อนถึงบรรทัดนี้แล้ว
         setIsItemLost(true);
         newStack = [];
         logMsg = `+${stack.length} → +0 : ล้มเหลว (ไอเทมหาย)`;
         playFailSound = true;
-      } else if (useCash && stack.length > 0) {
-        // หินแครช ลด 1 ระดับ
-        newStack = newStack.slice(0, -1);
-        logMsg = `+${stack.length} → +${stack.length - 1} : ล้มเหลว (ลดระดับ 1 ขั้น)`;
-      } else if (!useCash && stack.length > 0) {
-        // หินธรรมดา ลด 3 ระดับ
-        const newLevel = Math.max(0, stack.length - 3);
+      } else {
+        // Low range (+0~9): ไม่แตกทุกกรณี — enriched=-1, normal=-3, HD fallback เป็น normal=-3
+        const drop = useEnriched ? 1 : 3;
+        const newLevel = Math.max(0, stack.length - drop);
         newStack = newStack.slice(0, newLevel);
-        logMsg = `+${stack.length} → +${newLevel} : ล้มเหลว (ลดระดับ 3 ขั้น)`;
-      } else if (!useCash && stack.length === 0) {
-        // กรณี +0 อยู่แล้ว (กัน array underflow)
-        setIsItemLost(true);
-        newStack = [];
-        logMsg = `+0 → +0 : ล้มเหลว (ไอเทมหาย)`;
-        playFailSound = true;
+        logMsg = `+${stack.length} → +${newLevel} : ล้มเหลว (ลดระดับ ${drop} ขั้น)`;
       }
     } else if (useCash && stack.length > 0) {
       // หินแครชไม่ใช้ BSB - ลดระดับ (ประเภทอื่น)
@@ -510,11 +554,16 @@ const Container = () => {
     if (!autoRunning) return;
     if (isPlaying || mode === 'process') return; // รอ animation/เสียงรอบนี้จบก่อน
     // หยุดเมื่อถึงเป้าหมาย
-    if (stack.length >= autoTarget) { setAutoRunning(false); return; }
+    if (stack.length >= autoTarget) {
+      setAutoRunning(false);
+      if (autoUseBSB) setUseBSB(false); // reset BSB ที่ auto เปิดไว้
+      return;
+    }
     // หยุดเมื่อไอเทมหาย (ต้องเริ่มไอเทมใหม่)
     if (isItemLost) { setAutoRunning(false); return; }
     // ปรับชนิดหินตามแผนของระดับถัดไป (currentLevel = stack.length + 1) ก่อน แล้วรอ re-render ค่อยตี
-    const plannedStone = getPlannedStone(autoStoneRules, stack.length + 1);
+    const rawStone = getPlannedStone(autoStoneRules, stack.length + 1);
+    const plannedStone = getEffectiveStone(rawStone, itemType, stack.length);
     const wantCash = plannedStone === 'hd';
     const wantEnriched = plannedStone === 'enriched';
     if (wantCash !== useCash || wantEnriched !== useEnriched) {
@@ -546,23 +595,47 @@ const Container = () => {
   // เริ่ม/หยุด auto ตีบวก
   const handleStartAuto = () => {
     if (autoRunning || isPlaying) return;
-    if (stack.length >= autoTarget) return; // ถึงเป้าหมายอยู่แล้ว
-    setIsItemLost(false); // กันสถานะไอเทมหายค้างทำให้ auto หยุดทันที
+    if (stack.length >= autoTarget) return;
+    // ถ้า animation fail ยังค้างอยู่ (ไม่ใช่ไอเทมหาย) → reset เป็น wait ก่อน ไม่งั้น mode ชนกัน
+    if (mode === 'fail' && !isItemLost) {
+      setMode('wait');
+      setIndex(0);
+      setIsFail(false);
+    }
+    setIsItemLost(false);
     setLastResult(null);
     setAutoRunning(true);
   };
-  const handleStopAuto = () => setAutoRunning(false);
+  const handleStopAuto = () => {
+    setAutoRunning(false);
+    // reset BSB ที่ auto เปิดไว้ กันค้างหลัง auto หยุด
+    if (autoUseBSB) setUseBSB(false);
+  };
 
   // จัดการแผนชนิดหินแต่ละช่วง (auto)
   const updateRuleStone = (id, stone) => setAutoStoneRules(rs => rs.map(r => r.id === id ? { ...r, stone } : r));
+
+  // เมื่อเปลี่ยน itemType ให้ reset rule ที่ stone='hd' แต่ from ยังไม่ถึง minLevel กลับเป็น normal
+  useEffect(() => {
+    setAutoStoneRules(rs => rs.map(r => {
+      if (r.stone === 'hd' && r.from < getStoneMinLevel('hd', itemType)) return { ...r, stone: 'normal' };
+      return r;
+    }));
+  }, [itemType]);
   // แก้ระดับเริ่มของช่วง → บังคับให้มากกว่าช่วงก่อนหน้า และดันช่วงถัด ๆ ให้เพิ่มขึ้นตาม (cascade)
   const updateRuleFrom = (id, newFrom) => setAutoStoneRules(rs => {
     const idx = rs.findIndex(r => r.id === id);
     if (idx <= 0) return rs; // ช่วงแรกล็อคที่ +1
     const next = rs.map(r => ({ ...r }));
     next[idx].from = Math.max(newFrom, next[idx - 1].from + 1);
+    // cascade ช่วงถัดไป
     for (let j = idx + 1; j < next.length; j++) {
       if (next[j].from <= next[j - 1].from) next[j].from = Math.min(next[j - 1].from + 1, 20);
+    }
+    // reset stone ที่ใช้ไม่ได้ที่ from ใหม่
+    for (let j = idx; j < next.length; j++) {
+      if (next[j].stone === 'enriched' && next[j].from >= 10) next[j].stone = 'normal';
+      if (next[j].stone === 'hd' && next[j].from < getStoneMinLevel('hd', itemType)) next[j].stone = 'normal';
     }
     return next;
   });
@@ -619,10 +692,15 @@ const Container = () => {
     setUseEnriched(false); // weapon5/armor2 ไม่มี Enriched และเริ่มไอเทมใหม่จึงรีเซ็ต
   };
 
-  // Enriched ใช้ได้เฉพาะ +1-10 — พอถึง +10 ขึ้นไปให้กลับไปหินปกติอัตโนมัติ
+  // Enriched ใช้ได้เฉพาะ level < 10 — พอถึง +10 ขึ้นไปให้กลับไปหินปกติอัตโนมัติ
   useEffect(() => {
     if (useEnriched && stack.length >= 10) setUseEnriched(false);
   }, [useEnriched, stack.length]);
+  // weapon5/armor2 ไม่มี HD ที่ +0~9 — ถ้าเลือก HD ไว้แล้วระดับลดลงมาให้กลับหินปกติ
+  useEffect(() => {
+    const isSpecial = itemType === 'weapon5' || itemType === 'armor2';
+    if (isSpecial && useCash && stack.length < 10) setUseCash(false);
+  }, [itemType, useCash, stack.length]);
 
   // ค้นไอเทมจาก ID ผ่าน divine-pride API แล้วแยกประเภท (weapon/armor) อัตโนมัติ
   const handleFetchItem = async () => {
@@ -670,6 +748,9 @@ const Container = () => {
   // คำนวณอัตราสำเร็จปัจจุบัน
   const currentLevel = stack.length + 1;
   // ดึงอัตราสำเร็จจากตารางตามประเภทและชนิดหิน (Enriched บวกโบนัส)
+  // เช็คว่าหินที่เลือกอยู่ใช้ได้จริงที่ระดับปัจจุบันไหม (HD ต้องอยู่ในช่วง minLevel)
+  const hdMinLevel = getStoneMinLevel('hd', itemType);
+  const stoneBlocksRefine = useCash && stack.length < hdMinLevel;
   const currentRate = getRate(isEventRate, useCash, useEnriched, itemType, currentLevel - 1);
   // แร่ที่จะใช้ในการตีครั้งถัดไป (ตามระดับปัจจุบัน + ชนิดหิน)
   const nextOre = getOreName(itemType, stack.length, useCash, useEnriched);
@@ -706,6 +787,7 @@ const Container = () => {
     ));
 
   return (
+    <>
     <div className="w-full max-w-4xl mx-auto flex flex-col gap-5">
       {/* แสดงวันที่และเวลาปัจจุบัน */}
       <DateTimeDisplay />
@@ -931,48 +1013,69 @@ const Container = () => {
         </div>
 
         {/* เลือกชนิดหิน: ปกติ / Enriched / HD */}
-        <div className="mt-4 rounded-xl border border-slate-700/60 bg-[#0f1117] px-4 py-3">
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-sm font-semibold text-slate-300">ชนิดหิน</span>
-            {autoRunning && (
-              <span className="rounded-full bg-indigo-500/20 px-2 py-0.5 text-[0.7rem] font-bold text-indigo-300">ควบคุมโดย Auto</span>
-            )}
-          </div>
-          <div className="grid grid-cols-3 gap-1.5">
-            <button
-              type="button"
-              onClick={() => { setUseCash(false); setUseEnriched(false); }}
-              className={`rounded-lg border px-2 py-2 text-center transition-colors ${
-                !useCash && !useEnriched ? 'border-sky-400 bg-sky-500/20 text-sky-200' : 'border-slate-700 text-slate-400 hover:border-slate-500'
-              }`}
-            >
-              <span className="block text-sm font-bold">หินปกติ</span>
-              <span className="block text-[0.65rem]">ล้มหาย</span>
-            </button>
-            <button
-              type="button"
-              disabled={itemType === 'weapon5' || itemType === 'armor2' || stack.length >= 10}
-              title={itemType === 'weapon5' || itemType === 'armor2' ? 'ไอเทมนี้ไม่มี Enriched' : stack.length >= 10 ? 'Enriched ใช้ได้ +1-10 เท่านั้น' : ''}
-              onClick={() => { setUseCash(false); setUseEnriched(true); }}
-              className={`rounded-lg border px-2 py-2 text-center transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
-                useEnriched ? 'border-amber-400 bg-amber-400/20 text-amber-200' : 'border-slate-700 text-slate-400 hover:border-slate-500'
-              }`}
-            >
-              <span className="block text-sm font-bold">Enriched</span>
-              <span className="block text-[0.65rem]">ล้มหาย +โอกาส</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => { setUseCash(true); setUseEnriched(false); }}
-              className={`rounded-lg border px-2 py-2 text-center transition-colors ${
-                useCash && !useEnriched ? 'border-orange-400 bg-orange-500/20 text-orange-200' : 'border-slate-700 text-slate-400 hover:border-slate-500'
-              }`}
-            >
-              <span className="block text-sm font-bold">HD</span>
-              <span className="block text-[0.65rem]">ล้มลดระดับ</span>
-            </button>
-          </div>
-        </div>
+        {(() => {
+          const isSpecial = itemType === 'weapon5' || itemType === 'armor2';
+          const isLow = stack.length < 10; // low range: +0~9
+          // Enriched: ทั่วไปใช้ได้ <10, special ก็ใช้ได้ <10
+          const enrichedDisabled = stack.length >= 10;
+          // HD: weapon5/armor2 ใช้ได้เฉพาะ +10 ขึ้นไป; ทั่วไปใช้ได้ตลอด (แต่แร่เปลี่ยนตามช่วง)
+          const hdMinLevel = getStoneMinLevel('hd', itemType); // 7 สำหรับทั่วไป, 10 สำหรับ Lv5/2
+          const hdDisabled = stack.length < hdMinLevel;
+          return (
+            <div className="mt-4 rounded-xl border border-slate-700/60 bg-[#0f1117] px-4 py-3">
+              <div className="mb-2 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-slate-300">ชนิดหิน</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowStoneModal(true)}
+                    title="ดูตารางหินทั้งหมด"
+                    className="flex h-4 w-4 items-center justify-center rounded-full border border-slate-500 text-[0.6rem] font-bold text-slate-300 hover:border-amber-400 hover:text-amber-300"
+                  >?</button>
+                </div>
+                {autoRunning && (
+                  <span className="rounded-full bg-indigo-500/20 px-2 py-0.5 text-[0.7rem] font-bold text-indigo-300">ควบคุมโดย Auto</span>
+                )}
+              </div>
+              <div className="grid grid-cols-3 gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => { setUseCash(false); setUseEnriched(false); }}
+                  className={`rounded-lg border px-2 py-2 text-center transition-colors ${
+                    !useCash && !useEnriched ? 'border-sky-400 bg-sky-500/20 text-sky-200' : 'border-slate-700 text-slate-400 hover:border-slate-500'
+                  }`}
+                >
+                  <span className="block text-sm font-bold">หินปกติ</span>
+                  <span className="block text-[0.65rem]">{isSpecial ? 'ลด −3' : 'ล้มหาย'}</span>
+                </button>
+                <button
+                  type="button"
+                  disabled={enrichedDisabled}
+                  title={enrichedDisabled ? 'Enriched ใช้ได้ +1~+10 เท่านั้น' : ''}
+                  onClick={() => { setUseCash(false); setUseEnriched(true); }}
+                  className={`rounded-lg border px-2 py-2 text-center transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                    useEnriched ? 'border-amber-400 bg-amber-400/20 text-amber-200' : 'border-slate-700 text-slate-400 hover:border-slate-500'
+                  }`}
+                >
+                  <span className="block text-sm font-bold">Enriched</span>
+                  <span className="block text-[0.65rem]">{isSpecial ? 'ลด −1' : 'ล้มหาย'}</span>
+                </button>
+                <button
+                  type="button"
+                  disabled={hdDisabled}
+                  title={hdDisabled ? `HD ใช้ได้ตั้งแต่ +${hdMinLevel} ขึ้นไป` : ''}
+                  onClick={() => { setUseCash(true); setUseEnriched(false); }}
+                  className={`rounded-lg border px-2 py-2 text-center transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                    useCash && !useEnriched ? 'border-orange-400 bg-orange-500/20 text-orange-200' : 'border-slate-700 text-slate-400 hover:border-slate-500'
+                  }`}
+                >
+                  <span className="block text-sm font-bold">HD</span>
+                  <span className="block text-[0.65rem]">{isSpecial && !isLow ? 'ล้มหาย' : 'ลด −1'}</span>
+                </button>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Toggle BSB */}
         <div
@@ -1084,6 +1187,14 @@ const Container = () => {
                           <span className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-xs text-indigo-300">▾</span>
                         </div>
                         <span className="text-xs text-slate-500">ถึง +{toLevel}</span>
+                        {rule.stone === 'hd' && rule.from < getStoneMinLevel('hd', itemType) && (
+                          <span
+                            className="ml-1 cursor-help text-[0.65rem] font-semibold text-amber-400 underline decoration-dotted underline-offset-2"
+                            title={`หิน HD ยังใช้ไม่ได้ก่อน +${getStoneMinLevel('hd', itemType)} — ช่วง +${rule.from} ถึง +${getStoneMinLevel('hd', itemType) - 1} จะใช้หินปกติแทนอัตโนมัติ`}
+                          >
+                            ⚠ ก่อน +{getStoneMinLevel('hd', itemType)} ใช้ปกติแทน
+                          </span>
+                        )}
                         {i > 0 && (
                           <button
                             type="button"
@@ -1100,19 +1211,35 @@ const Container = () => {
                         )}
                       </div>
                       <div className="mt-2 grid grid-cols-3 gap-1.5">
-                        {['normal', 'enriched', 'hd'].map((s) => (
-                          <button
-                            key={s}
-                            type="button"
-                            onClick={() => updateRuleStone(rule.id, s)}
-                            disabled={autoRunning}
-                            className={`rounded-md border px-1 py-1 text-xs font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-                              rule.stone === s ? STONE_META[s].active : 'border-slate-700 text-slate-400 hover:border-slate-500'
-                            }`}
-                          >
-                            {STONE_META[s].label}
-                          </button>
-                        ))}
+                        {['normal', 'enriched', 'hd'].map((s) => {
+                          const sMin = getStoneMinLevel(s, itemType);
+                          // disable เมื่อหินนั้นยังใช้ไม่ได้ที่ from นี้
+                          const outOfRange = rule.from < (sMin || 1) || (s === 'enriched' && rule.from >= 10);
+                          const isSpecialItem = itemType === 'weapon5' || itemType === 'armor2';
+                          const hint = outOfRange
+                            ? s === 'hd'
+                              ? `HD ใช้ได้ตั้งแต่ +${sMin}`
+                              : `Enriched ใช้ได้ถึง +9 เท่านั้น`
+                            : s === 'hd'
+                            ? `ล้ม${isSpecialItem ? 'หาย' : 'ลด −1'}`
+                            : s === 'enriched'
+                            ? `ล้ม${isSpecialItem ? 'ลด −1' : 'หาย'} (+โอกาส)`
+                            : `ล้ม${isSpecialItem ? 'ลด −3' : 'หาย'}`;
+                          return (
+                            <button
+                              key={s}
+                              type="button"
+                              onClick={() => updateRuleStone(rule.id, s)}
+                              disabled={autoRunning || outOfRange}
+                              title={hint}
+                              className={`rounded-md border px-1 py-1 text-xs font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                                rule.stone === s ? STONE_META[s].active : 'border-slate-700 text-slate-400 hover:border-slate-500'
+                              }`}
+                            >
+                              {STONE_META[s].label}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   );
@@ -1283,6 +1410,13 @@ const Container = () => {
             <span className="font-semibold text-amber-300">{nextOre}</span>
           </div>
         )}
+        {/* แจ้งเตือนเมื่อหินที่เลือกใช้ไม่ได้ที่ระดับปัจจุบัน */}
+        {stoneBlocksRefine && (
+          <div className="flex items-center gap-2 rounded-lg border border-rose-500/50 bg-rose-500/10 px-3 py-2 text-xs font-semibold text-rose-300">
+            <span>⚠</span>
+            <span>หิน HD ใช้ได้ตั้งแต่ +{hdMinLevel} เท่านั้น — กรุณาเปลี่ยนหินก่อนตี</span>
+          </div>
+        )}
         <div className="flex min-h-[48px] w-full flex-nowrap items-center justify-center gap-2">
           {mode === 'fail' && (
             <button
@@ -1299,7 +1433,7 @@ const Container = () => {
                 : 'bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-900'
             }`}
             onClick={handleRefine}
-            disabled={isPlaying || autoRunning || mode === 'process' || (mode === 'fail' && isItemLost)}
+            disabled={isPlaying || autoRunning || stoneBlocksRefine || mode === 'process' || (mode === 'fail' && isItemLost)}
           >
             {(stack.length === 0 && (mode !== 'success' || !isSuccessLoop)) ? 'อัพเกรด' : 'เริ่มอีกครั้ง'}
             <div className="text-sm text-black/80">Rate: ({Math.floor(currentRate)}%)</div>
@@ -1317,7 +1451,13 @@ const Container = () => {
               <button
                 className="w-full min-w-0 max-w-[130px] flex-1 rounded-md bg-gradient-to-r from-indigo-500 to-violet-400 px-3 py-2.5 font-bold text-white shadow transition-transform hover:-translate-y-0.5 disabled:translate-y-0 disabled:cursor-not-allowed disabled:bg-slate-400 disabled:from-slate-400 disabled:to-slate-400 disabled:text-slate-600"
                 onClick={handleStartAuto}
-                disabled={isPlaying || mode === 'process' || stack.length >= autoTarget || (mode === 'fail' && isItemLost)}
+                disabled={isPlaying || mode === 'process' || stack.length >= autoTarget || (mode === 'fail' && isItemLost) || stoneBlocksRefine}
+                title={
+                  stack.length >= autoTarget ? `ถึงเป้าหมาย +${autoTarget} แล้ว — เพิ่มเป้าหมายหรือเลือกระดับเริ่มต้นใหม่`
+                  : stoneBlocksRefine ? `หิน HD ใช้ได้ตั้งแต่ +${hdMinLevel} เท่านั้น — กรุณาเปลี่ยนหินก่อน`
+                  : mode === 'fail' && isItemLost ? 'ไอเทมหายแล้ว — กดกลับไปก่อน'
+                  : ''
+                }
               >
                 เริ่ม Auto
                 <div className="text-sm text-white/80">ตีถึง +{autoTarget}</div>
@@ -1492,6 +1632,69 @@ const Container = () => {
         );
       })()}
     </div>
+
+    {/* Stone info modal */}
+
+    {showStoneModal && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+        onClick={() => setShowStoneModal(false)}
+      >
+        <div
+          className="flex max-h-[90vh] w-full max-w-2xl flex-col rounded-2xl border border-slate-700/60 bg-[#181a20] shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between border-b border-slate-700/60 px-5 py-4">
+            <h2 className="text-base font-bold text-amber-300">ตารางหินตีบวกทั้งหมด</h2>
+            <button
+              type="button"
+              onClick={() => setShowStoneModal(false)}
+              className="rounded-lg border border-slate-600 px-3 py-1 text-sm text-slate-300 hover:border-slate-400"
+            >ปิด</button>
+          </div>
+          <div className="overflow-y-auto p-4">
+            <table className="w-full border-collapse text-sm">
+              <thead className="sticky top-0 z-10">
+                <tr className="bg-[#181a20] text-xs text-slate-400">
+                  <th className="border border-slate-700 p-2 text-left">หิน</th>
+                  <th className="border border-slate-700 p-2 text-center">ใช้กับ</th>
+                  <th className="border border-slate-700 p-2 text-center">ช่วง</th>
+                  <th className="border border-slate-700 p-2 text-center">ล้มเหลว</th>
+                  <th className="border border-slate-700 p-2 text-center">หมายเหตุ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {STONE_REFERENCE.map((r, i) =>
+                  r.section ? (
+                    <tr key={i}>
+                      <td colSpan={5} className="border border-slate-700 bg-slate-700/40 px-3 py-1.5 text-xs font-bold text-amber-300">
+                        {r.section}
+                      </td>
+                    </tr>
+                  ) : (
+                    <tr key={i} className="odd:bg-[#23272f] even:bg-[#181a20]">
+                      <td className="border border-slate-700 p-2">
+                        <div className="flex items-center gap-2">
+                          {r.img && <img src={r.img} alt={r.ore} className="h-7 w-7 object-contain" />}
+                          <span className="font-medium text-amber-200">{r.ore}</span>
+                        </div>
+                      </td>
+                      <td className="border border-slate-700 p-2 text-center text-xs text-slate-300">{r.for}</td>
+                      <td className="border border-slate-700 p-2 text-center font-bold text-indigo-300">{r.range}</td>
+                      <td className={`border border-slate-700 p-2 text-center text-xs font-semibold ${
+                        r.fail.includes('หาย') ? 'text-rose-400' : r.fail.includes('−1') ? 'text-orange-300' : 'text-amber-300'
+                      }`}>{r.fail}</td>
+                      <td className="border border-slate-700 p-2 text-center text-xs text-sky-300">{r.note}</td>
+                    </tr>
+                  )
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
 
