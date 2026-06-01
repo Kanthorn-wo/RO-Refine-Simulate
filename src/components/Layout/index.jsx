@@ -6,8 +6,6 @@ import souneEffect02 from 'assets/sounds/bs_refine_2.wav';
 import souneEffectSuccess from 'assets/sounds/bs_refine_success.wav';
 import souneEffectFail from 'assets/sounds/bs_refine_failed.wav';
 
-import normalStoneImg from 'assets/images/blacksmith_blessing.png';
-import cashStoneImg from 'assets/images/blacksmith_blessing.png';
 import bsbImg from 'assets/images/blacksmith_blessing.png';
 import { BSB_REQUIRED_NORMAL, BSB_REQUIRED_EVENT } from '../../constants/refineConfig';
 
@@ -62,6 +60,30 @@ const RATE_TABLES = {
 // เลือกตาราง rate ตามสถานะ event และชนิดหิน
 const getRateTable = (isEventRate, useCash) =>
   RATE_TABLES[isEventRate ? 'event' : 'noevent'][useCash ? 'cash' : 'normal'];
+
+// Enriched เพิ่มโอกาสสำเร็จจากตารางหินปกติ (clamp ไม่เกิน 100%)
+const ENRICHED_RATE_BONUS = 10;
+const getRate = (isEventRate, useCash, useEnriched, itemType, idx) => {
+  const base = getRateTable(isEventRate, useCash)[itemType][Math.min(idx, 19)];
+  return useEnriched ? Math.min(100, base + ENRICHED_RATE_BONUS) : base;
+};
+
+// ป้ายชื่อ/สีของชนิดหิน (ใช้ในแผน auto)
+const STONE_META = {
+  normal:   { label: 'ปกติ',     active: 'border-sky-400 bg-sky-500/20 text-sky-200' },
+  enriched: { label: 'Enriched', active: 'border-amber-400 bg-amber-400/20 text-amber-200' },
+  hd:       { label: 'HD',       active: 'border-orange-400 bg-orange-500/20 text-orange-200' },
+};
+
+// หาชนิดหินที่ควรใช้ที่ระดับ level (currentLevel) ตามแผน rules — ช่วงที่ from <= level สูงสุด
+const getPlannedStone = (rules, level) => {
+  let stone = 'normal';
+  for (const r of [...rules].sort((a, b) => a.from - b.from)) {
+    if (r.from <= level) stone = r.stone;
+  }
+  if (stone === 'enriched' && level > 10) stone = 'normal'; // Enriched ใช้ได้ +1-10 เท่านั้น
+  return stone;
+};
 // API ของ divine-pride สำหรับค้นไอเทมจาก ID
 // หมายเหตุ: เว็บเป็น static site คีย์นี้จะถูก build ติดไปกับ JS และเป็นสาธารณะ
 const DIVINE_PRIDE_API_KEY = '7a8b539b5e6171b362a6ef264e43dffc';
@@ -77,12 +99,13 @@ const ITEM_TYPE_LABELS = {
 };
 
 // แร่ที่ใช้ตีบวกตามประเภทไอเท็ม (ประเภททั่วไป): low = +1-10, high = +11-20
+// แยกตามชนิดหิน: normal = หินปกติ (ล้มหาย), cash = HD (ล้มลดระดับ), enriched = Enriched (Cash ล้มหาย+โอกาสสูง, ใช้ +1-10 เท่านั้น)
 const ORE_BY_TYPE = {
-  armor1:  { low: 'Elunium',      high: 'Carnium' },
-  weapon1: { low: 'Phracon',      high: 'Bradium' },
-  weapon2: { low: 'Emveretarcon', high: 'Bradium' },
-  weapon3: { low: 'Oridecon',     high: 'Bradium' },
-  weapon4: { low: 'Oridecon',     high: 'Bradium' },
+  armor1:  { normal: { low: 'Elunium',      high: 'Carnium' }, cash: { low: 'HD Elunium',  high: 'HD Carnium' }, enriched: { low: 'Enriched Elunium' } },
+  weapon1: { normal: { low: 'Phracon',      high: 'Bradium' }, cash: { low: 'HD Oridecon', high: 'HD Bradium' }, enriched: { low: 'Enriched Oridecon' } },
+  weapon2: { normal: { low: 'Emveretarcon', high: 'Bradium' }, cash: { low: 'HD Oridecon', high: 'HD Bradium' }, enriched: { low: 'Enriched Oridecon' } },
+  weapon3: { normal: { low: 'Oridecon',     high: 'Bradium' }, cash: { low: 'HD Oridecon', high: 'HD Bradium' }, enriched: { low: 'Enriched Oridecon' } },
+  weapon4: { normal: { low: 'Oridecon',     high: 'Bradium' }, cash: { low: 'HD Oridecon', high: 'HD Bradium' }, enriched: { low: 'Enriched Oridecon' } },
 };
 
 // แร่พิเศษของ Weapon Lv.5 / Armor Lv.2 — แยก 3 ช่วงระดับ × ชนิดหิน (normal = หินปกติ, cash = หินแครช)
@@ -108,6 +131,12 @@ const ORE_COLORS = {
   Emveretarcon: 'bg-zinc-300',
   Oridecon: 'bg-orange-400',
   Bradium: 'bg-rose-400',
+  'HD Oridecon': 'bg-orange-300',
+  'HD Bradium': 'bg-rose-300',
+  'HD Elunium': 'bg-sky-300',
+  'HD Carnium': 'bg-cyan-200',
+  'Enriched Oridecon': 'bg-amber-200',
+  'Enriched Elunium': 'bg-indigo-200',
   Etherdeocon: 'bg-amber-400',
   'Enriched Etherdeocon': 'bg-amber-300',
   'HD Etherdeocon': 'bg-yellow-400',
@@ -120,8 +149,24 @@ const ORE_COLORS = {
   'HD Ether Carnium': 'bg-green-300',
 };
 
+// รูปไอคอนแร่ (ถ้าไม่มีรูปจะ fallback เป็นจุดสีจาก ORE_COLORS)
+const ORE_IMAGES = {
+  Phracon: '/images/ores/phracon.png',
+  Emveretarcon: '/images/ores/emveretarcon.png',
+  Oridecon: '/images/ores/oridecon.png',
+  Bradium: '/images/ores/bradium.png',
+  Elunium: '/images/ores/elunium.png',
+  Carnium: '/images/ores/carnium.png',
+  'HD Oridecon': '/images/ores/hd-oridecon.png',
+  'HD Bradium': '/images/ores/hd-bradium.png',
+  'HD Elunium': '/images/ores/hd-elunium.png',
+  'HD Carnium': '/images/ores/hd-carnium.png',
+  'Enriched Oridecon': '/images/ores/enriched-oridecon.png',
+  'Enriched Elunium': '/images/ores/enriched-elunium.png',
+};
+
 // แร่ที่ใช้ตามประเภทไอเท็ม + ระดับปัจจุบัน (level = +N ที่กำลังจะตีต่อ) + ชนิดหิน
-const getOreName = (itemType, level, useCash) => {
+const getOreName = (itemType, level, useCash, useEnriched) => {
   const special = SPECIAL_ORE[itemType];
   if (special) {
     const range = level <= 10 ? 'low' : level <= 14 ? 'mid' : 'high';
@@ -129,7 +174,10 @@ const getOreName = (itemType, level, useCash) => {
   }
   const m = ORE_BY_TYPE[itemType];
   if (!m) return null;
-  return level <= 10 ? m.low : m.high;
+  // Enriched ใช้เฉพาะ +1-10 (ไม่มีสาย high) — เกิน 10 fallback เป็นหินปกติ high
+  if (useEnriched && m.enriched && level <= 10) return m.enriched.low;
+  const set = useCash ? m.cash : m.normal;
+  return level <= 10 ? set.low : set.high;
 };
 
 // ฟังก์ชันสร้าง path ของภาพแต่ละเฟรมแบบ dynamic
@@ -215,7 +263,8 @@ const Container = () => {
   const [stack, setStack] = useState([]);
   const [isFail, setIsFail] = useState(false);
   const [lastResult, setLastResult] = useState(null); // 'success' | 'fail' | null
-  const [useCash, setUseCash] = useState(false);
+  const [useCash, setUseCash] = useState(false); // true = หิน HD (ล้มลดระดับ)
+  const [useEnriched, setUseEnriched] = useState(false); // true = หิน Enriched (Cash ล้มหาย + โอกาสสูง)
   const [isItemLost, setIsItemLost] = useState(false);
   const [log, setLog] = useState([]); // log สำหรับแสดงผลทุก action
   const [useBSB, setUseBSB] = useState(false);
@@ -312,13 +361,12 @@ const Container = () => {
   }, [mode]);
 
   // State สำหรับนับจำนวนไอเทมที่ใช้
-  const [normalStoneUsed, setNormalStoneUsed] = useState(0);
-  const [cashStoneUsed, setCashStoneUsed] = useState(0);
   const [bsbUsedTotal, setBsbUsedTotal] = useState(0);
   const [oreUsed, setOreUsed] = useState({}); // นับแร่ที่ใช้ แยกตามชื่อแร่
   // สกุลเงินที่ใช้คำนวณราคา ('zenny' | 'baht') และราคาต่อหน่วยของแต่ละไอเทม
-  const [currency, setCurrency] = useState('zenny');
-  const [prices, setPrices] = useState({ normal: '', cash: '', bsb: '' });
+  const [currency, setCurrency] = useState('zenny'); // หน่วยเงินรวม (global) ใช้เป็นค่าตั้งต้นของทุกแถว
+  const [rowCurrency, setRowCurrency] = useState({}); // override หน่วยเงินรายแถว { key: 'zenny'|'baht' }
+  const [prices, setPrices] = useState({ normal: '', enriched: '', cash: '', bsb: '' });
   // โหมดเลือกไอเทม: 'dropdown' (เลือกเอง) หรือ 'id' (ค้นจาก Item ID ผ่าน API)
   const [inputMode, setInputMode] = useState('dropdown');
   const [itemIdInput, setItemIdInput] = useState('');
@@ -326,6 +374,16 @@ const Container = () => {
   const [apiLoading, setApiLoading] = useState(false);
   const [apiError, setApiError] = useState('');
   const [showItemInfo, setShowItemInfo] = useState(false); // accordion ข้อมูลไอเทม
+  // ระบบ Auto ตีบวก: ตีอัตโนมัติจนถึงเป้าหมายที่ตั้งไว้
+  const [autoRefine, setAutoRefine] = useState(false); // เปิด/ปิดโหมด auto
+  const [autoTarget, setAutoTarget] = useState(10); // เป้าหมายระดับ (+N) ที่จะตีถึง
+  const [autoRunning, setAutoRunning] = useState(false); // กำลังตี auto อยู่
+  // แผนชนิดหินแต่ละช่วงระหว่าง auto: รายการ { id, from, stone } — ระดับใด ๆ ใช้หินของช่วงที่ from <= ระดับ สูงสุด
+  const [autoStoneRules, setAutoStoneRules] = useState([{ id: 0, from: 1, stone: 'normal' }]);
+  const nextRuleId = useRef(1);
+  const [autoUseBSB, setAutoUseBSB] = useState(false); // เปิด/ปิดการใส่ BSB อัตโนมัติระหว่าง auto
+  const [autoBSBStart, setAutoBSBStart] = useState(7); // ระดับที่จะเริ่มใส่ BSB (BSB ใช้ได้ +7→+14)
+  const [autoBSBEnd, setAutoBSBEnd] = useState(15); // ระดับที่จะเลิกใส่ BSB (exclusive; 15 = ครอบถึง +14)
 
   const handleRefine = () => {
     if (isPlaying) return;
@@ -337,9 +395,8 @@ const Container = () => {
     setLastResult(null);
     // คำนวณ level ปัจจุบัน (stack.length + 1)
     const currentLevel = stack.length + 1;
-    // ดึงอัตราสำเร็จจากตารางตามประเภทและชนิดหิน
-    const rateArr = getRateTable(isEventRate, useCash);
-    const rate = rateArr[itemType][Math.min(currentLevel - 1, 19)] / 100;
+    // ดึงอัตราสำเร็จจากตารางตามประเภทและชนิดหิน (Enriched บวกโบนัส)
+    const rate = getRate(isEventRate, useCash, useEnriched, itemType, currentLevel - 1) / 100;
     const roll = Math.random();
     const isSuccess = roll < rate;
     // รายละเอียดการสุ่ม: บอกโอกาสติด/แตก แล้วระบุว่าผลออกฝั่งไหน ที่ค่ากี่ %
@@ -358,13 +415,8 @@ const Container = () => {
       canUseBSB = bsbUsed > 0;
     }
     // นับจำนวนไอเทมที่ใช้
-    if (useCash) {
-      setCashStoneUsed(prev => prev + 1);
-    } else {
-      setNormalStoneUsed(prev => prev + 1);
-    }
-    // นับแร่ที่ใช้ตามประเภทไอเท็มและระดับเป้าหมาย
-    const oreName = getOreName(itemType, stack.length, useCash);
+    // นับแร่ที่ใช้ตามประเภทไอเท็มและระดับเป้าหมาย (แร่ = หินที่ใช้ตีจริง)
+    const oreName = getOreName(itemType, stack.length, useCash, useEnriched);
     if (oreName) {
       setOreUsed(prev => ({ ...prev, [oreName]: (prev[oreName] || 0) + 1 }));
     }
@@ -379,8 +431,8 @@ const Container = () => {
       logMsg = `+${stack.length} → +${stack.length} : ล้มเหลว (ใช้ BSB ${bsbUsed} ชิ้น ป้องกัน${useCash ? 'ลดระดับ' : 'ไอเทมหาย'})`;
     } else if (itemType === 'weapon5' || itemType === 'armor2') {
       // เงื่อนไขพิเศษสำหรับ Weapon Lv.5 และ Armor Lv.2
-      if (stack.length >= 11) {
-        // +11 ถึง +20: ล้มเหลว = ไอเทมถูกทำลายทันที ไม่ว่าจะใช้หินชนิดใด
+      if (stack.length >= 10) {
+        // +10 ขึ้นไป: ล้มเหลว = ไอเทมถูกทำลายทันที ไม่ว่าจะใช้หินชนิดใด
         // (กันได้ด้วย BSB ในช่วงที่ใช้ได้ +7→+14 ซึ่งถูกเช็คก่อนหน้านี้แล้ว)
         setIsItemLost(true);
         newStack = [];
@@ -419,6 +471,7 @@ const Container = () => {
       msg: logMsg,
       itemType,
       useCash,
+      useEnriched,
       useBSB,
       bsbConsumed: (!isSuccess && canUseBSB) ? bsbUsed : 0,
       isSuccess,
@@ -452,17 +505,93 @@ const Container = () => {
     };
   };
 
+  // Auto ตีบวก: เมื่อรอบที่แล้วจบ (isPlaying = false) ให้ตีต่อจนถึงเป้าหรือไอเทมหาย
+  useEffect(() => {
+    if (!autoRunning) return;
+    if (isPlaying || mode === 'process') return; // รอ animation/เสียงรอบนี้จบก่อน
+    // หยุดเมื่อถึงเป้าหมาย
+    if (stack.length >= autoTarget) { setAutoRunning(false); return; }
+    // หยุดเมื่อไอเทมหาย (ต้องเริ่มไอเทมใหม่)
+    if (isItemLost) { setAutoRunning(false); return; }
+    // ปรับชนิดหินตามแผนของระดับถัดไป (currentLevel = stack.length + 1) ก่อน แล้วรอ re-render ค่อยตี
+    const plannedStone = getPlannedStone(autoStoneRules, stack.length + 1);
+    const wantCash = plannedStone === 'hd';
+    const wantEnriched = plannedStone === 'enriched';
+    if (wantCash !== useCash || wantEnriched !== useEnriched) {
+      setUseCash(wantCash);
+      setUseEnriched(wantEnriched);
+      return;
+    }
+    // ใส่/ถอด BSB ตามช่วง [start, end)
+    if (autoUseBSB) {
+      const wantBSB = stack.length >= autoBSBStart && stack.length < autoBSBEnd;
+      if (wantBSB !== useBSB) {
+        setUseBSB(wantBSB);
+        return;
+      }
+    }
+    const t = setTimeout(() => handleRefine(), 450);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoRunning, isPlaying, mode, stack.length, isItemLost, autoTarget, autoStoneRules, useCash, useEnriched, autoUseBSB, autoBSBStart, autoBSBEnd, useBSB]);
+
+  // เปลี่ยนเป้าหมาย → ปลายทาง BSB อัพเดตตาม target (อยู่ในกรอบ 8..15)
+  useEffect(() => {
+    setAutoBSBEnd(Math.min(Math.max(autoTarget, 8), 15));
+  }, [autoTarget]);
+  useEffect(() => {
+    setAutoBSBEnd((v) => Math.min(Math.max(v, autoBSBStart + 1), 15));
+  }, [autoBSBStart]);
+
+  // เริ่ม/หยุด auto ตีบวก
+  const handleStartAuto = () => {
+    if (autoRunning || isPlaying) return;
+    if (stack.length >= autoTarget) return; // ถึงเป้าหมายอยู่แล้ว
+    setIsItemLost(false); // กันสถานะไอเทมหายค้างทำให้ auto หยุดทันที
+    setLastResult(null);
+    setAutoRunning(true);
+  };
+  const handleStopAuto = () => setAutoRunning(false);
+
+  // จัดการแผนชนิดหินแต่ละช่วง (auto)
+  const updateRuleStone = (id, stone) => setAutoStoneRules(rs => rs.map(r => r.id === id ? { ...r, stone } : r));
+  // แก้ระดับเริ่มของช่วง → บังคับให้มากกว่าช่วงก่อนหน้า และดันช่วงถัด ๆ ให้เพิ่มขึ้นตาม (cascade)
+  const updateRuleFrom = (id, newFrom) => setAutoStoneRules(rs => {
+    const idx = rs.findIndex(r => r.id === id);
+    if (idx <= 0) return rs; // ช่วงแรกล็อคที่ +1
+    const next = rs.map(r => ({ ...r }));
+    next[idx].from = Math.max(newFrom, next[idx - 1].from + 1);
+    for (let j = idx + 1; j < next.length; j++) {
+      if (next[j].from <= next[j - 1].from) next[j].from = Math.min(next[j - 1].from + 1, 20);
+    }
+    return next;
+  });
+  const addStoneRule = () => setAutoStoneRules(rs => {
+    const last = rs[rs.length - 1];
+    if (last.from >= 20) return rs; // เต็มแล้ว
+    return [...rs, { id: nextRuleId.current++, from: Math.min(last.from + 1, 20), stone: 'normal' }];
+  });
+  const removeStoneRule = (id) => setAutoStoneRules(rs => {
+    const idx = rs.findIndex(r => r.id === id);
+    if (idx <= 0) return rs; // ลบช่วงแรก (baseline +1) ไม่ได้
+    return rs.filter(r => r.id !== id);
+  });
+
   const handleBackToWait = () => {
+    setAutoRunning(false);
     setMode('wait');
     setIndex(0);
     setIsSuccessLoop(false);
     setIsFail(false);
+    setIsItemLost(false); // เคลียร์สถานะไอเทมหาย ไม่งั้นเริ่ม auto/ตีใหม่ไม่ได้
+    setLastResult(null);
     setStack([]);
   };
 
   // เลือกเริ่มที่ระดับตีบวกใด ๆ — กระโดดไประดับนั้นทันทีและเคลียร์ผลลัพธ์ค้าง
   // (rate/ปุ่ม/ตาราง derive จาก stack.length อยู่แล้ว จึงสอดคล้องกันเอง)
   const handleStartLevelChange = (level) => {
+    setAutoRunning(false);
     const now = new Date().toLocaleTimeString();
     setStack(Array.from({ length: level }, () => ({ time: now })));
     setMode('wait');
@@ -477,6 +606,7 @@ const Container = () => {
 
   // เลือกประเภทไอเท็ม = เริ่มตีบวกใหม่ตั้งแต่ +0 และเคลียร์ผลลัพธ์ค้าง
   const selectItemType = (type) => {
+    setAutoRunning(false);
     setItemType(type);
     setStack([]);
     setMode('wait');
@@ -486,7 +616,13 @@ const Container = () => {
     setIsSuccessLoop(false);
     setLastResult(null);
     setIsPlaying(false);
+    setUseEnriched(false); // weapon5/armor2 ไม่มี Enriched และเริ่มไอเทมใหม่จึงรีเซ็ต
   };
+
+  // Enriched ใช้ได้เฉพาะ +1-10 — พอถึง +10 ขึ้นไปให้กลับไปหินปกติอัตโนมัติ
+  useEffect(() => {
+    if (useEnriched && stack.length >= 10) setUseEnriched(false);
+  }, [useEnriched, stack.length]);
 
   // ค้นไอเทมจาก ID ผ่าน divine-pride API แล้วแยกประเภท (weapon/armor) อัตโนมัติ
   const handleFetchItem = async () => {
@@ -533,10 +669,10 @@ const Container = () => {
 
   // คำนวณอัตราสำเร็จปัจจุบัน
   const currentLevel = stack.length + 1;
-  // ดึงอัตราสำเร็จจากตารางตามประเภทและชนิดหิน
-  const currentRate = getRateTable(isEventRate, useCash)[itemType][Math.min(currentLevel - 1, 19)];
+  // ดึงอัตราสำเร็จจากตารางตามประเภทและชนิดหิน (Enriched บวกโบนัส)
+  const currentRate = getRate(isEventRate, useCash, useEnriched, itemType, currentLevel - 1);
   // แร่ที่จะใช้ในการตีครั้งถัดไป (ตามระดับปัจจุบัน + ชนิดหิน)
-  const nextOre = getOreName(itemType, stack.length, useCash);
+  const nextOre = getOreName(itemType, stack.length, useCash, useEnriched);
 
   // preload all frames for each mode
   const waitingFrames = getAllFrameSrcs('waiting');
@@ -581,7 +717,7 @@ const Container = () => {
       <div className="rounded-2xl border border-slate-700/60 bg-[#181a20]/90 p-4 shadow-lg shadow-black/30">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <b className="text-amber-300">
-            ตารางอัตราสำเร็จการตีบวก (%) — {isEventRate ? 'Event Rate Up' : 'ไม่มี Event'} · {useCash ? 'หินแครช (Cash)' : 'หินปกติ'}
+            ตารางอัตราสำเร็จการตีบวก (%) — {isEventRate ? 'Event Rate Up' : 'ไม่มี Event'} · {useEnriched ? 'Enriched' : useCash ? 'HD' : 'หินปกติ'}
           </b>
           <div role="group" aria-label="Rate mode" className="inline-flex overflow-hidden rounded-lg border border-slate-600">
             <button
@@ -625,7 +761,7 @@ const Container = () => {
                         type === itemType ? 'font-bold text-white' : 'text-slate-400'
                       }`}
                     >
-                      {getRateTable(isEventRate, useCash)[type][i]}%
+                      {getRate(isEventRate, useCash, useEnriched, type, i)}%
                     </td>
                   ))}
                 </tr>
@@ -700,11 +836,33 @@ const Container = () => {
               </button>
             </div>
 
+            <p className="mt-2 text-xs text-slate-400">
+              คัดลอก Item ID ได้จาก{' '}
+              <a
+                href="https://www.divine-pride.net/database/item"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-amber-300 underline decoration-dotted underline-offset-2 hover:text-amber-200"
+              >
+                divine-pride.net
+              </a>
+              {' '}แล้วนำเลข ID มาวางในช่องด้านบน
+            </p>
+
             {apiError && (
               <p className="mt-2 text-sm text-red-400">{apiError}</p>
             )}
 
-            {apiItem && (
+            {apiLoading ? (
+              <div className="mt-3 flex items-center gap-3 overflow-hidden rounded-xl border border-slate-700/60 bg-[#0f1117] px-3 py-2.5">
+                <div className="h-11 w-11 shrink-0 animate-pulse rounded-lg bg-slate-700/60" />
+                <div className="min-w-0 flex-1 space-y-2">
+                  <div className="h-3.5 w-1/2 animate-pulse rounded bg-slate-700/60" />
+                  <div className="h-2.5 w-1/3 animate-pulse rounded bg-slate-700/50" />
+                </div>
+                <span className="shrink-0 text-xs text-amber-300">กำลังโหลด…</span>
+              </div>
+            ) : apiItem ? (
               <div className="mt-3 overflow-hidden rounded-xl border border-slate-700/60 bg-[#0f1117]">
                 <button
                   type="button"
@@ -712,6 +870,7 @@ const Container = () => {
                   className="flex w-full items-center gap-3 px-3 py-2.5 text-left"
                 >
                   <img
+                    key={apiItem.id}
                     src={apiItem.imageUrl}
                     alt={apiItem.name}
                     className="h-11 w-11 shrink-0 object-contain"
@@ -749,7 +908,7 @@ const Container = () => {
                   </dl>
                 )}
               </div>
-            )}
+            ) : null}
           </div>
         )}
 
@@ -771,16 +930,48 @@ const Container = () => {
           <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-amber-300">▾</span>
         </div>
 
-        {/* Toggle ชนิดหิน */}
-        <div className="mt-4 flex items-center justify-between rounded-xl border border-slate-700/60 bg-[#0f1117] px-4 py-3">
-          <div className="flex items-center gap-3 text-sm font-semibold">
-            <span className={useCash ? 'text-slate-500' : 'text-sky-300'}>หินปกติ</span>
-            <Toggle checked={useCash} onChange={setUseCash} activeColor="bg-orange-500" />
-            <span className={useCash ? 'text-orange-300' : 'text-slate-500'}>หินแครช (Cash)</span>
+        {/* เลือกชนิดหิน: ปกติ / Enriched / HD */}
+        <div className="mt-4 rounded-xl border border-slate-700/60 bg-[#0f1117] px-4 py-3">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-sm font-semibold text-slate-300">ชนิดหิน</span>
+            {autoRunning && (
+              <span className="rounded-full bg-indigo-500/20 px-2 py-0.5 text-[0.7rem] font-bold text-indigo-300">ควบคุมโดย Auto</span>
+            )}
           </div>
-          <span className="hidden text-xs text-slate-500 sm:block">
-            {useCash ? 'ล้มเหลว = ลดระดับ' : 'ล้มเหลว = ไอเทมหาย'}
-          </span>
+          <div className="grid grid-cols-3 gap-1.5">
+            <button
+              type="button"
+              onClick={() => { setUseCash(false); setUseEnriched(false); }}
+              className={`rounded-lg border px-2 py-2 text-center transition-colors ${
+                !useCash && !useEnriched ? 'border-sky-400 bg-sky-500/20 text-sky-200' : 'border-slate-700 text-slate-400 hover:border-slate-500'
+              }`}
+            >
+              <span className="block text-sm font-bold">หินปกติ</span>
+              <span className="block text-[0.65rem]">ล้มหาย</span>
+            </button>
+            <button
+              type="button"
+              disabled={itemType === 'weapon5' || itemType === 'armor2' || stack.length >= 10}
+              title={itemType === 'weapon5' || itemType === 'armor2' ? 'ไอเทมนี้ไม่มี Enriched' : stack.length >= 10 ? 'Enriched ใช้ได้ +1-10 เท่านั้น' : ''}
+              onClick={() => { setUseCash(false); setUseEnriched(true); }}
+              className={`rounded-lg border px-2 py-2 text-center transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                useEnriched ? 'border-amber-400 bg-amber-400/20 text-amber-200' : 'border-slate-700 text-slate-400 hover:border-slate-500'
+              }`}
+            >
+              <span className="block text-sm font-bold">Enriched</span>
+              <span className="block text-[0.65rem]">ล้มหาย +โอกาส</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setUseCash(true); setUseEnriched(false); }}
+              className={`rounded-lg border px-2 py-2 text-center transition-colors ${
+                useCash && !useEnriched ? 'border-orange-400 bg-orange-500/20 text-orange-200' : 'border-slate-700 text-slate-400 hover:border-slate-500'
+              }`}
+            >
+              <span className="block text-sm font-bold">HD</span>
+              <span className="block text-[0.65rem]">ล้มลดระดับ</span>
+            </button>
+          </div>
         </div>
 
         {/* Toggle BSB */}
@@ -792,6 +983,26 @@ const Container = () => {
           <div>
             <div className="flex items-center gap-2 text-sm font-semibold text-white">
               Black Smith Blessing (BSB)
+              {isEventRate && (
+                <span className="rounded-full bg-sky-500/20 px-2 py-0.5 text-[0.7rem] font-bold text-sky-300">Event Rate</span>
+              )}
+              {autoRunning && autoUseBSB && (
+                <span className="rounded-full bg-indigo-500/20 px-2 py-0.5 text-[0.7rem] font-bold text-indigo-300">ควบคุมโดย Auto</span>
+              )}
+              <span className="group relative inline-flex">
+                <span className="flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-slate-500 text-[0.6rem] font-bold text-slate-300">i</span>
+                <div className="pointer-events-none absolute left-0 top-full z-20 mt-1 hidden w-48 rounded-lg border border-slate-600 bg-[#0f1117] p-2 text-xs font-normal shadow-lg group-hover:block">
+                  <div className="mb-1 font-bold text-amber-300">BSB ที่ใช้ต่อระดับ ({isEventRate ? 'Event' : 'Normal'})</div>
+                  <div className="space-y-0.5">
+                    {bsbTable.map((qty, lvl) => qty > 0 ? (
+                      <div key={lvl} className="flex justify-between">
+                        <span className="text-slate-400">+{lvl} → +{lvl + 1}</span>
+                        <span className="font-semibold text-emerald-300">{qty} ชิ้น</span>
+                      </div>
+                    ) : null)}
+                  </div>
+                </div>
+              </span>
             </div>
             <div className="mt-0.5 text-xs text-slate-400">
               {bsbInRange
@@ -806,14 +1017,187 @@ const Container = () => {
             activeColor="bg-emerald-500"
           />
         </div>
+
+        {/* Toggle + เป้าหมาย Auto ตีบวก */}
+        <div
+          className={`mt-3 rounded-xl border px-4 py-3 transition-colors ${
+            autoRefine ? 'border-indigo-500/50 bg-indigo-950/30' : 'border-slate-700/60 bg-[#0f1117]'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm font-semibold text-white">Auto ตีบวก</div>
+              <div className="mt-0.5 text-xs text-slate-400">ตีอัตโนมัติจนถึงเป้าหมายที่ตั้งไว้</div>
+            </div>
+            <Toggle
+              checked={autoRefine}
+              onChange={(v) => { setAutoRefine(v); if (!v) setAutoRunning(false); }}
+              disabled={autoRunning}
+              activeColor="bg-indigo-500"
+            />
+          </div>
+          {autoRefine && (
+            <div className="mt-3 flex items-center gap-2">
+              <label htmlFor="auto-target" className="text-sm font-semibold text-slate-300">
+                ตีถึงระดับ
+              </label>
+              <div className="relative flex-1">
+                <select
+                  id="auto-target"
+                  value={autoTarget}
+                  onChange={(e) => setAutoTarget(Number(e.target.value))}
+                  disabled={autoRunning}
+                  className="w-full cursor-pointer appearance-none rounded-xl border border-slate-600 bg-[#0f1117] px-4 py-2 pr-10 font-bold text-indigo-300 outline-none transition-colors hover:border-indigo-400/70 focus-visible:border-indigo-400 focus-visible:ring-2 focus-visible:ring-indigo-300/40 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {Array.from({ length: 20 }, (_, i) => (
+                    <option key={i + 1} value={i + 1} className="bg-[#0f1117] text-indigo-300">+{i + 1}</option>
+                  ))}
+                </select>
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-indigo-300">▾</span>
+              </div>
+            </div>
+          )}
+          {autoRefine && (
+            <div className="mt-3 border-t border-slate-700/60 pt-3">
+              <div className="mb-1 text-sm font-semibold text-white">ชนิดหินแต่ละช่วง</div>
+              <div className="mb-2 text-xs text-slate-400">กำหนดว่าช่วงระดับไหนใช้หินอะไร — auto จะสลับให้เอง</div>
+              <div className="space-y-2">
+                {autoStoneRules.map((rule, i) => {
+                  const next = autoStoneRules[i + 1];
+                  const toLevel = next ? next.from - 1 : autoTarget;
+                  const minFrom = i === 0 ? 1 : autoStoneRules[i - 1].from + 1;
+                  return (
+                    <div key={rule.id} className="rounded-lg border border-slate-700 bg-[#0f1117] p-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-400">ตั้งแต่</span>
+                        <div className="relative">
+                          <select
+                            value={rule.from}
+                            onChange={(e) => updateRuleFrom(rule.id, Number(e.target.value))}
+                            disabled={autoRunning || i === 0}
+                            className="cursor-pointer appearance-none rounded-lg border border-slate-600 bg-[#181a20] py-1 pl-2 pr-6 text-sm font-bold text-indigo-300 outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {Array.from({ length: 20 - minFrom + 1 }, (_, n) => minFrom + n).map((lvl) => (
+                              <option key={lvl} value={lvl} className="bg-[#0f1117]">+{lvl}</option>
+                            ))}
+                          </select>
+                          <span className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-xs text-indigo-300">▾</span>
+                        </div>
+                        <span className="text-xs text-slate-500">ถึง +{toLevel}</span>
+                        {i > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => removeStoneRule(rule.id)}
+                            disabled={autoRunning}
+                            title="ลบช่วงนี้"
+                            aria-label="ลบช่วงนี้"
+                            className="ml-auto rounded p-1 text-rose-300 hover:bg-rose-500/10 disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 002 2h8a2 2 0 002-2l1-12M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+                      <div className="mt-2 grid grid-cols-3 gap-1.5">
+                        {['normal', 'enriched', 'hd'].map((s) => (
+                          <button
+                            key={s}
+                            type="button"
+                            onClick={() => updateRuleStone(rule.id, s)}
+                            disabled={autoRunning}
+                            className={`rounded-md border px-1 py-1 text-xs font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                              rule.stone === s ? STONE_META[s].active : 'border-slate-700 text-slate-400 hover:border-slate-500'
+                            }`}
+                          >
+                            {STONE_META[s].label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <button
+                type="button"
+                onClick={addStoneRule}
+                disabled={autoRunning}
+                className="mt-2 w-full rounded-lg border border-dashed border-slate-600 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:border-indigo-400/70 hover:text-indigo-300 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                + เพิ่มช่วง
+              </button>
+            </div>
+          )}
+          {autoRefine && (
+            <div className="mt-3 border-t border-slate-700/60 pt-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm font-semibold text-white">ใส่ BSB อัตโนมัติระหว่างทาง</div>
+                  <div className="mt-0.5 text-xs text-slate-400">ใส่ BSB เฉพาะช่วงที่กำหนด (BSB ใช้ได้ +7→+14)</div>
+                </div>
+                <Toggle
+                  checked={autoUseBSB}
+                  onChange={setAutoUseBSB}
+                  disabled={autoRunning}
+                  activeColor="bg-emerald-500"
+                />
+              </div>
+              {autoUseBSB && (
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <div>
+                    <label htmlFor="auto-bsb-start" className="mb-1 block text-xs font-semibold text-slate-300">
+                      เริ่มใส่ BSB ที่
+                    </label>
+                    <div className="relative">
+                      <select
+                        id="auto-bsb-start"
+                        value={autoBSBStart}
+                        onChange={(e) => setAutoBSBStart(Number(e.target.value))}
+                        disabled={autoRunning}
+                        className="w-full cursor-pointer appearance-none rounded-xl border border-slate-600 bg-[#0f1117] px-4 py-2 pr-10 font-bold text-emerald-300 outline-none transition-colors hover:border-emerald-400/70 focus-visible:border-emerald-400 focus-visible:ring-2 focus-visible:ring-emerald-300/40 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {Array.from({ length: 8 }, (_, i) => {
+                          const lvl = 7 + i; // 7..14
+                          return <option key={lvl} value={lvl} className="bg-[#0f1117] text-emerald-300">+{lvl}</option>;
+                        })}
+                      </select>
+                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-emerald-300">▾</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label htmlFor="auto-bsb-end" className="mb-1 block text-xs font-semibold text-slate-300">
+                      เลิกใส่ BSB ที่
+                    </label>
+                    <div className="relative">
+                      <select
+                        id="auto-bsb-end"
+                        value={autoBSBEnd}
+                        onChange={(e) => setAutoBSBEnd(Number(e.target.value))}
+                        disabled={autoRunning}
+                        className="w-full cursor-pointer appearance-none rounded-xl border border-slate-600 bg-[#0f1117] px-4 py-2 pr-10 font-bold text-emerald-300 outline-none transition-colors hover:border-emerald-400/70 focus-visible:border-emerald-400 focus-visible:ring-2 focus-visible:ring-emerald-300/40 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {Array.from({ length: Math.max(0, 15 - autoBSBStart) }, (_, i) => {
+                          const lvl = autoBSBStart + 1 + i; // (start+1)..15
+                          return <option key={lvl} value={lvl} className="bg-[#0f1117] text-emerald-300">+{lvl}</option>;
+                        })}
+                      </select>
+                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-emerald-300">▾</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* หน้าต่างตีบวก — การ์ดสไตล์เดียวกับกล่อง option ให้ดูสมดุลกัน */}
       <div className="flex flex-col items-center gap-4 rounded-2xl border border-slate-700/60 bg-[#181a20]/90 p-5 shadow-lg shadow-black/30 lg:flex-1 lg:justify-center">
         {/* ป้ายบอกว่ากำลังตีบวกไอเทมชิ้นไหน (เฉพาะเมื่อไอเทมปัจจุบันมาจากการค้นด้วย ID) */}
-        {apiItem && apiItem.type === itemType && (
+        {!apiLoading && apiItem && apiItem.type === itemType && (
           <div className="flex items-center gap-2 rounded-lg border border-amber-400/30 bg-amber-400/5 px-3 py-1.5">
             <img
+              key={apiItem.id}
               src={apiItem.imageUrl}
               alt={apiItem.name}
               className="h-6 w-6 object-contain"
@@ -890,45 +1274,96 @@ const Container = () => {
         {/* แร่ที่จะใช้ในการตีครั้งถัดไป (ตามระดับปัจจุบัน + ชนิดหิน) */}
         {nextOre && (
           <div className="inline-flex items-center gap-2 rounded-full border border-slate-600 bg-[#0f1117] px-3 py-1.5 text-sm">
-            <span className={`h-2.5 w-2.5 rounded-full ${ORE_COLORS[nextOre] || 'bg-slate-400'}`} />
+            {ORE_IMAGES[nextOre] ? (
+              <img src={ORE_IMAGES[nextOre]} alt={nextOre} className="h-5 w-5 object-contain" />
+            ) : (
+              <span className={`h-2.5 w-2.5 rounded-full ${ORE_COLORS[nextOre] || 'bg-slate-400'}`} />
+            )}
             <span className="text-slate-400">แร่ที่จะใช้:</span>
             <span className="font-semibold text-amber-300">{nextOre}</span>
           </div>
         )}
-        <div className="flex min-h-[48px] w-full items-center justify-center gap-3">
+        <div className="flex min-h-[48px] w-full flex-nowrap items-center justify-center gap-2">
           {mode === 'fail' && (
             <button
-              className="w-[130px] rounded-md border border-amber-400 bg-[#23272f] px-3 py-2.5 font-bold text-amber-300 transition-colors hover:bg-[#2c313c]"
+              className="w-full min-w-0 max-w-[130px] flex-1 rounded-md border border-amber-400 bg-[#23272f] px-3 py-2.5 font-bold text-amber-300 transition-colors hover:bg-[#2c313c]"
               onClick={handleBackToWait}
             >
               กลับไป
             </button>
           )}
           <button
-            className={`w-[130px] rounded-md px-3 py-2.5 font-bold shadow transition-transform hover:-translate-y-0.5 disabled:translate-y-0 disabled:cursor-not-allowed disabled:bg-slate-400 disabled:text-slate-600 ${
+            className={`w-full min-w-0 max-w-[130px] flex-1 rounded-md px-3 py-2.5 font-bold shadow transition-transform hover:-translate-y-0.5 disabled:translate-y-0 disabled:cursor-not-allowed disabled:bg-slate-400 disabled:text-slate-600 ${
               (stack.length === 0 && (mode !== 'success' || !isSuccessLoop))
                 ? 'bg-gradient-to-r from-indigo-500 to-cyan-400 text-white'
                 : 'bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-900'
             }`}
             onClick={handleRefine}
-            disabled={isPlaying || mode === 'process' || (mode === 'fail' && isItemLost)}
+            disabled={isPlaying || autoRunning || mode === 'process' || (mode === 'fail' && isItemLost)}
           >
             {(stack.length === 0 && (mode !== 'success' || !isSuccessLoop)) ? 'อัพเกรด' : 'เริ่มอีกครั้ง'}
             <div className="text-sm text-black/80">Rate: ({Math.floor(currentRate)}%)</div>
           </button>
+          {autoRefine && (
+            autoRunning ? (
+              <button
+                className="w-full min-w-0 max-w-[130px] flex-1 rounded-md bg-gradient-to-r from-rose-500 to-orange-400 px-3 py-2.5 font-bold text-white shadow transition-transform hover:-translate-y-0.5"
+                onClick={handleStopAuto}
+              >
+                หยุด Auto
+                <div className="text-sm text-black/80">กำลังตี → +{autoTarget}</div>
+              </button>
+            ) : (
+              <button
+                className="w-full min-w-0 max-w-[130px] flex-1 rounded-md bg-gradient-to-r from-indigo-500 to-violet-400 px-3 py-2.5 font-bold text-white shadow transition-transform hover:-translate-y-0.5 disabled:translate-y-0 disabled:cursor-not-allowed disabled:bg-slate-400 disabled:from-slate-400 disabled:to-slate-400 disabled:text-slate-600"
+                onClick={handleStartAuto}
+                disabled={isPlaying || mode === 'process' || stack.length >= autoTarget || (mode === 'fail' && isItemLost)}
+              >
+                เริ่ม Auto
+                <div className="text-sm text-white/80">ตีถึง +{autoTarget}</div>
+              </button>
+            )
+          )}
         </div>
       </div>
       </div>
 
+      {/* สรุปจำนวนครั้งที่ตี: ทั้งหมด / สำเร็จ / แตก (คำนวณจาก log) */}
+      {(() => {
+        const totalAttempts = log.length;
+        const successCount = log.filter((l) => l.isSuccess).length;
+        const failCount = totalAttempts - successCount;
+        const successPct = totalAttempts ? (successCount / totalAttempts) * 100 : 0;
+        return (
+          <div className="grid grid-cols-3 gap-3">
+            <div className="rounded-xl border border-slate-700/60 bg-[#181a20]/90 px-4 py-3 text-center">
+              <div className="text-xs font-semibold text-slate-400">ตีทั้งหมด</div>
+              <div className="text-2xl font-bold text-amber-300">{totalAttempts}</div>
+              <div className="text-xs text-slate-500">ครั้ง</div>
+            </div>
+            <div className="rounded-xl border border-emerald-700/40 bg-emerald-950/20 px-4 py-3 text-center">
+              <div className="text-xs font-semibold text-slate-400">สำเร็จ</div>
+              <div className="text-2xl font-bold text-emerald-400">{successCount}</div>
+              <div className="text-xs text-slate-500">{successPct.toFixed(1)}%</div>
+            </div>
+            <div className="rounded-xl border border-rose-700/40 bg-rose-950/20 px-4 py-3 text-center">
+              <div className="text-xs font-semibold text-slate-400">แตก/ล้มเหลว</div>
+              <div className="text-2xl font-bold text-rose-400">{failCount}</div>
+              <div className="text-xs text-slate-500">ครั้ง</div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Stack log */}
       <div>
-        <div className="mb-1.5 text-left text-base font-bold text-white">Stack log:</div>
         <div
           className="max-h-[280px] min-h-[160px] w-full overflow-y-auto rounded-xl border border-slate-700/60 bg-[#0f1117] p-4 text-left text-sm [overflow-wrap:anywhere]"
           ref={el => {
             if (el) el.scrollTop = el.scrollHeight;
           }}
         >
+          <div className="pb-3">Stack log:</div>
           <ul className="space-y-1.5">
             {log.map((item, idx) => (
               <li key={idx} className="leading-relaxed text-slate-200">
@@ -939,10 +1374,10 @@ const Container = () => {
                 )}
                 <span
                   className={`mr-1.5 inline-block rounded px-1.5 py-0.5 align-middle text-[0.78em] font-bold ${
-                    item.useCash ? 'bg-[#3a3220] text-amber-300' : 'bg-[#1e2a3a] text-sky-300'
+                    item.useEnriched ? 'bg-[#3a3420] text-amber-200' : item.useCash ? 'bg-[#3a3220] text-orange-300' : 'bg-[#1e2a3a] text-sky-300'
                   }`}
                 >
-                  {item.useCash ? 'หิน Cash' : 'หินปกติ'}
+                  {item.useEnriched ? 'Enriched' : item.useCash ? 'HD' : 'หินปกติ'}
                 </span>
                 {item.useBSB && (
                   <span className="mr-1.5 inline-block rounded bg-[#1e3a23] px-1.5 py-0.5 align-middle text-[0.78em] font-bold text-emerald-400">
@@ -959,46 +1394,58 @@ const Container = () => {
       {/* สรุปการใช้ไอเทมทั้งหมด */}
       {(() => {
         const num = (v) => Number(v) || 0;
-        const unitLabel = currency === 'baht' ? '฿' : 'Zenny';
-        const fmt = (v) => (currency === 'baht' ? `฿${num(v).toLocaleString('en-US')}` : `${num(v).toLocaleString('en-US')} Zenny`);
+        // หน่วยเงินของแต่ละแถว: ใช้ override รายแถวก่อน ไม่งั้น fallback หน่วยรวม
+        const curOf = (key) => rowCurrency[key] || currency;
+        const unitOf = (cur) => (cur === 'baht' ? '฿' : 'Zenny');
+        const fmtCur = (v, cur) => (cur === 'baht' ? `฿${num(v).toLocaleString('en-US')}` : `${num(v).toLocaleString('en-US')} Zenny`);
         // แถวแร่ที่ใช้ (เฉพาะที่ใช้ไปแล้ว) ต่อท้ายแถวหิน/BSB
         const oreRows = Object.entries(oreUsed)
           .filter(([, qty]) => qty > 0)
-          .map(([name, qty]) => ({ key: `ore:${name}`, label: name, unit: 'ก้อน', qty, oreColor: ORE_COLORS[name] || 'bg-slate-400' }));
+          .map(([name, qty]) => ({ key: `ore:${name}`, label: name, unit: 'ก้อน', qty, oreColor: ORE_COLORS[name] || 'bg-slate-400', icon: ORE_IMAGES[name] || null }));
         const rows = [
-          { key: 'normal', label: 'หินตีบวกธรรมดา', unit: 'ก้อน', qty: normalStoneUsed, icon: normalStoneImg },
-          { key: 'cash', label: 'หินตีบวก Cash', unit: 'ก้อน', qty: cashStoneUsed, icon: cashStoneImg },
           { key: 'bsb', label: 'Black Smith Blessing', unit: 'ชิ้น', qty: bsbUsedTotal, icon: bsbImg },
           ...oreRows,
         ];
-        const grandTotal = rows.reduce((sum, r) => sum + r.qty * num(prices[r.key]), 0);
+        // ยอดรวมแยกตามสกุลเงิน (เพราะแต่ละแถวเลือกหน่วยเองได้)
+        const totals = rows.reduce((acc, r) => {
+          acc[curOf(r.key)] += r.qty * num(prices[r.key]);
+          return acc;
+        }, { zenny: 0, baht: 0 });
+        // สกุลที่มีแถวใช้อยู่จริง (แสดงยอดรวมแม้ยังไม่กรอกราคา)
+        const usedBaht = rows.some((r) => curOf(r.key) === 'baht');
+        const usedZenny = rows.some((r) => curOf(r.key) === 'zenny');
         return (
           <div className="rounded-2xl border border-slate-700/60 bg-[#181a20]/90 p-4">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <b className="text-lg font-bold text-amber-300">สรุปการใช้ไอเทมทั้งหมด</b>
-              <div role="group" aria-label="สกุลเงิน" className="inline-flex overflow-hidden rounded-lg border border-slate-600">
-                <button
-                  type="button"
-                  onClick={() => setCurrency('zenny')}
-                  className={`px-3 py-1.5 text-sm transition-colors ${
-                    currency === 'zenny' ? 'bg-amber-400 font-bold text-slate-900' : 'bg-transparent text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  Zenny
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCurrency('baht')}
-                  className={`border-l border-slate-600 px-3 py-1.5 text-sm transition-colors ${
-                    currency === 'baht' ? 'bg-amber-400 font-bold text-slate-900' : 'bg-transparent text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  ฿ บาท
-                </button>
+              <div className="flex flex-col items-end gap-1">
+                <div role="group" aria-label="สกุลเงินทั้งหมด" className="inline-flex overflow-hidden rounded-lg border border-slate-600">
+                  <button
+                    type="button"
+                    onClick={() => { setCurrency('zenny'); setRowCurrency({}); }}
+                    className={`px-3 py-1.5 text-sm transition-colors ${
+                      currency === 'zenny' ? 'bg-amber-400 font-bold text-slate-900' : 'bg-transparent text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    Zenny
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setCurrency('baht'); setRowCurrency({}); }}
+                    className={`border-l border-slate-600 px-3 py-1.5 text-sm transition-colors ${
+                      currency === 'baht' ? 'bg-amber-400 font-bold text-slate-900' : 'bg-transparent text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    ฿ บาท
+                  </button>
+                </div>
+                <span className="text-[0.65rem] text-slate-500">ปรับทั้งหมด · หรือเลือกรายแถวด้านล่าง</span>
               </div>
             </div>
             <ul className="space-y-2">
-              {rows.map((r) => (
+              {rows.map((r) => {
+                const rc = curOf(r.key);
+                return (
                 <li key={r.key} className="flex flex-wrap items-center gap-x-2 gap-y-1.5 rounded-lg bg-[#0f1117] px-3 py-2.5 text-sm">
                   {r.icon ? (
                     <img src={r.icon} alt={r.key} className="h-[22px] w-[22px] object-contain" />
@@ -1020,15 +1467,26 @@ const Container = () => {
                     placeholder="ราคา/หน่วย"
                     className="w-24 rounded-md border border-slate-600 bg-[#181a20] px-2 py-1 text-right text-white outline-none transition-colors focus-visible:border-amber-400 focus-visible:ring-2 focus-visible:ring-amber-300/30 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                   />
-                  <span className="text-slate-400">{unitLabel}</span>
+                  <button
+                    type="button"
+                    onClick={() => setRowCurrency((p) => ({ ...p, [r.key]: rc === 'zenny' ? 'baht' : 'zenny' }))}
+                    title="สลับหน่วยเงินของแถวนี้"
+                    className="min-w-[52px] rounded-md border border-slate-600 px-1.5 py-1 text-xs font-bold text-slate-300 transition-colors hover:border-amber-400/70 hover:text-amber-300"
+                  >
+                    {unitOf(rc)}
+                  </button>
                   <span className="text-slate-500">=</span>
-                  <span className="ml-auto font-bold text-emerald-300">{fmt(r.qty * num(prices[r.key]))}</span>
+                  <span className="ml-auto font-bold text-emerald-300">{fmtCur(r.qty * num(prices[r.key]), rc)}</span>
                 </li>
-              ))}
+                );
+              })}
             </ul>
             <div className="mt-3 flex items-center justify-between rounded-lg border border-amber-400/40 bg-amber-400/10 px-3 py-2.5">
               <span className="font-bold text-amber-300">รวมทั้งหมด</span>
-              <span className="text-lg font-bold text-emerald-300">{fmt(grandTotal)}</span>
+              <span className="flex flex-col items-end gap-0.5 text-lg font-bold text-emerald-300">
+                {usedBaht && <span>{fmtCur(totals.baht, 'baht')}</span>}
+                {usedZenny && <span>{fmtCur(totals.zenny, 'zenny')}</span>}
+              </span>
             </div>
           </div>
         );
