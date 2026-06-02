@@ -1603,9 +1603,10 @@ const Container = () => {
           {/* 6. Buttons — ซ่อนระหว่าง animation */}
           {!isPlaying && mode !== 'process' && (() => {
             const isTibok = !autoRefine && (stack.length > 0 || (mode === 'success' && isSuccessLoop));
+            const isTwoBtn = mode === 'fail' && (!autoRunning || isItemLost) && !autoRefine;
             return (
           <div className="absolute z-[3] flex items-center justify-center gap-7"
-            style={{ bottom: isTibok ? '2%' : '4%', left: isTibok ? '73%' : '50%', transform:'translateX(-50%)', width: (mode==='fail' && (!autoRunning || isItemLost) && !autoRefine) ? '83%' : '37%' }}>
+            style={{ bottom: isTwoBtn ? '1%' : isTibok ? '2%' : '4%', left: isTibok ? '73%' : '50%', transform:'translateX(-50%)', width: isTwoBtn ? '83%' : '37%' }}>
             {mode === 'fail' && (!autoRunning || isItemLost) && (
               <button onClick={handleBackToWait}
                 className="cursor-pointer rounded font-bold text-amber-200 transition-opacity hover:opacity-80"
@@ -1618,8 +1619,11 @@ const Container = () => {
               <button onClick={handleRefine}
                 disabled={isPlaying || stoneBlocksRefine || mode==='process' || (mode==='fail' && isItemLost)}
                 className="flex-1 cursor-pointer rounded font-bold transition-opacity hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-40"
-                style={{ background:'transparent', color:'#000', padding:'26px 0', fontSize:'0.8rem' }}>
-                {stack.length===0 && !(mode==='success' && isSuccessLoop) ? 'อัพเกรด' : 'ตีบวก'}
+                style={{ background:'transparent', color:'#000', padding: (stack.length===0 && !(mode==='success' && isSuccessLoop)) ? '31px 0' : '19px 0', fontSize:'0.8rem' }}>
+                {stack.length===0 && !(mode==='success' && isSuccessLoop) ? 'อัพเกรด' : 'เริ่มอีกครั้ง'}
+                {!(stack.length===0 && !(mode==='success' && isSuccessLoop)) && (
+                  <span style={{ display:'block', fontSize:'0.65rem', opacity:0.7 }}>Rate: {Math.floor(currentRate)}%</span>
+                )}
               </button>
             )}
             {/* Auto buttons */}
