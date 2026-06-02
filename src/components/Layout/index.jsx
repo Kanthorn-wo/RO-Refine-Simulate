@@ -262,23 +262,6 @@ const frameCount = {
   fail: 20,
 };
 
-// สีของ keyword ที่ใช้เน้นในข้อความ Stack log
-const LOG_KEYWORD_COLORS = {
-  'สำเร็จ': '#4ade80',
-  'ล้มเหลว': '#f87171',
-  'แตก': '#f87171',
-  'ไอเทมหาย': '#fb7185',
-};
-
-const renderColoredLog = (msg) => {
-  const pattern = new RegExp(`(${Object.keys(LOG_KEYWORD_COLORS).join('|')})`, 'g');
-  return msg.split(pattern).map((part, i) => {
-    const color = LOG_KEYWORD_COLORS[part];
-    return color
-      ? <span key={i} style={{ color, fontWeight: 'bold' }}>{part}</span>
-      : <React.Fragment key={i}>{part}</React.Fragment>;
-  });
-};
 
 // ตารางอ้างอิงหินตีบวกทั้งหมด — ไม่ซ้ำซ้อน, แยกกลุ่มด้วย section header
 // note: '+โอกาส' = Enriched เพิ่มอัตราสำเร็จ
@@ -542,6 +525,7 @@ const Container = () => {
       useBSB,
       bsbConsumed: (!isSuccess && canUseBSB) ? bsbUsed : 0,
       isSuccess,
+      oreName: oreName || null,
     }]);
     setIsFail(!isSuccess);
 
@@ -1667,30 +1651,95 @@ const Container = () => {
             if (el) el.scrollTop = el.scrollHeight;
           }}
         >
-          <div className="pb-3">Stack log:</div>
-          <ul className="space-y-1.5">
-            {log.map((item, idx) => (
-              <li key={idx} className="leading-relaxed text-slate-200">
-                {item.itemType && ITEM_TYPE_LABELS[item.itemType] && (
-                  <span className="mr-1.5 inline-block rounded bg-[#3a2e1e] px-1.5 py-0.5 align-middle text-[0.78em] font-bold text-amber-300">
-                    {ITEM_TYPE_LABELS[item.itemType]}
+          <div className="mb-2 text-xs font-semibold text-slate-500">Stack log</div>
+          <ul className="space-y-0">
+            {log.map((item, idx) => {
+              const sep = item.msg.indexOf(' — ');
+              const mainPart = sep >= 0 ? item.msg.slice(0, sep) : item.msg;
+              const rollDetail = sep >= 0 ? item.msg.slice(sep + 3) : '';
+              const levelMatch = mainPart.match(/^(\+\d+\s*→\s*\+\d+)/);
+              const levelStr = levelMatch ? levelMatch[1] : '';
+
+              // result badge
+              let resultBadge;
+              if (item.isSuccess) {
+                resultBadge = (
+                  <span className="inline-flex items-center rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 text-[0.68rem] font-bold text-emerald-300">
+                    สำเร็จ
                   </span>
-                )}
-                <span
-                  className={`mr-1.5 inline-block rounded px-1.5 py-0.5 align-middle text-[0.78em] font-bold ${
-                    item.useEnriched ? 'bg-[#3a3420] text-amber-200' : item.useCash ? 'bg-[#3a3220] text-orange-300' : 'bg-[#1e2a3a] text-sky-300'
-                  }`}
-                >
-                  {item.useEnriched ? 'Enriched' : item.useCash ? 'HD' : 'หินปกติ'}
-                </span>
-                {item.useBSB && (
-                  <span className="mr-1.5 inline-block rounded bg-[#1e3a23] px-1.5 py-0.5 align-middle text-[0.78em] font-bold text-emerald-400">
-                    BSB{item.bsbConsumed > 0 ? ` ×${item.bsbConsumed}` : ''}
+                );
+              } else if (item.bsbConsumed > 0) {
+                resultBadge = (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/15 px-2 py-0.5 text-[0.68rem] font-bold text-amber-300">
+                    <img src="/images/blacksmith_blessing.png" alt="BSB" className="h-3.5 w-3.5 object-contain" />
+                    ป้องกัน ×{item.bsbConsumed}
                   </span>
-                )}
-                {renderColoredLog(item.msg)}
-              </li>
-            ))}
+                );
+              } else if (item.msg.includes('ไอเทมหาย')) {
+                resultBadge = (
+                  <span className="inline-flex items-center rounded-full border border-rose-400/50 bg-rose-500/20 px-2 py-0.5 text-[0.68rem] font-bold text-rose-300">
+                    ไอเทมหาย
+                  </span>
+                );
+              } else {
+                const dropMatch = mainPart.match(/ลดระดับ\s*(\d+)\s*ขั้น/);
+                const isDropOne = mainPart.includes('ลดระดับ') && !dropMatch;
+                resultBadge = (
+                  <span className="inline-flex items-center rounded-full border border-rose-500/40 bg-rose-500/10 px-2 py-0.5 text-[0.68rem] font-bold text-rose-400">
+                    {dropMatch ? `ลด −${dropMatch[1]}` : isDropOne ? 'ลด −1' : 'ล้มเหลว'}
+                  </span>
+                );
+              }
+
+              return (
+                <li key={idx} className="border-b border-slate-800/50 py-1.5 last:border-0">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {/* เลขลำดับ */}
+                    <span className="w-7 shrink-0 text-right text-[0.68rem] tabular-nums text-slate-600">
+                      #{idx + 1}
+                    </span>
+                    {/* ประเภทไอเทม */}
+                    {item.itemType && ITEM_TYPE_LABELS[item.itemType] && (
+                      <span className="rounded bg-[#3a2e1e] px-1.5 py-0.5 text-[0.68rem] font-bold text-amber-300">
+                        {ITEM_TYPE_LABELS[item.itemType]}
+                      </span>
+                    )}
+                    {/* แร่ (รูป + ชื่อ) หรือ fallback stone badge */}
+                    {item.oreName && ORE_IMAGES[item.oreName] ? (
+                      <span className="inline-flex items-center gap-1 rounded bg-[#1a2230] px-1.5 py-0.5 text-[0.68rem] font-semibold text-sky-300">
+                        <img src={ORE_IMAGES[item.oreName]} alt={item.oreName} className="h-4 w-4 object-contain" />
+                        {item.oreName}
+                      </span>
+                    ) : (
+                      <span className={`rounded px-1.5 py-0.5 text-[0.68rem] font-bold ${
+                        item.useEnriched ? 'bg-[#3a3420] text-amber-200' : item.useCash ? 'bg-[#3a3220] text-orange-300' : 'bg-[#1e2a3a] text-sky-300'
+                      }`}>
+                        {item.useEnriched ? 'Enriched' : item.useCash ? 'HD' : 'หินปกติ'}
+                      </span>
+                    )}
+                    {/* BSB active */}
+                    {item.useBSB && (
+                      <span className="inline-flex items-center gap-0.5 rounded bg-[#1b3322] px-1.5 py-0.5 text-[0.68rem] font-bold text-emerald-400">
+                        <img src="/images/blacksmith_blessing.png" alt="BSB" className="h-4 w-4 object-contain" />
+                        BSB
+                      </span>
+                    )}
+                    {/* level arrow */}
+                    {levelStr && (
+                      <span className="font-mono text-xs font-semibold text-slate-300">{levelStr}</span>
+                    )}
+                    {/* result badge */}
+                    {resultBadge}
+                  </div>
+                  {/* roll detail */}
+                  {rollDetail && (
+                    <div className="ml-9 mt-0.5 text-[0.65rem] leading-relaxed text-slate-600">
+                      {rollDetail}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
       </div>
