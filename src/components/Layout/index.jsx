@@ -1468,160 +1468,178 @@ const Container = () => {
       {/* หน้าต่างตีบวก */}
       <div className="flex flex-col items-center gap-3 rounded-2xl border border-slate-700/60 bg-[#181a20]/90 p-5 shadow-lg shadow-black/30 lg:flex-1 lg:justify-center">
 
-        {/* 1. Success rate banner */}
-        <div className={`w-full rounded-xl border px-4 py-2 text-center font-bold transition-colors ${
-          currentRate >= 60 ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300'
-          : currentRate >= 30 ? 'border-amber-500/40 bg-amber-500/10 text-amber-300'
-          : 'border-rose-500/40 bg-rose-500/10 text-rose-300'
-        }`}>
-          <span className="text-lg">Success {Math.floor(currentRate)}%</span>
-          {useBSB && bsbInRange && (
-            <span className="ml-3 text-sm font-semibold text-emerald-400">
-              · BSB {bsbTable[stack.length]} ชิ้น
-            </span>
-          )}
-        </div>
+        {/* Animation frame = main canvas, ทุก UI overlay อยู่ข้างใน */}
+        <div className="relative w-full overflow-hidden rounded-xl" style={{ maxWidth: 350, aspectRatio: '262 / 301' }}>
 
-        {/* 2. Ore slots row */}
-        <div className="flex w-full items-center justify-center gap-2">
-          {getDisplayOres(itemType).map(ore => {
-            const isNext = ore === nextOre;
-            const count = oreUsed[ore] || 0;
-            return (
-              <div key={ore} title={ore} className={`flex flex-col items-center gap-1 rounded-xl border p-1.5 transition-colors ${
-                isNext
-                  ? 'border-amber-400/70 bg-amber-400/10 shadow-[0_0_10px_rgba(251,191,36,0.3)]'
-                  : 'border-slate-700 bg-[#0f1117]'
-              }`}>
-                {ORE_IMAGES[ore]
-                  ? <img src={ORE_IMAGES[ore]} alt={ore} className="h-7 w-7" style={{ imageRendering: 'pixelated' }} />
-                  : <span className={`h-7 w-7 rounded-full ${ORE_COLORS[ore] || 'bg-slate-500'}`} />
-                }
-                <span className={`text-[0.65rem] font-bold tabular-nums leading-none ${isNext ? 'text-amber-300' : 'text-slate-500'}`}>
-                  {count}
-                </span>
-              </div>
-            );
-          })}
-          {/* BSB slot */}
-          <div title="Black Smith Blessing" className={`flex flex-col items-center gap-1 rounded-xl border p-1.5 transition-colors ${
-            useBSB && bsbInRange ? 'border-emerald-500/60 bg-emerald-500/10' : 'border-slate-700 bg-[#0f1117]'
-          }`}>
-            <img src="/images/blacksmith_blessing.png" alt="BSB" className="h-7 w-7" style={{ imageRendering: 'pixelated' }} />
-            <span className={`text-[0.65rem] font-bold tabular-nums leading-none ${useBSB && bsbInRange ? 'text-emerald-400' : 'text-slate-500'}`}>
-              {bsbUsedTotal}
-            </span>
-          </div>
-        </div>
-
-        {/* 3. Animation */}
-        <div className="relative w-full max-w-[350px]" style={{ aspectRatio: '262 / 301' }}>
+          {/* Animation frames (bg) */}
           {mode === 'wait' && renderFrames(waitingFrames, 'wait')}
           {mode === 'process' && renderFrames(processingFrames, 'process')}
           {mode === 'success' && renderFrames(successFrames, 'success')}
           {mode === 'fail' && renderFrames(failFrames, 'fail')}
-          {apiItem && apiItem.type === itemType && (
-            <img
-              key={apiItem.id}
-              src={apiItem.imageUrl}
-              alt={apiItem.name}
-              className="pointer-events-none absolute z-[2]"
-              style={{ left: '50%', top: '70%', width: '14%', height: 'auto', transform: 'translate(-50%, -50%)', imageRendering: 'pixelated', filter: 'drop-shadow(0 0 3px rgba(255,200,60,0.9))' }}
-              onError={e => { e.currentTarget.style.display = 'none'; }}
-            />
-          )}
-        </div>
 
-        {/* 4. Item name + level label */}
-        <div className="flex flex-col items-center gap-1.5">
-          <div
-            className={`flex items-center gap-2 rounded-xl border bg-gradient-to-b px-5 py-2 transition-colors duration-300 ${
-              lastResult === 'success' ? 'border-emerald-400/50 from-emerald-400/15 to-transparent' :
-              lastResult === 'fail' ? 'border-rose-400/50 from-rose-500/15 to-transparent' :
-              'border-amber-400/40 from-amber-400/15 to-transparent'
-            }`}
-          >
-            <span className={`text-4xl font-extrabold leading-none transition-colors duration-300 ${
-              lastResult === 'success' ? 'text-emerald-300' : lastResult === 'fail' ? 'text-rose-300' : 'text-amber-300'
-            }`}>+{stack.length}</span>
-            <span className="text-sm font-semibold text-slate-300">
-              {apiItem && apiItem.type === itemType ? apiItem.name : ITEM_TYPE_LABELS[itemType]}
-            </span>
+          {/* Item icon ใน slot */}
+          {apiItem && apiItem.type === itemType && (
+            <img key={apiItem.id} src={apiItem.imageUrl} alt={apiItem.name}
+              className="pointer-events-none absolute z-[2]"
+              style={{ left:'50%', top:'70%', width:'14%', height:'auto', transform:'translate(-50%,-50%)', imageRendering:'pixelated', filter:'drop-shadow(0 0 3px rgba(255,200,60,0.9))' }}
+              onError={e => { e.currentTarget.style.display='none'; }} />
+          )}
+
+          {/* ── OVERLAY z-[3] ── */}
+
+          {/* 1. Success % banner — top 3% */}
+          <div className="absolute z-[3] flex items-center justify-center gap-2"
+            style={{ top:'3%', left:'5%', width:'90%', background:'rgba(0,0,0,0.62)', borderRadius:6, padding:'3px 8px' }}>
+            <span className={`text-sm font-extrabold tracking-wide ${
+              currentRate >= 60 ? 'text-emerald-300' : currentRate >= 30 ? 'text-amber-300' : 'text-rose-300'
+            }`}>Success {Math.floor(currentRate)}%</span>
+            {useBSB && bsbInRange && (
+              <span className="flex items-center gap-0.5 text-[0.65rem] font-bold text-emerald-400">
+                <img src="/images/blacksmith_blessing.png" className="h-3.5 w-3.5" style={{imageRendering:'pixelated'}} alt="BSB"/>
+                ×{bsbTable[stack.length]}
+              </span>
+            )}
           </div>
-          {/* Result badge */}
-          <div className="flex min-h-[2rem] items-center">
+
+          {/* 2. Ore slots row — top 12% */}
+          <div className="absolute z-[3] flex items-end justify-center"
+            style={{ top:'11%', left:'50%', transform:'translateX(-50%)', gap:4 }}>
+            {getDisplayOres(itemType).map(ore => {
+              const isNext = ore === nextOre;
+              const count = oreUsed[ore] || 0;
+              const hexBg   = isNext ? 'rgba(251,191,36,0.25)' : 'rgba(0,0,0,0.55)';
+              const hexBorder = isNext ? 'rgba(251,191,36,0.85)' : 'rgba(100,116,139,0.6)';
+              return (
+                <div key={ore} title={ore} className="flex flex-col items-center" style={{ gap:2 }}>
+                  {/* hex shape */}
+                  <div style={{
+                    width:36, height:40,
+                    clipPath:'polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%)',
+                    background: hexBorder, display:'flex', alignItems:'center', justifyContent:'center',
+                  }}>
+                    <div style={{
+                      width:30, height:34,
+                      clipPath:'polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%)',
+                      background: hexBg, display:'flex', alignItems:'center', justifyContent:'center',
+                    }}>
+                      {ORE_IMAGES[ore]
+                        ? <img src={ORE_IMAGES[ore]} alt={ore} style={{ width:20, height:20, imageRendering:'pixelated' }} />
+                        : <span style={{ width:16, height:16, borderRadius:'50%', background: ORE_COLORS[ore] || '#64748b' }} />}
+                    </div>
+                  </div>
+                  <span style={{ fontSize:'0.6rem', fontWeight:700, color: isNext ? '#fbbf24' : '#64748b', lineHeight:1 }}>
+                    {count}
+                  </span>
+                </div>
+              );
+            })}
+            {/* BSB slot */}
+            {(() => {
+              const bsbActive = useBSB && bsbInRange;
+              return (
+                <div title="Black Smith Blessing" className="flex flex-col items-center" style={{ gap:2 }}>
+                  <div style={{
+                    width:36, height:40,
+                    clipPath:'polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%)',
+                    background: bsbActive ? 'rgba(52,211,153,0.7)' : 'rgba(100,116,139,0.6)',
+                    display:'flex', alignItems:'center', justifyContent:'center',
+                  }}>
+                    <div style={{
+                      width:30, height:34,
+                      clipPath:'polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%)',
+                      background: bsbActive ? 'rgba(52,211,153,0.2)' : 'rgba(0,0,0,0.55)',
+                      display:'flex', alignItems:'center', justifyContent:'center',
+                    }}>
+                      <img src="/images/blacksmith_blessing.png" alt="BSB" style={{ width:20, height:20, imageRendering:'pixelated' }} />
+                    </div>
+                  </div>
+                  <span style={{ fontSize:'0.6rem', fontWeight:700, color: bsbActive ? '#34d399' : '#64748b', lineHeight:1 }}>
+                    {bsbUsedTotal}
+                  </span>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* 3. Warning (ถ้าหิน HD block) — top 60% */}
+          {stoneBlocksRefine && (
+            <div className="absolute z-[3] flex items-center justify-center gap-1"
+              style={{ top:'60%', left:'50%', transform:'translateX(-50%)', background:'rgba(239,68,68,0.75)', borderRadius:4, padding:'2px 8px' }}>
+              <span style={{ fontSize:'0.65rem', fontWeight:700, color:'#fff' }}>⚠ HD ใช้ได้ตั้งแต่ +{hdMinLevel}</span>
+            </div>
+          )}
+
+          {/* 4. Result badge — top 66% */}
+          <div className="absolute z-[3]" style={{ top:'66%', left:'50%', transform:'translateX(-50%)' }}>
             {lastResult === 'success' && (
-              <span key={`ok-${stack.length}`} className="animate-pop-in inline-flex items-center gap-1.5 rounded-full border border-emerald-400/50 bg-emerald-500/15 px-4 py-1 text-sm font-bold text-emerald-300">
-                <span>✓</span> สำเร็จ!
+              <span key={`ok-${stack.length}`} className="animate-pop-in inline-flex items-center gap-1 rounded-full border border-emerald-400/60 bg-emerald-500/20 px-3 py-0.5 text-xs font-bold text-emerald-200" style={{ backdropFilter:'blur(2px)' }}>
+                ✓ สำเร็จ!
               </span>
             )}
             {lastResult === 'fail' && !isItemLost && (
-              <span key={`fail-${stack.length}`} className="animate-pop-in inline-flex items-center gap-1.5 rounded-full border border-rose-400/50 bg-rose-500/15 px-4 py-1 text-sm font-bold text-rose-300">
-                <span>✕</span> ล้มเหลว
+              <span key={`fail-${stack.length}`} className="animate-pop-in inline-flex items-center gap-1 rounded-full border border-rose-400/60 bg-rose-500/20 px-3 py-0.5 text-xs font-bold text-rose-200" style={{ backdropFilter:'blur(2px)' }}>
+                ✕ ล้มเหลว
               </span>
             )}
             {isItemLost && (
-              <span key="lost" className="animate-pop-in inline-flex animate-pulse items-center gap-1.5 rounded-full border border-rose-400/60 bg-rose-500/25 px-4 py-1 text-sm font-bold text-rose-200">
-                <span>⚠</span> ไอเทมหาย!
+              <span key="lost" className="animate-pop-in animate-pulse inline-flex items-center gap-1 rounded-full border border-rose-300/70 bg-rose-500/30 px-3 py-0.5 text-xs font-bold text-rose-100" style={{ backdropFilter:'blur(2px)' }}>
+                ⚠ ไอเทมหาย!
               </span>
             )}
           </div>
-        </div>
 
-        {/* Warning */}
-        {stoneBlocksRefine && (
-          <div className="flex items-center gap-2 rounded-lg border border-rose-500/50 bg-rose-500/10 px-3 py-2 text-xs font-semibold text-rose-300">
-            <span>⚠</span>
-            <span>หิน HD ใช้ได้ตั้งแต่ +{hdMinLevel} เท่านั้น — กรุณาเปลี่ยนหินก่อนตี</span>
+          {/* 5. Item name + level — top 76% */}
+          <div className="absolute z-[3] flex items-center justify-center gap-1.5"
+            style={{ top:'76%', left:'50%', transform:'translateX(-50%)', background:'rgba(0,0,0,0.65)', borderRadius:5, padding:'3px 12px', whiteSpace:'nowrap' }}>
+            <span className={`text-xl font-extrabold ${
+              lastResult==='success' ? 'text-emerald-300' : lastResult==='fail' ? 'text-rose-300' : 'text-amber-300'
+            }`}>+{stack.length}</span>
+            <span className="text-sm font-semibold text-white">
+              {apiItem && apiItem.type === itemType ? apiItem.name : ITEM_TYPE_LABELS[itemType]}
+            </span>
           </div>
-        )}
-        <div className="flex min-h-[48px] w-full flex-nowrap items-center justify-center gap-2">
-          {mode === 'fail' && (!autoRunning || isItemLost) && (
-            <button
-              className="w-full min-w-0 max-w-[130px] flex-1 rounded-md border border-amber-400 bg-[#23272f] px-3 py-2.5 font-bold text-amber-300 transition-colors hover:bg-[#2c313c]"
-              onClick={handleBackToWait}
-            >
-              กลับไป
-            </button>
-          )}
-          <button
-            className={`w-full min-w-0 max-w-[130px] flex-1 rounded-md px-3 py-2.5 font-bold shadow transition-transform hover:-translate-y-0.5 disabled:translate-y-0 disabled:cursor-not-allowed disabled:bg-slate-400 disabled:text-slate-600 ${
-              (stack.length === 0 && (mode !== 'success' || !isSuccessLoop))
-                ? 'bg-gradient-to-r from-indigo-500 to-cyan-400 text-white'
-                : 'bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-900'
-            }`}
-            onClick={handleRefine}
-            disabled={isPlaying || autoRunning || autoRefine || stoneBlocksRefine || mode === 'process' || (mode === 'fail' && isItemLost)}
-          >
-            {(stack.length === 0 && (mode !== 'success' || !isSuccessLoop)) ? 'อัพเกรด' : 'เริ่มอีกครั้ง'}
-            <div className="text-sm text-black/80">Rate: ({Math.floor(currentRate)}%)</div>
-          </button>
-          {autoRefine && (
-            autoRunning ? (
-              <button
-                className="w-full min-w-0 max-w-[130px] flex-1 rounded-md bg-gradient-to-r from-rose-500 to-orange-400 px-3 py-2.5 font-bold text-white shadow transition-transform hover:-translate-y-0.5"
-                onClick={handleStopAuto}
-              >
+
+          {/* 6. Buttons — bottom 2% */}
+          <div className="absolute z-[3] flex items-center justify-center gap-1.5"
+            style={{ bottom:'2%', left:'50%', transform:'translateX(-50%)', width:'92%' }}>
+            {mode === 'fail' && (!autoRunning || isItemLost) && (
+              <button onClick={handleBackToWait}
+                className="rounded font-bold text-amber-200 transition-opacity hover:opacity-80"
+                style={{ background:'rgba(0,0,0,0.7)', border:'1px solid rgba(251,191,36,0.5)', padding:'5px 10px', fontSize:'0.75rem' }}>
+                กลับไป
+              </button>
+            )}
+            {/* Manual refine button */}
+            {!autoRefine && (
+              <button onClick={handleRefine}
+                disabled={isPlaying || stoneBlocksRefine || mode==='process' || (mode==='fail' && isItemLost)}
+                className="flex-1 rounded font-bold shadow transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                style={{ background: stack.length===0 && !(mode==='success' && isSuccessLoop) ? 'linear-gradient(to right,#6366f1,#22d3ee)' : 'linear-gradient(to right,#f59e0b,#fde047)', color: stack.length===0 && !(mode==='success' && isSuccessLoop) ? '#fff' : '#1c1917', padding:'6px 0', fontSize:'0.8rem' }}>
+                {stack.length===0 && !(mode==='success' && isSuccessLoop) ? 'อัพเกรด' : 'ตีบวก'}
+                <span style={{ display:'block', fontSize:'0.65rem', opacity:0.7 }}>{Math.floor(currentRate)}%</span>
+              </button>
+            )}
+            {/* Auto buttons */}
+            {autoRefine && (autoRunning ? (
+              <button onClick={handleStopAuto}
+                className="flex-1 rounded font-bold shadow"
+                style={{ background:'linear-gradient(to right,#ef4444,#f97316)', color:'#fff', padding:'6px 0', fontSize:'0.8rem' }}>
                 หยุด Auto
-                <div className="text-sm text-black/80">กำลังตี → +{autoTarget}</div>
+                <span style={{ display:'block', fontSize:'0.6rem', opacity:0.7 }}>→ +{autoTarget}</span>
               </button>
             ) : (
-              <button
-                className="w-full min-w-0 max-w-[130px] flex-1 rounded-md bg-gradient-to-r from-indigo-500 to-violet-400 px-3 py-2.5 font-bold text-white shadow transition-transform hover:-translate-y-0.5 disabled:translate-y-0 disabled:cursor-not-allowed disabled:bg-slate-400 disabled:from-slate-400 disabled:to-slate-400 disabled:text-slate-600"
-                onClick={handleStartAuto}
-                disabled={isPlaying || mode === 'process' || autoStart >= autoTarget || (mode === 'fail' && isItemLost)}
-                title={
-                  autoStart >= autoTarget ? `เริ่มต้น +${autoStart} ต้องน้อยกว่าเป้าหมาย +${autoTarget}`
-                  : mode === 'fail' && isItemLost ? 'ไอเทมหายแล้ว — กดกลับไปก่อน'
-                  : ''
-                }
-              >
+              <button onClick={handleStartAuto}
+                disabled={isPlaying || mode==='process' || autoStart>=autoTarget || (mode==='fail' && isItemLost)}
+                className="flex-1 rounded font-bold shadow disabled:cursor-not-allowed disabled:opacity-40"
+                style={{ background:'linear-gradient(to right,#6366f1,#8b5cf6)', color:'#fff', padding:'6px 0', fontSize:'0.8rem' }}>
                 เริ่ม Auto
-                <div className="text-sm text-white/80">ตีถึง +{autoTarget}</div>
+                <span style={{ display:'block', fontSize:'0.6rem', opacity:0.8 }}>+{autoStart}→+{autoTarget}</span>
               </button>
-            )
-          )}
+            ))}
+          </div>
+
         </div>
+        {/* ── จบ animation frame ── */}
       </div>
       </div>
 
