@@ -121,17 +121,6 @@ const getEffectiveStone = (stone, itemType, level) => {
   if (stone === 'hd' && isSpecial && level < 10) return 'normal';
   return stone;
 };
-// รายการแร่ที่ควรแสดงใน slot row สำหรับแต่ละ itemType (ไม่ซ้ำ, เรียงตามลำดับที่ใช้)
-const getDisplayOres = (itemType) => {
-  const special = SPECIAL_ORE[itemType];
-  if (special) {
-    return [special.low.normal, special.low.enriched, special.high.normal, special.high.hd].filter(Boolean);
-  }
-  const m = ORE_BY_TYPE[itemType];
-  if (!m) return [];
-  return [m.normal.low, m.enriched?.low, m.cash.low, m.normal.high, m.cash.high].filter(Boolean);
-};
-
 // API ของ divine-pride สำหรับค้นไอเทมจาก ID
 // หมายเหตุ: เว็บเป็น static site คีย์นี้จะถูก build ติดไปกับ JS และเป็นสาธารณะ
 const DIVINE_PRIDE_API_KEY = '7a8b539b5e6171b362a6ef264e43dffc';
@@ -234,6 +223,23 @@ const getOreName = (itemType, level, useCash, useEnriched) => {
   if (useEnriched && m.enriched && level < 10) return m.enriched.low;
   const set = useCash ? m.cash : m.normal;
   return level < 10 ? set.low : set.high; // FIX: เดิม <= 10 ทำให้ +10→+11 ใช้หินผิด
+};
+
+// แร่ตัวแทนของชนิดหิน ('normal'|'enriched'|'hd') ที่ระดับนั้น — ไม่ fallback (ใช้โชว์รูปในช่องเลือกหิน)
+const getStoneOre = (itemType, level, stone) => {
+  const special = SPECIAL_ORE[itemType];
+  if (special) {
+    const set = level < 10 ? special.low : special.high;
+    if (stone === 'normal') return set.normal;
+    if (stone === 'enriched') return special.low.enriched;
+    if (stone === 'hd') return special.high.hd;
+  }
+  const m = ORE_BY_TYPE[itemType];
+  if (!m) return null;
+  if (stone === 'normal') return level < 10 ? m.normal.low : m.normal.high;
+  if (stone === 'enriched') return m.enriched?.low;
+  if (stone === 'hd') return level < 10 ? m.cash.low : m.cash.high;
+  return null;
 };
 
 // ฟังก์ชันสร้าง path ของภาพแต่ละเฟรมแบบ dynamic
@@ -841,8 +847,8 @@ const Container = () => {
   const hdMinLevel = getStoneMinLevel('hd', itemType);
   const stoneBlocksRefine = useCash && stack.length < hdMinLevel;
   const currentRate = getRate(isEventRate, useCash, useEnriched, itemType, currentLevel - 1);
-  // แร่ที่จะใช้ในการตีครั้งถัดไป (ตามระดับปัจจุบัน + ชนิดหิน)
-  const nextOre = getOreName(itemType, stack.length, useCash, useEnriched);
+  // rate ของ "ระดับปัจจุบัน" (row +stack.length ในตาราง) สำหรับ banner — ต่างจาก currentRate ที่เป็น rate ของรอบถัดไป
+  const bannerRate = getRate(isEventRate, useCash, useEnriched, itemType, Math.max(0, stack.length - 1));
 
   // preload all frames for each mode
   const waitingFrames = getAllFrameSrcs('waiting');
@@ -1087,7 +1093,7 @@ const Container = () => {
         <div className={`transition-opacity ${autoRefine ? 'pointer-events-none opacity-40' : ''}`}>
           <label htmlFor="start-level" className="mt-4 mb-1.5 block text-sm font-semibold text-slate-300">
             เริ่มที่ระดับตีบวก
-            {autoRefine && <span className="ml-2 text-xs font-normal text-slate-500">(ควบคุมโดย Auto)</span>}
+            {autoRefine && <span className="ml-2 text-xs font-normal text-slate-500">(Auto)</span>}
           </label>
           <div className="relative">
             <select
@@ -1105,70 +1111,7 @@ const Container = () => {
           </div>
         </div>
 
-        {/* เลือกชนิดหิน: ปกติ / Enriched / HD */}
-        {(() => {
-          const isSpecial = itemType === 'weapon5' || itemType === 'armor2';
-          const isLow = stack.length < 10; // low range: +0~9
-          // Enriched: ทั่วไปใช้ได้ <10, special ก็ใช้ได้ <10
-          const enrichedDisabled = stack.length >= 10;
-          // HD: weapon5/armor2 ใช้ได้เฉพาะ +10 ขึ้นไป; ทั่วไปใช้ได้ตลอด (แต่แร่เปลี่ยนตามช่วง)
-          const hdMinLevel = getStoneMinLevel('hd', itemType); // 7 สำหรับทั่วไป, 10 สำหรับ Lv5/2
-          const hdDisabled = stack.length < hdMinLevel;
-          return (
-            <div className={`mt-4 rounded-xl border border-slate-700/60 bg-[#0f1117] px-4 py-3 transition-opacity ${autoRefine ? 'pointer-events-none opacity-40' : ''}`}>
-              <div className="mb-2 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-slate-300">ชนิดหิน</span>
-                  <button
-                    type="button"
-                    onClick={() => setShowStoneModal(true)}
-                    title="ดูตารางหินทั้งหมด"
-                    className="flex h-4 w-4 items-center justify-center rounded-full border border-slate-500 text-[0.6rem] font-bold text-slate-300 hover:border-amber-400 hover:text-amber-300"
-                  >?</button>
-                </div>
-                {autoRunning && (
-                  <span className="rounded-full bg-indigo-500/20 px-2 py-0.5 text-[0.7rem] font-bold text-indigo-300">ควบคุมโดย Auto</span>
-                )}
-              </div>
-              <div className="grid grid-cols-3 gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => { setUseCash(false); setUseEnriched(false); }}
-                  className={`rounded-lg border px-2 py-2 text-center transition-colors ${
-                    !useCash && !useEnriched ? 'border-sky-400 bg-sky-500/20 text-sky-200' : 'border-slate-700 text-slate-400 hover:border-slate-500'
-                  }`}
-                >
-                  <span className="block text-sm font-bold">หินปกติ</span>
-                  <span className="block text-[0.65rem]">{isSpecial ? 'ลด −3' : 'ล้มหาย'}</span>
-                </button>
-                <button
-                  type="button"
-                  disabled={enrichedDisabled}
-                  title={enrichedDisabled ? 'Enriched ใช้ได้ +1~+10 เท่านั้น' : ''}
-                  onClick={() => { setUseCash(false); setUseEnriched(true); }}
-                  className={`rounded-lg border px-2 py-2 text-center transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
-                    useEnriched ? 'border-amber-400 bg-amber-400/20 text-amber-200' : 'border-slate-700 text-slate-400 hover:border-slate-500'
-                  }`}
-                >
-                  <span className="block text-sm font-bold">Enriched</span>
-                  <span className="block text-[0.65rem]">{isSpecial ? 'ลด −1' : 'ล้มหาย'}</span>
-                </button>
-                <button
-                  type="button"
-                  disabled={hdDisabled}
-                  title={hdDisabled ? `HD ใช้ได้ตั้งแต่ +${hdMinLevel} ขึ้นไป` : ''}
-                  onClick={() => { setUseCash(true); setUseEnriched(false); }}
-                  className={`rounded-lg border px-2 py-2 text-center transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
-                    useCash && !useEnriched ? 'border-orange-400 bg-orange-500/20 text-orange-200' : 'border-slate-700 text-slate-400 hover:border-slate-500'
-                  }`}
-                >
-                  <span className="block text-sm font-bold">HD</span>
-                  <span className="block text-[0.65rem]">{isSpecial && !isLow ? 'ล้มหาย' : 'ลด −1'}</span>
-                </button>
-              </div>
-            </div>
-          );
-        })()}
+        {/* ชนิดหินย้ายไปเลือกใน UI ตีบวก (stone slots) แล้ว */}
 
         {/* Toggle BSB */}
         <div
@@ -1183,7 +1126,7 @@ const Container = () => {
                 <span className="rounded-full bg-sky-500/20 px-2 py-0.5 text-[0.7rem] font-bold text-sky-300">Event Rate</span>
               )}
               {autoRunning && autoUseBSB && (
-                <span className="rounded-full bg-indigo-500/20 px-2 py-0.5 text-[0.7rem] font-bold text-indigo-300">ควบคุมโดย Auto</span>
+                <span className="rounded-full bg-indigo-500/20 px-2 py-0.5 text-[0.7rem] font-bold text-indigo-300">Auto</span>
               )}
               <span className="group relative inline-flex">
                 <span className="flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-slate-500 text-[0.6rem] font-bold text-slate-300">i</span>
@@ -1478,21 +1421,60 @@ const Container = () => {
           {mode === 'fail' && renderFrames(failFrames, 'fail')}
 
           {/* Item icon ใน slot */}
-          {apiItem && apiItem.type === itemType && (
-            <img key={apiItem.id} src={apiItem.imageUrl} alt={apiItem.name}
-              className="pointer-events-none absolute z-[2]"
-              style={{ left:'50%', top:'69%', width:'10%', height:'auto', transform:'translate(-50%,-50%)', imageRendering:'pixelated', filter:'drop-shadow(0 0 3px rgba(255,200,60,0.9))' }}
-              onError={e => { e.currentTarget.style.display='none'; }} />
-          )}
+          {(() => {
+            const src = apiItem && apiItem.type === itemType
+              ? apiItem.imageUrl
+              : itemType.startsWith('weapon') ? '/images/default_weapon.png' : '/images/default_armor.png';
+            const key = apiItem && apiItem.type === itemType ? apiItem.id : `default-${itemType}`;
+            return (
+              <img key={key} src={src} alt="item"
+                className="pointer-events-none absolute z-[2]"
+                style={{ left:'50%', top:'69%', width:'10%', height:'auto', transform:'translate(-50%,-50%)', imageRendering:'pixelated', filter:'drop-shadow(0 0 3px rgba(255,200,60,0.9))' }}
+                onError={e => { e.currentTarget.style.display='none'; }} />
+            );
+          })()}
 
           {/* ── OVERLAY z-[3] ── */}
+
+          {/* ปุ่มดูตารางหิน — มุมซ้ายบน */}
+          <button type="button" onClick={() => setShowStoneModal(true)} title="ดูตารางหินทั้งหมด"
+            className="absolute z-[4] flex cursor-pointer items-center justify-center rounded-full font-bold text-white transition-transform hover:scale-110"
+            style={{ top:10, left:10, width:22, height:22, fontSize:'0.7rem',
+              background:'rgba(15,17,23,0.85)', border:'1px solid rgba(148,163,184,0.6)', boxShadow:'0 1px 4px rgba(0,0,0,0.5)' }}>?</button>
+
+          {/* badge ควบคุมโดย Auto — มุมซ้ายบน (เลื่อนขวาจากปุ่ม ?) ตอน auto คุมหิน */}
+          {autoRunning && (
+            <span className="absolute z-[4] rounded-full font-bold text-indigo-200"
+              style={{ top:11, left:38, padding:'2px 8px', fontSize:'0.6rem', background:'rgba(79,70,229,0.85)', border:'1px solid rgba(129,140,248,0.6)' }}>
+              Auto
+            </span>
+          )}
+
+          {/* Stop Auto badge — มุมขวาบน แสดงตลอดตอน auto ทำงาน (ไม่กระพริบตาม animation) */}
+          {autoRefine && autoRunning && (
+            <button onClick={handleStopAuto} title="หยุด Auto"
+              className="group absolute z-[5] flex cursor-pointer items-center gap-1 rounded-full font-bold text-white transition-all hover:scale-105 active:scale-95"
+              style={{
+                top:10, right:10, padding:'3px 8px 3px 6px', fontSize:'0.5rem',
+                background:'linear-gradient(135deg,#dc2626,#7f1d1d)',
+                border:'1px solid rgba(248,113,113,0.6)',
+                boxShadow:'0 2px 8px rgba(127,29,29,0.55), inset 0 1px 0 rgba(255,255,255,0.15)',
+              }}>
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-300 opacity-75" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-rose-100" />
+              </span>
+              <span className="tracking-wide">หยุด</span>
+              <span className="opacity-70" style={{ fontSize:'0.42rem' }}>+{autoTarget}</span>
+            </button>
+          )}
 
           {/* 1. Success % banner — top 14px */}
           <div className="absolute z-[3] flex items-center justify-center gap-2"
             style={{ top:14, left:'5%', width:'90%', padding:'3px 8px' }}>
             <span className="text-sm font-extrabold tracking-wide">
               <span style={{ color:'#000' }}>สำเร็จ </span>
-              <span style={{ color:'#1d4ed8' }}>{Math.floor(currentRate)}%</span>
+              <span style={{ color:'#1d4ed8' }}>{Math.floor(bannerRate)}%</span>
             </span>
             {useBSB && bsbInRange && (
               <span className="flex items-center gap-0.5 text-[0.65rem] font-bold text-emerald-400">
@@ -1502,62 +1484,79 @@ const Container = () => {
             )}
           </div>
 
-          {/* 2. Ore slots row — top 12% */}
+          {/* 2. Stone selector slots — top 11% (คลิกเลือกชนิดหินได้, dim อันที่ใช้ไม่ได้) */}
           <div className="absolute z-[3] flex items-end justify-center"
-            style={{ top:'11%', left:'50%', transform:'translateX(-50%)', gap:4 }}>
-            {getDisplayOres(itemType).map(ore => {
-              const isNext = ore === nextOre;
-              const count = oreUsed[ore] || 0;
-              const hexBg   = isNext ? 'rgba(251,191,36,0.25)' : 'rgba(0,0,0,0.55)';
-              const hexBorder = isNext ? 'rgba(251,191,36,0.85)' : 'rgba(100,116,139,0.6)';
-              return (
-                <div key={ore} title={ore} className="flex flex-col items-center" style={{ gap:2 }}>
-                  {/* hex shape */}
-                  <div style={{
-                    width:36, height:40,
-                    clipPath:'polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%)',
-                    background: hexBorder, display:'flex', alignItems:'center', justifyContent:'center',
-                  }}>
+            style={{ top:'11%', left:'50%', transform:'translateX(-50%)', gap:4, pointerEvents: autoRefine ? 'none' : 'auto', opacity: autoRefine ? 0.5 : 1 }}>
+            {(() => {
+              // 3 ชนิดหิน: ปกติ / Enriched / HD — ใช้ getOreName/getStoneOre คำนวณแร่ของช่วงปัจจุบัน
+              const stones = [
+                { key:'normal',   label:'ปกติ',     active: !useCash && !useEnriched, disabled:false,
+                  activeC:'56,189,248',  onClick:() => { setUseCash(false); setUseEnriched(false); } },
+                { key:'enriched', label:'Enriched', active: useEnriched,              disabled: stack.length >= 10,
+                  activeC:'251,191,36',  onClick:() => { setUseCash(false); setUseEnriched(true); } },
+                { key:'hd',       label:'HD',       active: useCash && !useEnriched,  disabled: stack.length < hdMinLevel,
+                  activeC:'251,146,60',  onClick:() => { setUseCash(true); setUseEnriched(false); } },
+              ];
+              return stones.map(s => {
+                const ore = getStoneOre(itemType, stack.length, s.key);
+                const C = s.activeC;
+                const hexBorder = s.active ? `rgba(${C},0.95)` : 'rgba(100,116,139,0.6)';
+                const hexBg     = s.active ? `rgba(${C},0.3)`  : 'rgba(0,0,0,0.55)';
+                return (
+                  <button key={s.key} type="button" title={ore || s.label} onClick={s.onClick} disabled={s.disabled}
+                    className="flex cursor-pointer flex-col items-center border-0 bg-transparent p-0 transition-opacity disabled:cursor-not-allowed"
+                    style={{ gap:2, opacity: s.disabled ? 0.3 : 1 }}>
                     <div style={{
-                      width:30, height:34,
+                      width:36, height:40,
                       clipPath:'polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%)',
-                      background: hexBg, display:'flex', alignItems:'center', justifyContent:'center',
+                      background: hexBorder, display:'flex', alignItems:'center', justifyContent:'center',
+                      filter: s.active ? `drop-shadow(0 0 4px rgba(${C},0.7))` : 'none',
                     }}>
-                      {ORE_IMAGES[ore]
-                        ? <img src={ORE_IMAGES[ore]} alt={ore} style={{ width:20, height:20, imageRendering:'pixelated' }} />
-                        : <span style={{ width:16, height:16, borderRadius:'50%', background: ORE_COLORS[ore] || '#64748b' }} />}
+                      <div style={{
+                        width:30, height:34,
+                        clipPath:'polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%)',
+                        background: hexBg, display:'flex', alignItems:'center', justifyContent:'center',
+                      }}>
+                        {ore && ORE_IMAGES[ore]
+                          ? <img src={ORE_IMAGES[ore]} alt={ore} style={{ width:20, height:20, imageRendering:'pixelated' }} />
+                          : <span style={{ width:16, height:16, borderRadius:'50%', background: (ore && ORE_COLORS[ore]) || '#64748b' }} />}
+                      </div>
                     </div>
-                  </div>
-                  <span style={{ fontSize:'0.6rem', fontWeight:700, color: isNext ? '#fbbf24' : '#64748b', lineHeight:1 }}>
-                    {count}
-                  </span>
-                </div>
-              );
-            })}
-            {/* BSB slot */}
+                    <span style={{ fontSize:'0.6rem', fontWeight:700, color: s.active ? `rgb(${C})` : '#94a3b8', lineHeight:1 }}>
+                      {s.label}
+                    </span>
+                  </button>
+                );
+              });
+            })()}
+            {/* BSB slot — คลิก toggle ได้ */}
             {(() => {
               const bsbActive = useBSB && bsbInRange;
               return (
-                <div title="Black Smith Blessing" className="flex flex-col items-center" style={{ gap:2 }}>
+                <button type="button" title="Black Smith Blessing" disabled={!bsbInRange}
+                  onClick={() => setUseBSB(v => !v)}
+                  className="flex cursor-pointer flex-col items-center border-0 bg-transparent p-0 transition-opacity disabled:cursor-not-allowed"
+                  style={{ gap:2, opacity: bsbInRange ? 1 : 0.3 }}>
                   <div style={{
                     width:36, height:40,
                     clipPath:'polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%)',
-                    background: bsbActive ? 'rgba(52,211,153,0.7)' : 'rgba(100,116,139,0.6)',
+                    background: bsbActive ? 'rgba(52,211,153,0.95)' : 'rgba(100,116,139,0.6)',
                     display:'flex', alignItems:'center', justifyContent:'center',
+                    filter: bsbActive ? 'drop-shadow(0 0 4px rgba(52,211,153,0.7))' : 'none',
                   }}>
                     <div style={{
                       width:30, height:34,
                       clipPath:'polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%)',
-                      background: bsbActive ? 'rgba(52,211,153,0.2)' : 'rgba(0,0,0,0.55)',
+                      background: bsbActive ? 'rgba(52,211,153,0.25)' : 'rgba(0,0,0,0.55)',
                       display:'flex', alignItems:'center', justifyContent:'center',
                     }}>
                       <img src="/images/blacksmith_blessing.png" alt="BSB" style={{ width:20, height:20, imageRendering:'pixelated' }} />
                     </div>
                   </div>
-                  <span style={{ fontSize:'0.6rem', fontWeight:700, color: bsbActive ? '#34d399' : '#64748b', lineHeight:1 }}>
-                    {bsbUsedTotal}
+                  <span style={{ fontSize:'0.6rem', fontWeight:700, color: bsbActive ? '#34d399' : '#94a3b8', lineHeight:1 }}>
+                    BSB
                   </span>
-                </div>
+                </button>
               );
             })()}
           </div>
@@ -1569,25 +1568,6 @@ const Container = () => {
               <span style={{ fontSize:'0.65rem', fontWeight:700, color:'#fff' }}>⚠ HD ใช้ได้ตั้งแต่ +{hdMinLevel}</span>
             </div>
           )}
-
-          {/* 4. Result badge — top 66% */}
-          <div className="absolute z-[3]" style={{ top:'66%', left:'50%', transform:'translateX(-50%)' }}>
-            {lastResult === 'success' && (
-              <span key={`ok-${stack.length}`} className="animate-pop-in inline-flex items-center gap-1 rounded-full border border-emerald-400/60 bg-emerald-500/20 px-3 py-0.5 text-xs font-bold text-emerald-500" style={{ backdropFilter:'blur(2px)' }}>
-                ✓ สำเร็จ!
-              </span>
-            )}
-            {lastResult === 'fail' && !isItemLost && (
-              <span key={`fail-${stack.length}`} className="animate-pop-in inline-flex items-center gap-1 rounded-full border border-rose-400/60 bg-rose-500/20 px-3 py-0.5 text-xs font-bold text-rose-500" style={{ backdropFilter:'blur(2px)' }}>
-                ✕ ล้มเหลว
-              </span>
-            )}
-            {isItemLost && (
-              <span key="lost" className="animate-pop-in animate-pulse inline-flex items-center gap-1 rounded-full border border-rose-300/70 bg-rose-500/30 px-3 py-0.5 text-xs font-bold text-rose-500" style={{ backdropFilter:'blur(2px)' }}>
-                ⚠ ไอเทมหาย!
-              </span>
-            )}
-          </div>
 
           {/* 5. Item name + level — top 78% */}
           <div className="absolute z-[3] flex items-center justify-center gap-1.5"
@@ -1602,11 +1582,13 @@ const Container = () => {
 
           {/* 6. Buttons — ซ่อนระหว่าง animation */}
           {!isPlaying && mode !== 'process' && (() => {
-            const isTibok = !autoRefine && (stack.length > 0 || (mode === 'success' && isSuccessLoop));
+            const isTibok = stack.length > 0 || (mode === 'success' && isSuccessLoop);
             const isTwoBtn = mode === 'fail' && (!autoRunning || isItemLost) && !autoRefine;
+            // auto ตีแตก (item หาย/ลดระดับ) แล้วหยุด: แสดง 2 ปุ่ม (กลับไป + เริ่ม Auto dim) — บังคับ bottom 4% / left 50% / width 83%
+            const isTwoBtnAuto = autoRefine && !autoRunning && mode === 'fail';
             return (
           <div className="absolute z-[3] flex items-center justify-center gap-7"
-            style={{ bottom: isTwoBtn ? '1%' : isTibok ? '2%' : '4%', left: isTibok ? '73%' : '50%', transform:'translateX(-50%)', width: isTwoBtn ? '83%' : '37%' }}>
+            style={{ bottom: isTwoBtnAuto ? '4%' : isTwoBtn ? '1%' : isTibok ? '2%' : '4%', left: isTwoBtnAuto ? '50%' : isTwoBtn ? '50%' : isTibok ? '73%' : '50%', transform:'translateX(-50%)', width: (isTwoBtn || isTwoBtnAuto) ? '83%' : '37%' }}>
             {mode === 'fail' && (!autoRunning || isItemLost) && (
               <button onClick={handleBackToWait}
                 className="cursor-pointer rounded font-bold text-amber-200 transition-opacity hover:opacity-80"
@@ -1626,23 +1608,16 @@ const Container = () => {
                 )}
               </button>
             )}
-            {/* Auto buttons */}
-            {autoRefine && (autoRunning ? (
-              <button onClick={handleStopAuto}
-                className="flex-1 cursor-pointer rounded font-bold hover:opacity-70"
-                style={{ background:'transparent', color:'#000', padding:'12px 0', fontSize:'0.8rem' }}>
-                หยุด Auto
-                <span style={{ display:'block', fontSize:'0.6rem', opacity:0.7 }}>→ +{autoTarget}</span>
-              </button>
-            ) : (
+            {/* Start Auto button (ปุ่มหยุดแยกเป็น badge มุมขวาบน) */}
+            {autoRefine && !autoRunning && (
               <button onClick={handleStartAuto}
                 disabled={isPlaying || mode==='process' || autoStart>=autoTarget || (mode==='fail' && isItemLost)}
                 className="flex-1 cursor-pointer rounded font-bold disabled:cursor-not-allowed disabled:opacity-40 hover:opacity-70"
                 style={{ background:'transparent', color:'#000', padding:'10px 0', fontSize:'0.8rem' }}>
                 เริ่ม Auto
-                <span style={{ display:'block', fontSize:'0.6rem', opacity:0.8 }}>+{autoStart}→+{autoTarget}</span>
+                <span style={{ display:'block', fontSize:'0.6rem', opacity:0.8 ,color:'#fff'}}>+{autoStart}→+{autoTarget}</span>
               </button>
-            ))}
+            )}
           </div>
             );
           })()}
