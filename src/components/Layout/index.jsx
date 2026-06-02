@@ -1456,20 +1456,6 @@ const Container = () => {
 
       {/* หน้าต่างตีบวก — การ์ดสไตล์เดียวกับกล่อง option ให้ดูสมดุลกัน */}
       <div className="flex flex-col items-center gap-4 rounded-2xl border border-slate-700/60 bg-[#181a20]/90 p-5 shadow-lg shadow-black/30 lg:flex-1 lg:justify-center">
-        {/* ป้ายบอกว่ากำลังตีบวกไอเทมชิ้นไหน (เฉพาะเมื่อไอเทมปัจจุบันมาจากการค้นด้วย ID) */}
-        {!apiLoading && apiItem && apiItem.type === itemType && (
-          <div className="flex items-center gap-2 rounded-lg border border-amber-400/30 bg-amber-400/5 px-3 py-1.5">
-            <img
-              key={apiItem.id}
-              src={apiItem.imageUrl}
-              alt={apiItem.name}
-              className="h-6 w-6 object-contain"
-              onError={e => { e.currentTarget.style.visibility = 'hidden'; }}
-            />
-            <span className="text-sm font-semibold text-amber-300">{apiItem.name}</span>
-            <span className="text-xs text-slate-400">(ID {apiItem.id})</span>
-          </div>
-        )}
         {/* แถบสถานะ BSB เหนือระดับ — ใช้ min-h สำรองพื้นที่ กันเลย์เอาต์ขยับ */}
         <div className="min-h-[1.4em] text-sm font-bold text-emerald-400">
           {useBSB && bsbInRange && (
