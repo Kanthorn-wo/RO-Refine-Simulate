@@ -121,6 +121,17 @@ const getEffectiveStone = (stone, itemType, level) => {
   if (stone === 'hd' && isSpecial && level < 10) return 'normal';
   return stone;
 };
+// รายการแร่ที่ควรแสดงใน slot row สำหรับแต่ละ itemType (ไม่ซ้ำ, เรียงตามลำดับที่ใช้)
+const getDisplayOres = (itemType) => {
+  const special = SPECIAL_ORE[itemType];
+  if (special) {
+    return [special.low.normal, special.low.enriched, special.high.normal, special.high.hd].filter(Boolean);
+  }
+  const m = ORE_BY_TYPE[itemType];
+  if (!m) return [];
+  return [m.normal.low, m.enriched?.low, m.cash.low, m.normal.high, m.cash.high].filter(Boolean);
+};
+
 // API ของ divine-pride สำหรับค้นไอเทมจาก ID
 // หมายเหตุ: เว็บเป็น static site คีย์นี้จะถูก build ติดไปกับ JS และเป็นสาธารณะ
 const DIVINE_PRIDE_API_KEY = '7a8b539b5e6171b362a6ef264e43dffc';
@@ -1454,104 +1465,110 @@ const Container = () => {
         </div>
       </div>
 
-      {/* หน้าต่างตีบวก — การ์ดสไตล์เดียวกับกล่อง option ให้ดูสมดุลกัน */}
-      <div className="flex flex-col items-center gap-4 rounded-2xl border border-slate-700/60 bg-[#181a20]/90 p-5 shadow-lg shadow-black/30 lg:flex-1 lg:justify-center">
-        {/* แถบสถานะ BSB เหนือระดับ — ใช้ min-h สำรองพื้นที่ กันเลย์เอาต์ขยับ */}
-        <div className="min-h-[1.4em] text-sm font-bold text-emerald-400">
+      {/* หน้าต่างตีบวก */}
+      <div className="flex flex-col items-center gap-3 rounded-2xl border border-slate-700/60 bg-[#181a20]/90 p-5 shadow-lg shadow-black/30 lg:flex-1 lg:justify-center">
+
+        {/* 1. Success rate banner */}
+        <div className={`w-full rounded-xl border px-4 py-2 text-center font-bold transition-colors ${
+          currentRate >= 60 ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300'
+          : currentRate >= 30 ? 'border-amber-500/40 bg-amber-500/10 text-amber-300'
+          : 'border-rose-500/40 bg-rose-500/10 text-rose-300'
+        }`}>
+          <span className="text-lg">Success {Math.floor(currentRate)}%</span>
           {useBSB && bsbInRange && (
-            <>กำลังใช้ BSB ({bsbTable[stack.length]} ชิ้น)</>
+            <span className="ml-3 text-sm font-semibold text-emerald-400">
+              · BSB {bsbTable[stack.length]} ชิ้น
+            </span>
           )}
         </div>
 
-        <div className="flex flex-col items-center gap-2.5">
-          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">ระดับการตีบวก</span>
-          {/* Level badge ใหญ่ + glow เปลี่ยนสีตามผลลัพธ์ล่าสุด */}
-          <div
-            className={`relative flex h-[88px] w-32 items-center justify-center rounded-2xl border bg-gradient-to-b transition-colors duration-300 ${
-              lastResult === 'success'
-                ? 'border-emerald-400/50 from-emerald-400/15 to-transparent shadow-[0_0_28px_rgba(52,211,153,0.25)]'
-                : lastResult === 'fail'
-                ? 'border-rose-400/50 from-rose-500/15 to-transparent shadow-[0_0_28px_rgba(244,63,94,0.22)]'
-                : 'border-amber-400/40 from-amber-400/15 to-transparent shadow-[0_0_24px_rgba(251,191,36,0.18)]'
-            }`}
-          >
-            <span
-              className={`text-5xl font-extrabold leading-none transition-colors duration-300 ${
-                lastResult === 'success' ? 'text-emerald-300' : lastResult === 'fail' ? 'text-rose-300' : 'text-amber-300'
-              }`}
-              style={{ textShadow: '0 2px 10px rgba(251,191,36,0.35)' }}
-            >
-              +{stack.length}
+        {/* 2. Ore slots row */}
+        <div className="flex w-full items-center justify-center gap-2">
+          {getDisplayOres(itemType).map(ore => {
+            const isNext = ore === nextOre;
+            const count = oreUsed[ore] || 0;
+            return (
+              <div key={ore} title={ore} className={`flex flex-col items-center gap-1 rounded-xl border p-1.5 transition-colors ${
+                isNext
+                  ? 'border-amber-400/70 bg-amber-400/10 shadow-[0_0_10px_rgba(251,191,36,0.3)]'
+                  : 'border-slate-700 bg-[#0f1117]'
+              }`}>
+                {ORE_IMAGES[ore]
+                  ? <img src={ORE_IMAGES[ore]} alt={ore} className="h-7 w-7" style={{ imageRendering: 'pixelated' }} />
+                  : <span className={`h-7 w-7 rounded-full ${ORE_COLORS[ore] || 'bg-slate-500'}`} />
+                }
+                <span className={`text-[0.65rem] font-bold tabular-nums leading-none ${isNext ? 'text-amber-300' : 'text-slate-500'}`}>
+                  {count}
+                </span>
+              </div>
+            );
+          })}
+          {/* BSB slot */}
+          <div title="Black Smith Blessing" className={`flex flex-col items-center gap-1 rounded-xl border p-1.5 transition-colors ${
+            useBSB && bsbInRange ? 'border-emerald-500/60 bg-emerald-500/10' : 'border-slate-700 bg-[#0f1117]'
+          }`}>
+            <img src="/images/blacksmith_blessing.png" alt="BSB" className="h-7 w-7" style={{ imageRendering: 'pixelated' }} />
+            <span className={`text-[0.65rem] font-bold tabular-nums leading-none ${useBSB && bsbInRange ? 'text-emerald-400' : 'text-slate-500'}`}>
+              {bsbUsedTotal}
             </span>
-          </div>
-          {/* Badge ผลลัพธ์ — สำรองความสูงกันเลย์เอาต์ขยับ */}
-          <div className="flex min-h-[2.25rem] items-center">
-            {lastResult === 'success' && (
-              <span
-                key={`ok-${stack.length}`}
-                className="animate-pop-in inline-flex items-center gap-1.5 rounded-full border border-emerald-400/50 bg-emerald-500/15 px-4 py-1.5 text-sm font-bold text-emerald-300"
-              >
-                <span className="text-base">✓</span> สำเร็จ!
-              </span>
-            )}
-            {lastResult === 'fail' && !isItemLost && (
-              <span
-                key={`fail-${stack.length}`}
-                className="animate-pop-in inline-flex items-center gap-1.5 rounded-full border border-rose-400/50 bg-rose-500/15 px-4 py-1.5 text-sm font-bold text-rose-300"
-              >
-                <span className="text-base">✕</span> ล้มเหลว
-              </span>
-            )}
-            {isItemLost && (
-              <span
-                key="lost"
-                className="animate-pop-in inline-flex animate-pulse items-center gap-1.5 rounded-full border border-rose-400/60 bg-rose-500/25 px-4 py-1.5 text-sm font-bold text-rose-200"
-              >
-                <span className="text-base">⚠</span> ไอเทมหาย!
-              </span>
-            )}
           </div>
         </div>
 
+        {/* 3. Animation */}
         <div className="relative w-full max-w-[350px]" style={{ aspectRatio: '262 / 301' }}>
           {mode === 'wait' && renderFrames(waitingFrames, 'wait')}
           {mode === 'process' && renderFrames(processingFrames, 'process')}
           {mode === 'success' && renderFrames(successFrames, 'success')}
           {mode === 'fail' && renderFrames(failFrames, 'fail')}
-          {/* รูป item ใน slot ตรงกลางของ blacksmith */}
           {apiItem && apiItem.type === itemType && (
             <img
               key={apiItem.id}
               src={apiItem.imageUrl}
               alt={apiItem.name}
               className="pointer-events-none absolute z-[2]"
-              style={{
-                left: '50%',
-                top: '70%',
-                width: '14%',
-                height: 'auto',
-                transform: 'translate(-50%, -50%)',
-                imageRendering: 'pixelated',
-                filter: 'drop-shadow(0 0 3px rgba(255,200,60,0.9))',
-              }}
+              style={{ left: '50%', top: '70%', width: '14%', height: 'auto', transform: 'translate(-50%, -50%)', imageRendering: 'pixelated', filter: 'drop-shadow(0 0 3px rgba(255,200,60,0.9))' }}
               onError={e => { e.currentTarget.style.display = 'none'; }}
             />
           )}
         </div>
 
-        {/* แร่ที่จะใช้ในการตีครั้งถัดไป (ตามระดับปัจจุบัน + ชนิดหิน) */}
-        {nextOre && (
-          <div className="inline-flex items-center gap-2 rounded-full border border-slate-600 bg-[#0f1117] px-3 py-1.5 text-sm">
-            {ORE_IMAGES[nextOre] ? (
-              <img src={ORE_IMAGES[nextOre]} alt={nextOre} className="h-5 w-5 object-contain" />
-            ) : (
-              <span className={`h-2.5 w-2.5 rounded-full ${ORE_COLORS[nextOre] || 'bg-slate-400'}`} />
-            )}
-            <span className="text-slate-400">แร่ที่จะใช้:</span>
-            <span className="font-semibold text-amber-300">{nextOre}</span>
+        {/* 4. Item name + level label */}
+        <div className="flex flex-col items-center gap-1.5">
+          <div
+            className={`flex items-center gap-2 rounded-xl border bg-gradient-to-b px-5 py-2 transition-colors duration-300 ${
+              lastResult === 'success' ? 'border-emerald-400/50 from-emerald-400/15 to-transparent' :
+              lastResult === 'fail' ? 'border-rose-400/50 from-rose-500/15 to-transparent' :
+              'border-amber-400/40 from-amber-400/15 to-transparent'
+            }`}
+          >
+            <span className={`text-4xl font-extrabold leading-none transition-colors duration-300 ${
+              lastResult === 'success' ? 'text-emerald-300' : lastResult === 'fail' ? 'text-rose-300' : 'text-amber-300'
+            }`}>+{stack.length}</span>
+            <span className="text-sm font-semibold text-slate-300">
+              {apiItem && apiItem.type === itemType ? apiItem.name : ITEM_TYPE_LABELS[itemType]}
+            </span>
           </div>
-        )}
-        {/* แจ้งเตือนเมื่อหินที่เลือกใช้ไม่ได้ที่ระดับปัจจุบัน */}
+          {/* Result badge */}
+          <div className="flex min-h-[2rem] items-center">
+            {lastResult === 'success' && (
+              <span key={`ok-${stack.length}`} className="animate-pop-in inline-flex items-center gap-1.5 rounded-full border border-emerald-400/50 bg-emerald-500/15 px-4 py-1 text-sm font-bold text-emerald-300">
+                <span>✓</span> สำเร็จ!
+              </span>
+            )}
+            {lastResult === 'fail' && !isItemLost && (
+              <span key={`fail-${stack.length}`} className="animate-pop-in inline-flex items-center gap-1.5 rounded-full border border-rose-400/50 bg-rose-500/15 px-4 py-1 text-sm font-bold text-rose-300">
+                <span>✕</span> ล้มเหลว
+              </span>
+            )}
+            {isItemLost && (
+              <span key="lost" className="animate-pop-in inline-flex animate-pulse items-center gap-1.5 rounded-full border border-rose-400/60 bg-rose-500/25 px-4 py-1 text-sm font-bold text-rose-200">
+                <span>⚠</span> ไอเทมหาย!
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Warning */}
         {stoneBlocksRefine && (
           <div className="flex items-center gap-2 rounded-lg border border-rose-500/50 bg-rose-500/10 px-3 py-2 text-xs font-semibold text-rose-300">
             <span>⚠</span>
