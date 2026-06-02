@@ -1532,6 +1532,24 @@ const Container = () => {
           {mode === 'process' && renderFrames(processingFrames, 'process')}
           {mode === 'success' && renderFrames(successFrames, 'success')}
           {mode === 'fail' && renderFrames(failFrames, 'fail')}
+          {/* รูป item ใน slot ตรงกลางของ blacksmith */}
+          {apiItem && apiItem.type === itemType && (
+            <img
+              key={apiItem.id}
+              src={apiItem.imageUrl}
+              alt={apiItem.name}
+              className="pointer-events-none absolute z-[2] object-contain"
+              style={{
+                left: '50%',
+                top: '63%',
+                width: '22%',
+                transform: 'translate(-50%, -50%)',
+                imageRendering: 'pixelated',
+                filter: 'drop-shadow(0 0 4px rgba(255,220,100,0.7))',
+              }}
+              onError={e => { e.currentTarget.style.display = 'none'; }}
+            />
+          )}
         </div>
 
         {/* แร่ที่จะใช้ในการตีครั้งถัดไป (ตามระดับปัจจุบัน + ชนิดหิน) */}
