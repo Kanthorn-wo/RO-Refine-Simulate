@@ -1481,7 +1481,7 @@ const Container = () => {
           {apiItem && apiItem.type === itemType && (
             <img key={apiItem.id} src={apiItem.imageUrl} alt={apiItem.name}
               className="pointer-events-none absolute z-[2]"
-              style={{ left:'50%', top:'70%', width:'14%', height:'auto', transform:'translate(-50%,-50%)', imageRendering:'pixelated', filter:'drop-shadow(0 0 3px rgba(255,200,60,0.9))' }}
+              style={{ left:'50%', top:'69%', width:'10%', height:'auto', transform:'translate(-50%,-50%)', imageRendering:'pixelated', filter:'drop-shadow(0 0 3px rgba(255,200,60,0.9))' }}
               onError={e => { e.currentTarget.style.display='none'; }} />
           )}
 
@@ -1573,17 +1573,17 @@ const Container = () => {
           {/* 4. Result badge — top 66% */}
           <div className="absolute z-[3]" style={{ top:'66%', left:'50%', transform:'translateX(-50%)' }}>
             {lastResult === 'success' && (
-              <span key={`ok-${stack.length}`} className="animate-pop-in inline-flex items-center gap-1 rounded-full border border-emerald-400/60 bg-emerald-500/20 px-3 py-0.5 text-xs font-bold text-emerald-200" style={{ backdropFilter:'blur(2px)' }}>
+              <span key={`ok-${stack.length}`} className="animate-pop-in inline-flex items-center gap-1 rounded-full border border-emerald-400/60 bg-emerald-500/20 px-3 py-0.5 text-xs font-bold text-emerald-500" style={{ backdropFilter:'blur(2px)' }}>
                 ✓ สำเร็จ!
               </span>
             )}
             {lastResult === 'fail' && !isItemLost && (
-              <span key={`fail-${stack.length}`} className="animate-pop-in inline-flex items-center gap-1 rounded-full border border-rose-400/60 bg-rose-500/20 px-3 py-0.5 text-xs font-bold text-rose-200" style={{ backdropFilter:'blur(2px)' }}>
+              <span key={`fail-${stack.length}`} className="animate-pop-in inline-flex items-center gap-1 rounded-full border border-rose-400/60 bg-rose-500/20 px-3 py-0.5 text-xs font-bold text-rose-500" style={{ backdropFilter:'blur(2px)' }}>
                 ✕ ล้มเหลว
               </span>
             )}
             {isItemLost && (
-              <span key="lost" className="animate-pop-in animate-pulse inline-flex items-center gap-1 rounded-full border border-rose-300/70 bg-rose-500/30 px-3 py-0.5 text-xs font-bold text-rose-100" style={{ backdropFilter:'blur(2px)' }}>
+              <span key="lost" className="animate-pop-in animate-pulse inline-flex items-center gap-1 rounded-full border border-rose-300/70 bg-rose-500/30 px-3 py-0.5 text-xs font-bold text-rose-500" style={{ backdropFilter:'blur(2px)' }}>
                 ⚠ ไอเทมหาย!
               </span>
             )}
@@ -1593,7 +1593,7 @@ const Container = () => {
           <div className="absolute z-[3] flex items-center justify-center gap-1.5"
             style={{ top:'76%', left:'50%', transform:'translateX(-50%)', color:'#000', whiteSpace:'nowrap' }}>
             <span className={`text-sm font-semibold ${
-              lastResult==='success' ? 'text-emerald-300' : lastResult==='fail' ? 'text-rose-200' : 'text-black-200'
+              lastResult==='success' ? 'text-emerald-500' : lastResult==='fail' ? 'text-rose-500' : 'text-black-200'
             }`}>+{stack.length}</span>
             <span className="text-sm font-semibold text-black">
               {apiItem && apiItem.type === itemType ? apiItem.name : ITEM_TYPE_LABELS[itemType]}
