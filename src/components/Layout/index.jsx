@@ -1524,11 +1524,12 @@ const Container = () => {
               key={apiItem.id}
               src={apiItem.imageUrl}
               alt={apiItem.name}
-              className="pointer-events-none absolute z-[2] object-contain"
+              className="pointer-events-none absolute z-[2]"
               style={{
                 left: '50%',
                 top: '70%',
                 width: '14%',
+                height: 'auto',
                 transform: 'translate(-50%, -50%)',
                 imageRendering: 'pixelated',
                 filter: 'drop-shadow(0 0 3px rgba(255,200,60,0.9))',
