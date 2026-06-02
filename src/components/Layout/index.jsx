@@ -635,7 +635,7 @@ const Container = () => {
       const kept = rs.filter((r, i) => i === 0 || r.from > autoStart);
       const next = kept.map((r, i) => i === 0 ? { ...r, from: newFrom } : r);
       for (let j = 1; j < next.length; j++) {
-        if (next[j].from <= next[j - 1].from) next[j].from = Math.min(next[j - 1].from + 1, 20);
+        if (next[j].from <= next[j - 1].from) next[j].from = Math.min(next[j - 1].from + 1, autoTarget);
       }
       return next;
     });
@@ -718,7 +718,7 @@ const Container = () => {
     next[idx].from = Math.max(newFrom, next[idx - 1].from + 1);
     // cascade ช่วงถัดไป
     for (let j = idx + 1; j < next.length; j++) {
-      if (next[j].from <= next[j - 1].from) next[j].from = Math.min(next[j - 1].from + 1, 20);
+      if (next[j].from <= next[j - 1].from) next[j].from = Math.min(next[j - 1].from + 1, autoTarget);
     }
     // reset stone ที่ใช้ไม่ได้ที่ from ใหม่
     for (let j = idx; j < next.length; j++) {
@@ -729,8 +729,8 @@ const Container = () => {
   });
   const addStoneRule = () => setAutoStoneRules(rs => {
     const last = rs[rs.length - 1];
-    if (last.from >= 20) return rs; // เต็มแล้ว
-    return [...rs, { id: nextRuleId.current++, from: Math.min(last.from + 1, 20), stone: 'normal', stopOnLoss: false }];
+    if (last.from >= autoTarget) return rs; // ไม่มีช่วงเหลือแล้ว (last rule ครอบถึง autoTarget แล้ว)
+    return [...rs, { id: nextRuleId.current++, from: Math.min(last.from + 1, autoTarget), stone: 'normal', stopOnLoss: false }];
   });
   const removeStoneRule = (id) => setAutoStoneRules(rs => {
     const idx = rs.findIndex(r => r.id === id);
@@ -1391,14 +1391,20 @@ const Container = () => {
                   );
                 })}
               </div>
-              <button
-                type="button"
-                onClick={addStoneRule}
-                disabled={autoRunning}
-                className="mt-2 w-full rounded-lg border border-dashed border-slate-600 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:border-indigo-400/70 hover:text-indigo-300 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                + เพิ่มช่วง
-              </button>
+              {(() => {
+                const isFull = autoStoneRules[autoStoneRules.length - 1].from >= autoTarget;
+                return (
+                  <button
+                    type="button"
+                    onClick={addStoneRule}
+                    disabled={autoRunning || isFull}
+                    title={isFull ? `ครบทุกช่วงแล้ว (+${autoStoneRules[0].from}–+${autoTarget})` : undefined}
+                    className="mt-2 w-full rounded-lg border border-dashed border-slate-600 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:border-indigo-400/70 hover:text-indigo-300 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {isFull ? `ครบทุกช่วงแล้ว (${autoStoneRules.length} ช่วง)` : '+ เพิ่มช่วง'}
+                  </button>
+                );
+              })()}
             </div>
           )}
           {autoRefine && autoTarget >= 8 && (
