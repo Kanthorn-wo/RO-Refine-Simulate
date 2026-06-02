@@ -698,7 +698,7 @@ const Container = () => {
           updated = { ...updated, stone: 'normal', stopOnLoss: false };
         }
         // reset stopOnLoss ถ้า stone ชนิดนี้ไม่เสี่ยง item หายสำหรับ itemType ใหม่
-        if (updated.stopOnLoss && !stoneCanLoseItem(updated.stone, itemType, toLevel)) {
+        if (updated.stopOnLoss && !toggleHasMeaning(updated.stone, itemType, updated.from, toLevel, isEventRate, autoUseBSB, autoBSBStart, autoBSBEnd, bsbTable)) {
           updated = { ...updated, stopOnLoss: false };
         }
         return updated;
@@ -1469,7 +1469,7 @@ const Container = () => {
       <div className="flex flex-col items-center gap-3 rounded-2xl border border-slate-700/60 bg-[#181a20]/90 p-5 shadow-lg shadow-black/30 lg:flex-1 lg:justify-center">
 
         {/* Animation frame = main canvas, ทุก UI overlay อยู่ข้างใน */}
-        <div className="relative w-full overflow-hidden rounded-xl" style={{ maxWidth: 350, aspectRatio: '262 / 301' }}>
+        <div className="relative w-full overflow-hidden rounded-xl" style={{ maxWidth: 350, aspectRatio: '262 / 301', fontFamily: 'Tahoma, Geneva, sans-serif' }}>
 
           {/* Animation frames (bg) */}
           {mode === 'wait' && renderFrames(waitingFrames, 'wait')}
@@ -1487,12 +1487,13 @@ const Container = () => {
 
           {/* ── OVERLAY z-[3] ── */}
 
-          {/* 1. Success % banner — top 3% */}
+          {/* 1. Success % banner — top 14px */}
           <div className="absolute z-[3] flex items-center justify-center gap-2"
-            style={{ top:'3%', left:'5%', width:'90%', background:'rgba(0,0,0,0.62)', borderRadius:6, padding:'3px 8px' }}>
-            <span className={`text-sm font-extrabold tracking-wide ${
-              currentRate >= 60 ? 'text-emerald-300' : currentRate >= 30 ? 'text-amber-300' : 'text-rose-300'
-            }`}>Success {Math.floor(currentRate)}%</span>
+            style={{ top:14, left:'5%', width:'90%', padding:'3px 8px' }}>
+            <span className="text-sm font-extrabold tracking-wide">
+              <span style={{ color:'#000' }}>สำเร็จ </span>
+              <span style={{ color:'#1d4ed8' }}>{Math.floor(currentRate)}%</span>
+            </span>
             {useBSB && bsbInRange && (
               <span className="flex items-center gap-0.5 text-[0.65rem] font-bold text-emerald-400">
                 <img src="/images/blacksmith_blessing.png" className="h-3.5 w-3.5" style={{imageRendering:'pixelated'}} alt="BSB"/>
@@ -1588,24 +1589,27 @@ const Container = () => {
             )}
           </div>
 
-          {/* 5. Item name + level — top 76% */}
+          {/* 5. Item name + level — top 78% */}
           <div className="absolute z-[3] flex items-center justify-center gap-1.5"
-            style={{ top:'76%', left:'50%', transform:'translateX(-50%)', background:'rgba(0,0,0,0.65)', borderRadius:5, padding:'3px 12px', whiteSpace:'nowrap' }}>
-            <span className={`text-xl font-extrabold ${
-              lastResult==='success' ? 'text-emerald-300' : lastResult==='fail' ? 'text-rose-300' : 'text-amber-300'
+            style={{ top:'76%', left:'50%', transform:'translateX(-50%)', color:'#000', whiteSpace:'nowrap' }}>
+            <span className={`text-sm font-semibold ${
+              lastResult==='success' ? 'text-emerald-300' : lastResult==='fail' ? 'text-rose-200' : 'text-black-200'
             }`}>+{stack.length}</span>
-            <span className="text-sm font-semibold text-white">
+            <span className="text-sm font-semibold text-black">
               {apiItem && apiItem.type === itemType ? apiItem.name : ITEM_TYPE_LABELS[itemType]}
             </span>
           </div>
 
-          {/* 6. Buttons — bottom 2% */}
-          <div className="absolute z-[3] flex items-center justify-center gap-1.5"
-            style={{ bottom:'2%', left:'50%', transform:'translateX(-50%)', width:'92%' }}>
+          {/* 6. Buttons — ซ่อนระหว่าง animation */}
+          {!isPlaying && mode !== 'process' && (() => {
+            const isTibok = !autoRefine && (stack.length > 0 || (mode === 'success' && isSuccessLoop));
+            return (
+          <div className="absolute z-[3] flex items-center justify-center gap-7"
+            style={{ bottom: isTibok ? '2%' : '4%', left: isTibok ? '73%' : '50%', transform:'translateX(-50%)', width: (mode==='fail' && (!autoRunning || isItemLost) && !autoRefine) ? '83%' : '37%' }}>
             {mode === 'fail' && (!autoRunning || isItemLost) && (
               <button onClick={handleBackToWait}
-                className="rounded font-bold text-amber-200 transition-opacity hover:opacity-80"
-                style={{ background:'rgba(0,0,0,0.7)', border:'1px solid rgba(251,191,36,0.5)', padding:'5px 10px', fontSize:'0.75rem' }}>
+                className="cursor-pointer rounded font-bold text-amber-200 transition-opacity hover:opacity-80"
+                style={{ background:'transparent',color:'#000', padding:'15px 45px', fontSize:'0.75rem' }}>
                 กลับไป
               </button>
             )}
@@ -1613,30 +1617,31 @@ const Container = () => {
             {!autoRefine && (
               <button onClick={handleRefine}
                 disabled={isPlaying || stoneBlocksRefine || mode==='process' || (mode==='fail' && isItemLost)}
-                className="flex-1 rounded font-bold shadow transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-                style={{ background: stack.length===0 && !(mode==='success' && isSuccessLoop) ? 'linear-gradient(to right,#6366f1,#22d3ee)' : 'linear-gradient(to right,#f59e0b,#fde047)', color: stack.length===0 && !(mode==='success' && isSuccessLoop) ? '#fff' : '#1c1917', padding:'6px 0', fontSize:'0.8rem' }}>
+                className="flex-1 cursor-pointer rounded font-bold transition-opacity hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-40"
+                style={{ background:'transparent', color:'#000', padding:'26px 0', fontSize:'0.8rem' }}>
                 {stack.length===0 && !(mode==='success' && isSuccessLoop) ? 'อัพเกรด' : 'ตีบวก'}
-                <span style={{ display:'block', fontSize:'0.65rem', opacity:0.7 }}>{Math.floor(currentRate)}%</span>
               </button>
             )}
             {/* Auto buttons */}
             {autoRefine && (autoRunning ? (
               <button onClick={handleStopAuto}
-                className="flex-1 rounded font-bold shadow"
-                style={{ background:'linear-gradient(to right,#ef4444,#f97316)', color:'#fff', padding:'6px 0', fontSize:'0.8rem' }}>
+                className="flex-1 cursor-pointer rounded font-bold hover:opacity-70"
+                style={{ background:'transparent', color:'#000', padding:'12px 0', fontSize:'0.8rem' }}>
                 หยุด Auto
                 <span style={{ display:'block', fontSize:'0.6rem', opacity:0.7 }}>→ +{autoTarget}</span>
               </button>
             ) : (
               <button onClick={handleStartAuto}
                 disabled={isPlaying || mode==='process' || autoStart>=autoTarget || (mode==='fail' && isItemLost)}
-                className="flex-1 rounded font-bold shadow disabled:cursor-not-allowed disabled:opacity-40"
-                style={{ background:'linear-gradient(to right,#6366f1,#8b5cf6)', color:'#fff', padding:'6px 0', fontSize:'0.8rem' }}>
+                className="flex-1 cursor-pointer rounded font-bold disabled:cursor-not-allowed disabled:opacity-40 hover:opacity-70"
+                style={{ background:'transparent', color:'#000', padding:'10px 0', fontSize:'0.8rem' }}>
                 เริ่ม Auto
                 <span style={{ display:'block', fontSize:'0.6rem', opacity:0.8 }}>+{autoStart}→+{autoTarget}</span>
               </button>
             ))}
           </div>
+            );
+          })()}
 
         </div>
         {/* ── จบ animation frame ── */}
