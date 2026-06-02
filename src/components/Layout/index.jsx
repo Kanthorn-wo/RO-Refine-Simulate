@@ -1541,11 +1541,11 @@ const Container = () => {
               className="pointer-events-none absolute z-[2] object-contain"
               style={{
                 left: '50%',
-                top: '63%',
-                width: '22%',
+                top: '70%',
+                width: '14%',
                 transform: 'translate(-50%, -50%)',
                 imageRendering: 'pixelated',
-                filter: 'drop-shadow(0 0 4px rgba(255,220,100,0.7))',
+                filter: 'drop-shadow(0 0 3px rgba(255,200,60,0.9))',
               }}
               onError={e => { e.currentTarget.style.display = 'none'; }}
             />
