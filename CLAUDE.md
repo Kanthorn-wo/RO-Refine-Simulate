@@ -140,9 +140,21 @@ Deploy หลักใช้ **Vercel** (auto build จาก push master, root 
 - BSB แสดงด้วยรูป `/images/blacksmith_blessing.png`
 - result badge แยกตาม: `isSuccess` → สำเร็จ, `bsbConsumed > 0` → ป้องกัน ×N, `ไอเทมหาย` ใน msg → ไอเทมหาย, `ลดระดับ N ขั้น` → ลด −N, อื่น → ล้มเหลว
 
+## Version
+
+เลข version อยู่ที่ `src/version.js` ไฟล์เดียว export เป็น `APP_VERSION` string แสดงใน footer ของ Layout
+
+**ทุกครั้งก่อน push ต้องอัปเดตเลข version ก่อนเสมอ** โดยใช้ Semantic Versioning:
+- `PATCH` (+0.0.1) — bugfix, แก้ UI เล็กน้อย
+- `MINOR` (+0.1.0) — ฟีเจอร์ใหม่, เพิ่ม component
+- `MAJOR` (+1.0.0) — เปลี่ยน architecture, redesign ใหญ่
+
+version ปัจจุบัน: **1.0.0**
+
 ## ก่อน git commit ทุกครั้ง
 
-ก่อน commit ทุกครั้ง ให้ตรวจและอัปเดต CLAUDE.md ก่อนเสมอ:
-1. เทียบว่ามีอะไรเปลี่ยนในโค้ดที่ส่งผลต่อ architecture, state, helpers, หรือ behavior
-2. ถ้ามีอะไรต่างจากที่เขียนไว้ → แก้ CLAUDE.md ก่อน แล้วค่อย stage + commit รวมกัน
-3. ถ้าไม่มีอะไรเปลี่ยน → commit ได้เลย
+ก่อน commit ทุกครั้ง ให้ทำตามลำดับนี้:
+1. อัปเดตเลข version ใน `src/version.js` ตามขนาดของการเปลี่ยนแปลง
+2. เทียบว่ามีอะไรเปลี่ยนในโค้ดที่ส่งผลต่อ architecture, state, helpers, หรือ behavior
+3. ถ้ามีอะไรต่างจากที่เขียนไว้ → แก้ CLAUDE.md ก่อน แล้วค่อย stage + commit รวมกัน
+4. ถ้าไม่มีอะไรเปลี่ยน → commit ได้เลย

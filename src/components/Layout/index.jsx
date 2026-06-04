@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import HeroBanner from '../HeroBanner';
+import { APP_VERSION } from '../../version';
 import souneEffect01 from 'assets/sounds/bs_refine_1.wav';
 import souneEffect02 from 'assets/sounds/bs_refine_2.wav';
 import souneEffectSuccess from 'assets/sounds/bs_refine_success.wav';
@@ -1870,6 +1871,7 @@ const Container = () => {
       {/* Footer */}
       <footer className="mt-2 mb-2 text-center text-xs text-slate-500">
         &copy; {new Date().getFullYear()} JarMoo — RO Refine Simulator. All rights reserved.
+        <span className="ml-2 text-slate-600">v{APP_VERSION}</span>
       </footer>
     </div>
 
