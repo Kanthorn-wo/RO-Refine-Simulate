@@ -1866,6 +1866,11 @@ const Container = () => {
           </div>
         );
       })()}
+
+      {/* Footer */}
+      <footer className="mt-2 mb-2 text-center text-xs text-slate-500">
+        &copy; {new Date().getFullYear()} JarMoo — RO Refine Simulator. All rights reserved.
+      </footer>
     </div>
 
     {/* Stone info modal */}
@@ -1929,11 +1934,6 @@ const Container = () => {
         </div>
       </div>
     )}
-
-    {/* Footer */}
-    <footer className="w-full max-w-4xl mx-auto mt-2 mb-6 text-center text-xs text-slate-500">
-      &copy; {new Date().getFullYear()} JarMoo — RO Refine Simulator. All rights reserved.
-    </footer>
     </>
   );
 };
