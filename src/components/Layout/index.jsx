@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import DateTimeDisplay from '../DateTimeDisplay';
-import DailyInfoPanel from '../DailyInfoPanel';
+import HeroBanner from '../HeroBanner';
 import souneEffect01 from 'assets/sounds/bs_refine_1.wav';
 import souneEffect02 from 'assets/sounds/bs_refine_2.wav';
 import souneEffectSuccess from 'assets/sounds/bs_refine_success.wav';
@@ -884,18 +883,16 @@ const Container = () => {
   return (
     <>
     <div className="w-full max-w-4xl mx-auto flex flex-col gap-5">
-      {/* แสดงวันที่และเวลาปัจจุบัน */}
-      <DateTimeDisplay />
-
-      {/* แสดงข้อมูลประจำวัน */}
-      <DailyInfoPanel />
+      {/* Hero Banner */}
+      <HeroBanner />
 
       {/* ตารางอัตราสำเร็จ */}
+      <section aria-labelledby="rate-table-heading">
       <div className="rounded-2xl border border-slate-700/60 bg-[#181a20]/90 p-4 shadow-lg shadow-black/30">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <b className="text-amber-300">
+          <h2 id="rate-table-heading" className="m-0 text-base font-bold text-amber-300">
             ตารางอัตราสำเร็จการตีบวก (%) — {isEventRate ? 'Event Rate Up' : 'ไม่มี Event'} · {useEnriched ? 'Enriched' : useCash ? 'HD' : 'หินปกติ'}
-          </b>
+          </h2>
           <div role="group" aria-label="Rate mode" className="inline-flex overflow-hidden rounded-lg border border-slate-600">
             <button
               type="button"
@@ -947,6 +944,7 @@ const Container = () => {
           </table>
         </div>
       </div>
+      </section>
 
       {/* แถวเดสก์ท็อป: กล่อง option (ซ้าย) + กล่องตีบวก (ขวา) — responsive ซ้อนแนวตั้ง */}
       <div className="flex flex-col gap-5 lg:flex-row lg:items-stretch">
