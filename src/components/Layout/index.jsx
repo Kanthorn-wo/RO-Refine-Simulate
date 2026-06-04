@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import HeroBanner from '../HeroBanner';
+import ReportButton from '../ReportButton';
 import { APP_VERSION } from '../../version';
 import souneEffect01 from 'assets/sounds/bs_refine_1.wav';
 import souneEffect02 from 'assets/sounds/bs_refine_2.wav';
@@ -1151,8 +1152,14 @@ const Container = () => {
           <div className="absolute z-[3] flex items-center justify-center gap-2"
             style={{ top:14, left:'5%', width:'90%', padding:'3px 8px' }}>
             <span className="text-sm font-extrabold tracking-wide">
-              <span style={{ color:'#000' }}>สำเร็จ </span>
-              <span style={{ color:'#1d4ed8' }}>{Math.floor(bannerRate)}%</span>
+              {mode === 'fail' && isItemLost ? (
+                <span style={{ color:'#000' }}>ไอเทมแตกสลาย</span>
+              ) : (
+                <>
+                  <span style={{ color:'#000' }}>สำเร็จ </span>
+                  <span style={{ color:'#1d4ed8' }}>{Math.floor(bannerRate)}%</span>
+                </>
+              )}
             </span>
             {useBSB && bsbInRange && (
               <span className="flex items-center gap-0.5 text-[0.65rem] font-bold text-emerald-400">
@@ -1615,6 +1622,9 @@ const Container = () => {
         </div>
       </div>
     )}
+
+    {/* ปุ่มแจ้งปัญหา ลอยมุมขวาล่าง */}
+    <ReportButton />
     </>
   );
 };
