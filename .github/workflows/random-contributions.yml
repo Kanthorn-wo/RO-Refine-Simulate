@@ -57,24 +57,19 @@ jobs:
             echo "🎯 Making contribution..."
             
             # สุ่มประเภทการเปลี่ยนแปลง
-            CHANGE_TYPE=$((RANDOM % 4))
-            
+            CHANGE_TYPE=$((RANDOM % 3))
+
             case $CHANGE_TYPE in
               0)
-                echo "📊 Updating daily stats..."
-                npm install --production
-                npm run update-data
-                ;;
-              1)
                 echo "📝 Creating activity log..."
                 mkdir -p logs
                 echo "Activity log - $(date)" >> logs/activity-$(date +%Y-%m-%d).log
                 ;;
-              2)
+              1)
                 echo "🔧 Updating config..."
                 echo "// Auto-generated config update - $(date)" >> src/config-updates.js
                 ;;
-              3)
+              2)
                 echo "📈 Performance metrics..."
                 mkdir -p metrics
                 echo "{\"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\", \"metric\": $((RANDOM % 1000))}" >> metrics/perf-$(date +%Y-%m-%d).json

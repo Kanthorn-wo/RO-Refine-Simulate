@@ -12,8 +12,6 @@
     "quick-commit": "git add . && git commit -m \"Quick update: $(date)\" && git push",
     "auto-deploy": "concurrently \"npm run dev\" \"npm run watch-and-deploy\"",
     "watch-and-deploy": "chokidar \"src/**/*\" -c \"npm run quick-commit\"",
-    "daily-update": "powershell -ExecutionPolicy Bypass -File scripts/daily-update.ps1",
-    "update-data": "node scripts/update-daily-data.js",
     "start-auto": "concurrently \"npm run dev\" \"npm run watch-changes\"",
     "watch-changes": "chokidar \"src/**/*\" --initial -c \"echo File changed: {path} && npm run quick-commit\""
   },

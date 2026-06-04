@@ -8,326 +8,16 @@ import souneEffectFail from 'assets/sounds/bs_refine_failed.wav';
 
 import bsbImg from 'assets/images/blacksmith_blessing.png';
 import { BSB_REQUIRED_NORMAL, BSB_REQUIRED_EVENT } from '../../constants/refineConfig';
+import Toggle from '../Toggle';
+import { getRate } from '../../constants/refineRates';
+import { STONE_META, getStoneMinLevel, getEffectiveStone, getPlannedStone, toggleHasMeaning } from '../../utils/stones';
+import { ITEM_TYPE_LABELS, ORE_COLORS, ORE_IMAGES, getOreName, getStoneOre, STONE_REFERENCE } from '../../constants/ores';
+import { frameCount, WAITING_FRAMES, PROCESSING_FRAMES, SUCCESS_FRAMES, FAIL_FRAMES, ALL_FRAMES } from '../../constants/frames';
 
-// ตารางอัตราสำเร็จการตีบวก (%) — 4 ชุด ตามแกน: มี/ไม่มี event × หินปกติ/หินแครช (Cash)
-// index 0 = ระดับ +1 ... index 19 = ระดับ +20
-//  - noevent: รูป "แร่ธรรมดา" (normal) และ "HD/Enriched" (cash)
-//  - event:   รูป Grade & Refine Rate Up (ตารางซ้าย = normal, ตารางขวา = cash)
-// หมายเหตุ: คู่ noevent ในต้นฉบับไม่มีคอลัมน์ Armor Lv.2 / Weapon Lv.5 จึงใช้เรทเดิม (คัดจากคู่ event)
-const RATE_TABLES = {
-  noevent: {
-    normal: {
-      armor1:  [100, 100, 100, 100,  60,  40,  40,  20,  20,   9,   8,   8,   8,   8,   7,   7,   7,   7,   5,   5],
-      armor2:  [100, 100, 100,  80,  80,  60,  60,  40,  40,  18,  16,  16,  16,  16,  14,  14,  14,  14,  10,  10],
-      weapon1: [100, 100, 100, 100, 100, 100, 100,  60,  40,  19,  18,  18,  18,  18,  18,  17,  17,  17,  15,  15],
-      weapon2: [100, 100, 100, 100, 100, 100,  60,  40,  20,  19,  18,  18,  18,  18,  18,  17,  17,  17,  15,  15],
-      weapon3: [100, 100, 100, 100, 100,  60,  50,  20,  20,  19,  18,  18,  18,  18,  18,  17,  17,  17,  15,  15],
-      weapon4: [100, 100, 100, 100,  60,  40,  40,  20,  20,   9,   8,   8,   8,   8,   7,   7,   7,   7,   5,   5],
-      weapon5: [100, 100, 100,  80,  80,  60,  60,  40,  40,  18,  16,  16,  16,  16,  14,  14,  14,  14,  10,  10],
-    },
-    cash: {
-      armor1:  [100, 100, 100, 100,  90,  70,  70,  40,  40,  20,   8,   8,   8,   8,   7,   7,   7,   7,   5,   5],
-      armor2:  [100, 100, 100,  95,  85,  70,  65,  55,  45,  25,  20,  20,  20,  20,  15,  15,  15,  15,  10,  10],
-      weapon1: [100, 100, 100, 100, 100, 100, 100,  90,  70,  30,  18,  18,  18,  18,  18,  17,  17,  17,  15,  15],
-      weapon2: [100, 100, 100, 100, 100, 100,  90,  70,  40,  30,  18,  18,  18,  18,  18,  17,  17,  17,  15,  15],
-      weapon3: [100, 100, 100, 100, 100,  90,  80,  40,  40,  30,  18,  18,  18,  18,  18,  17,  17,  17,  15,  15],
-      weapon4: [100, 100, 100, 100,  90,  70,  70,  40,  40,  20,   8,   8,   8,   8,   7,   7,   7,   7,   5,   5],
-      weapon5: [100, 100, 100,  95,  85,  70,  65,  55,  45,  25,  20,  20,  20,  20,  15,  15,  15,  15,  10,  10],
-    },
-  },
-  event: {
-    normal: {
-      armor1:  [100, 100, 100, 100,  60,  40,  40,  20,  20,   9,  20,  20,  16,  16,  15,  15,  14,  14,  10,  10],
-      armor2:  [100, 100, 100,  80,  80,  60,  60,  40,  40,  18,  16,  16,  16,  16,  14,  14,  14,  14,  10,  10],
-      weapon1: [100, 100, 100, 100, 100, 100, 100,  60,  40,  19,  40,  40,  35,  35,  30,  30,  20,  20,  15,  15],
-      weapon2: [100, 100, 100, 100, 100, 100,  60,  50,  20,  19,  40,  40,  35,  35,  30,  30,  20,  20,  15,  15],
-      weapon3: [100, 100, 100, 100, 100,  60,  50,  20,  20,  19,  40,  40,  35,  35,  30,  30,  20,  20,  15,  15],
-      weapon4: [100, 100, 100, 100,  60,  40,  40,  20,  20,   9,  20,  20,  16,  16,  15,  15,  14,  14,  10,  10],
-      weapon5: [100, 100, 100,  80,  80,  60,  60,  40,  40,  18,  16,  16,  16,  16,  14,  14,  14,  14,  10,  10],
-    },
-    cash: {
-      armor1:  [100, 100, 100, 100,  95,  80,  80,  60,  50,  35,  20,  20,  16,  16,  15,  15,  14,  14,  10,  10],
-      armor2:  [100, 100, 100,  95,  85,  70,  65,  55,  45,  25,  20,  20,  20,  20,  15,  15,  15,  15,  10,  10],
-      weapon1: [100, 100, 100, 100, 100, 100, 100,  95,  85,  55,  40,  40,  35,  35,  30,  30,  20,  20,  15,  15],
-      weapon2: [100, 100, 100, 100, 100, 100,  95,  85,  60,  45,  40,  40,  35,  35,  30,  30,  20,  20,  15,  15],
-      weapon3: [100, 100, 100, 100, 100,  95,  90,  70,  60,  45,  40,  40,  35,  35,  30,  30,  20,  20,  15,  15],
-      weapon4: [100, 100, 100, 100,  95,  80,  80,  60,  50,  35,  20,  20,  16,  16,  15,  15,  14,  14,  10,  10],
-      weapon5: [100, 100, 100,  95,  85,  70,  65,  55,  45,  25,  20,  20,  20,  20,  15,  15,  15,  15,  10,  10],
-    },
-  },
-};
-
-// เลือกตาราง rate ตามสถานะ event และชนิดหิน
-const getRateTable = (isEventRate, useCash) =>
-  RATE_TABLES[isEventRate ? 'event' : 'noevent'][useCash ? 'cash' : 'normal'];
-
-// Enriched เพิ่มโอกาสสำเร็จจากตารางหินปกติ (clamp ไม่เกิน 100%)
-const ENRICHED_RATE_BONUS = 10;
-const getRate = (isEventRate, useCash, useEnriched, itemType, idx) => {
-  const base = getRateTable(isEventRate, useCash)[itemType][Math.min(idx, 19)];
-  return useEnriched ? Math.min(100, base + ENRICHED_RATE_BONUS) : base;
-};
-
-// ป้ายชื่อ/สีของชนิดหิน (ใช้ในแผน auto)
-const STONE_META = {
-  normal:   { label: 'ปกติ',     active: 'border-sky-400 bg-sky-500/20 text-sky-200' },
-  enriched: { label: 'Enriched', active: 'border-amber-400 bg-amber-400/20 text-amber-200' },
-  hd:       { label: 'HD',       active: 'border-orange-400 bg-orange-500/20 text-orange-200' },
-};
-
-// หาชนิดหินที่ควรใช้ที่ระดับ level (currentLevel) ตามแผน rules — ช่วงที่ from <= level สูงสุด
-const getPlannedStone = (rules, level) => {
-  let stone = 'normal';
-  for (const r of [...rules].sort((a, b) => a.from - b.from)) {
-    if (r.from <= level) stone = r.stone;
-  }
-  if (stone === 'enriched' && level > 10) stone = 'normal';
-  return stone;
-};
-
-// ระดับต่ำสุดที่หินชนิดนี้ใช้ได้จริงในเกม (level = stack.length ก่อนตี)
-const getStoneMinLevel = (stone, itemType) => {
-  const isSpecial = itemType === 'weapon5' || itemType === 'armor2';
-  if (stone === 'hd') return isSpecial ? 10 : 7;
-  return 0;
-};
-
-// ตรวจว่า toggle "หยุด Auto ถ้าเสี่ยงหาย" ควรแสดงสำหรับช่วงนี้ไหม
-// มีความหมายก็ต่อเมื่อมีอย่างน้อย 1 ระดับในช่วงที่: (1) ล้มแล้ว item หาย
-// (2) rate < 100% — ไม่งั้นล้มไม่ได้อยู่แล้ว  (3) BSB ไม่คุ้มกัน
-const toggleHasMeaning = (stone, itemType, fromDest, toDest, isEventRate, autoUseBSB, autoBSBStart, autoBSBEnd, bsbTable) => {
-  const isSpecial = itemType === 'weapon5' || itemType === 'armor2';
-  for (let dest = fromDest; dest <= toDest; dest++) {
-    const stackLen = dest - 1;
-    if (stackLen < 0) continue;
-    const eff = getEffectiveStone(stone, itemType, stackLen);
-    const wC = eff === 'hd';
-    const wE = eff === 'enriched';
-    const wouldLose = isSpecial ? stackLen >= 10 : !wC;
-    if (!wouldLose) continue;
-    if (getRate(isEventRate, wC, wE, itemType, stackLen) >= 100) continue;
-    const bsbProtects = autoUseBSB && stackLen >= autoBSBStart && stackLen < autoBSBEnd
-      && stackLen >= 7 && stackLen <= 14 && (bsbTable[stackLen] || 0) > 0;
-    if (!bsbProtects) return true;
-  }
-  return false;
-};
-
-// validate หินที่ auto วางแผนไว้ว่าใช้ได้จริงที่ระดับนี้ไหม — ถ้าไม่ fallback เป็น normal
-const getEffectiveStone = (stone, itemType, level) => {
-  if (level < getStoneMinLevel(stone, itemType)) return 'normal';
-  const isSpecial = itemType === 'weapon5' || itemType === 'armor2';
-  if (stone === 'enriched' && level >= 10) return 'normal';
-  if (stone === 'hd' && isSpecial && level < 10) return 'normal';
-  return stone;
-};
 // API ของ divine-pride สำหรับค้นไอเทมจาก ID
 // หมายเหตุ: เว็บเป็น static site คีย์นี้จะถูก build ติดไปกับ JS และเป็นสาธารณะ
 const DIVINE_PRIDE_API_KEY = '7a8b539b5e6171b362a6ef264e43dffc';
 
-const ITEM_TYPE_LABELS = {
-  armor1: 'Armor Lv.1',
-  armor2: 'Armor Lv.2',
-  weapon1: 'Weapon Lv.1',
-  weapon2: 'Weapon Lv.2',
-  weapon3: 'Weapon Lv.3',
-  weapon4: 'Weapon Lv.4',
-  weapon5: 'Weapon Lv.5',
-};
-
-// แร่ที่ใช้ตีบวกตามประเภทไอเท็ม (ประเภททั่วไป): low = +1-10, high = +11-20
-// แยกตามชนิดหิน: normal = หินปกติ (ล้มหาย), cash = HD (ล้มลดระดับ), enriched = Enriched (Cash ล้มหาย+โอกาสสูง, ใช้ +1-10 เท่านั้น)
-const ORE_BY_TYPE = {
-  armor1:  { normal: { low: 'Elunium',      high: 'Carnium' }, cash: { low: 'HD Elunium',  high: 'HD Carnium' }, enriched: { low: 'Enriched Elunium' } },
-  weapon1: { normal: { low: 'Phracon',      high: 'Bradium' }, cash: { low: 'HD Oridecon', high: 'HD Bradium' }, enriched: { low: 'Enriched Oridecon' } },
-  weapon2: { normal: { low: 'Emveretarcon', high: 'Bradium' }, cash: { low: 'HD Oridecon', high: 'HD Bradium' }, enriched: { low: 'Enriched Oridecon' } },
-  weapon3: { normal: { low: 'Oridecon',     high: 'Bradium' }, cash: { low: 'HD Oridecon', high: 'HD Bradium' }, enriched: { low: 'Enriched Oridecon' } },
-  weapon4: { normal: { low: 'Oridecon',     high: 'Bradium' }, cash: { low: 'HD Oridecon', high: 'HD Bradium' }, enriched: { low: 'Enriched Oridecon' } },
-};
-
-// แร่พิเศษของ Weapon Lv.5 / Armor Lv.2 — แยก 2 ช่วง × 3 ชนิดหิน
-// low (+0~9): normal(-3), enriched(-1), hd=ไม่มี
-// high (+10+): normal(-3), enriched=ไม่มี, hd=แตก
-const SPECIAL_ORE = {
-  weapon5: {
-    low:  { normal: 'Etherdeocon',    enriched: 'Enriched Etherdeocon', hd: null },
-    high: { normal: 'Etel Bradium',   enriched: null,                   hd: 'HD Etel Bradium' },
-  },
-  armor2: {
-    low:  { normal: 'Ethernium',      enriched: 'Enriched Ethernium',   hd: null },
-    high: { normal: 'Etel Carnium',   enriched: null,                   hd: 'HD Etel Carnium' },
-  },
-};
-
-// สีจุดนำหน้าแร่แต่ละชนิด (ใช้ในชิป/สรุป)
-const ORE_COLORS = {
-  Elunium: 'bg-sky-400',
-  Carnium: 'bg-cyan-300',
-  Phracon: 'bg-slate-300',
-  Emveretarcon: 'bg-zinc-300',
-  Oridecon: 'bg-orange-400',
-  Bradium: 'bg-rose-400',
-  'HD Oridecon': 'bg-orange-300',
-  'HD Bradium': 'bg-rose-300',
-  'HD Elunium': 'bg-sky-300',
-  'HD Carnium': 'bg-cyan-200',
-  'Enriched Oridecon': 'bg-amber-200',
-  'Enriched Elunium': 'bg-indigo-200',
-  Etherdeocon: 'bg-amber-400',
-  'Enriched Etherdeocon': 'bg-amber-300',
-  Ethernium: 'bg-teal-300',
-  'Enriched Ethernium': 'bg-teal-200',
-  'Etel Bradium': 'bg-red-400',
-  'HD Etel Bradium': 'bg-red-300',
-  'Etel Carnium': 'bg-emerald-300',
-  'HD Etel Carnium': 'bg-green-300',
-};
-
-// รูปไอคอนแร่ (ถ้าไม่มีรูปจะ fallback เป็นจุดสีจาก ORE_COLORS)
-const ORE_IMAGES = {
-  Phracon: '/images/ores/phracon.png',
-  Emveretarcon: '/images/ores/emveretarcon.png',
-  Oridecon: '/images/ores/oridecon.png',
-  Bradium: '/images/ores/bradium.png',
-  Elunium: '/images/ores/elunium.png',
-  Carnium: '/images/ores/carnium.png',
-  'HD Oridecon': '/images/ores/hd-oridecon.png',
-  'HD Bradium': '/images/ores/hd-bradium.png',
-  'HD Elunium': '/images/ores/hd-elunium.png',
-  'HD Carnium': '/images/ores/hd-carnium.png',
-  'Enriched Oridecon': '/images/ores/enriched-oridecon.png',
-  'Enriched Elunium': '/images/ores/enriched-elunium.png',
-  Etherdeocon: '/images/ores/etherdeocon.png',
-  'Enriched Etherdeocon': '/images/ores/enriched-etherdeocon.png',
-  Ethernium: '/images/ores/ethernium.png',
-  'Enriched Ethernium': '/images/ores/enriched-ethernium.png',
-  'Etel Bradium': '/images/ores/etel-bradium.png',
-  'HD Etel Bradium': '/images/ores/hd-etel-bradium.png',
-  'Etel Carnium': '/images/ores/etel-carnium.png',
-  'HD Etel Carnium': '/images/ores/hd-etel-carnium.png',
-};
-
-// แร่ที่ใช้ตามประเภทไอเท็ม + ระดับปัจจุบัน (level = stack.length = ระดับก่อนตี) + ชนิดหิน
-// boundary: level < 10 = low range (+0→+1 ถึง +9→+10), level >= 10 = high range (+10→+11 เป็นต้นไป)
-const getOreName = (itemType, level, useCash, useEnriched) => {
-  const special = SPECIAL_ORE[itemType];
-  if (special) {
-    const set = level < 10 ? special.low : special.high;
-    if (useEnriched && set.enriched) return set.enriched;
-    if (useCash && set.hd) return set.hd;
-    return set.normal; // fallback: normal ถ้าหินที่เลือกไม่มีในช่วงนี้
-  }
-  const m = ORE_BY_TYPE[itemType];
-  if (!m) return null;
-  // Enriched ใช้เฉพาะ level < 10 — หลังจากนั้น fallback เป็นหินปกติ high
-  if (useEnriched && m.enriched && level < 10) return m.enriched.low;
-  const set = useCash ? m.cash : m.normal;
-  return level < 10 ? set.low : set.high; // FIX: เดิม <= 10 ทำให้ +10→+11 ใช้หินผิด
-};
-
-// แร่ตัวแทนของชนิดหิน ('normal'|'enriched'|'hd') ที่ระดับนั้น — ไม่ fallback (ใช้โชว์รูปในช่องเลือกหิน)
-const getStoneOre = (itemType, level, stone) => {
-  const special = SPECIAL_ORE[itemType];
-  if (special) {
-    const set = level < 10 ? special.low : special.high;
-    if (stone === 'normal') return set.normal;
-    if (stone === 'enriched') return special.low.enriched;
-    if (stone === 'hd') return special.high.hd;
-  }
-  const m = ORE_BY_TYPE[itemType];
-  if (!m) return null;
-  if (stone === 'normal') return level < 10 ? m.normal.low : m.normal.high;
-  if (stone === 'enriched') return m.enriched?.low;
-  if (stone === 'hd') return level < 10 ? m.cash.low : m.cash.high;
-  return null;
-};
-
-// ฟังก์ชันสร้าง path ของภาพแต่ละเฟรมแบบ dynamic
-const getFrameSrc = (type, index) => {
-  // type: 'waiting', 'processing', 'success', 'fail'
-  // index: 0-based
-  let folder = '';
-  let prefix = '';
-  if (type === 'waiting') {
-    folder = 'waiting';
-    prefix = 'bg_refining_wait_';
-  } else if (type === 'processing') {
-    folder = 'processing';
-    prefix = index < 9 ? 'bg_refininga_process_' : 'bg_refining_process_';
-  } else if (type === 'success') {
-    folder = 'success';
-    prefix = 'bg_refining_success_';
-  } else if (type === 'fail') {
-    folder = 'fail';
-    prefix = 'bg_refining_fail_';
-  }
-  let num = index.toString().padStart(2, '0');
-  // เปลี่ยน path เป็น public
-  return `/images/${folder}/${prefix}${num}.bmp`;
-};
-
-// ฟังก์ชันสร้าง array ของ path รูปแต่ละประเภท
-const getAllFrameSrcs = (type) => {
-  const count = frameCount[type];
-  return Array.from({ length: count }, (_, i) => getFrameSrc(type, i));
-};
-
-const frameCount = {
-  waiting: 4,
-  processing: 13,
-  success: 17,
-  fail: 20,
-};
-
-
-// ตารางอ้างอิงหินตีบวกทั้งหมด — ไม่ซ้ำซ้อน, แยกกลุ่มด้วย section header
-// note: '+โอกาส' = Enriched เพิ่มอัตราสำเร็จ
-const STONE_REFERENCE = [
-  { section: 'Weapon Lv.1 ~ 4' },
-  { ore: 'Phracon',              for: 'Weapon Lv.1',   range: '+1~+10',  fail: 'ไอเทมหาย',  note: '',        img: '/images/ores/phracon.png' },
-  { ore: 'Emveretarcon',         for: 'Weapon Lv.2',   range: '+1~+10',  fail: 'ไอเทมหาย',  note: '',        img: '/images/ores/emveretarcon.png' },
-  { ore: 'Oridecon',             for: 'Weapon Lv.3~4', range: '+1~+10',  fail: 'ไอเทมหาย',  note: '',        img: '/images/ores/oridecon.png' },
-  { ore: 'Enriched Oridecon',    for: 'Weapon Lv.1~4', range: '+1~+10',  fail: 'ไอเทมหาย',  note: '+โอกาส', img: '/images/ores/enriched-oridecon.png' },
-  { ore: 'HD Oridecon',          for: 'Weapon Lv.1~4', range: '+7~+10',  fail: 'ลดระดับ −1', note: '',        img: '/images/ores/hd-oridecon.png' },
-  { ore: 'Bradium',              for: 'Weapon Lv.1~4', range: '+11~+20', fail: 'ไอเทมหาย',  note: '',        img: '/images/ores/bradium.png' },
-  { ore: 'HD Bradium',           for: 'Weapon Lv.1~4', range: '+11~+20', fail: 'ลดระดับ −1', note: '',        img: '/images/ores/hd-bradium.png' },
-  { section: 'Weapon Lv.5' },
-  { ore: 'Etherdeocon',          for: 'Weapon Lv.5',   range: '+1~+10',  fail: 'ลดระดับ −3', note: '',        img: '/images/ores/etherdeocon.png' },
-  { ore: 'Enriched Etherdeocon', for: 'Weapon Lv.5',   range: '+1~+10',  fail: 'ลดระดับ −1', note: '+โอกาส', img: '/images/ores/enriched-etherdeocon.png' },
-  { ore: 'Etel Bradium',         for: 'Weapon Lv.5',   range: '+11~+20', fail: 'ไอเทมหาย',  note: '',        img: '/images/ores/etel-bradium.png' },
-  { ore: 'HD Etel Bradium',      for: 'Weapon Lv.5',   range: '+11~+20', fail: 'ไอเทมหาย',  note: '',        img: '/images/ores/hd-etel-bradium.png' },
-  { section: 'Armor Lv.1' },
-  { ore: 'Elunium',              for: 'Armor Lv.1',    range: '+1~+10',  fail: 'ไอเทมหาย',  note: '',        img: '/images/ores/elunium.png' },
-  { ore: 'Enriched Elunium',     for: 'Armor Lv.1',    range: '+1~+10',  fail: 'ไอเทมหาย',  note: '+โอกาส', img: '/images/ores/enriched-elunium.png' },
-  { ore: 'HD Elunium',           for: 'Armor Lv.1',    range: '+7~+10',  fail: 'ลดระดับ −1', note: '',        img: '/images/ores/hd-elunium.png' },
-  { ore: 'Carnium',              for: 'Armor Lv.1',    range: '+11~+20', fail: 'ไอเทมหาย',  note: '',        img: '/images/ores/carnium.png' },
-  { ore: 'HD Carnium',           for: 'Armor Lv.1',    range: '+11~+20', fail: 'ลดระดับ −1', note: '',        img: '/images/ores/hd-carnium.png' },
-  { section: 'Armor Lv.2' },
-  { ore: 'Ethernium',            for: 'Armor Lv.2',    range: '+1~+10',  fail: 'ลดระดับ −3', note: '',        img: '/images/ores/ethernium.png' },
-  { ore: 'Enriched Ethernium',   for: 'Armor Lv.2',    range: '+1~+10',  fail: 'ลดระดับ −1', note: '+โอกาส', img: '/images/ores/enriched-ethernium.png' },
-  { ore: 'Etel Carnium',         for: 'Armor Lv.2',    range: '+11~+20', fail: 'ไอเทมหาย',  note: '',        img: '/images/ores/etel-carnium.png' },
-  { ore: 'HD Etel Carnium',      for: 'Armor Lv.2',    range: '+11~+20', fail: 'ไอเทมหาย',  note: '',        img: '/images/ores/hd-etel-carnium.png' },
-];
-
-// Toggle switch แบบ reusable
-const Toggle = ({ checked, onChange, disabled = false, activeColor = 'bg-amber-400' }) => (
-  <button
-    type="button"
-    role="switch"
-    aria-checked={checked}
-    disabled={disabled}
-    onClick={() => !disabled && onChange(!checked)}
-    className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors duration-200 outline-none focus-visible:ring-2 focus-visible:ring-amber-300/60 ${
-      disabled ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'
-    } ${checked ? activeColor : 'bg-slate-600'}`}
-  >
-    <span
-      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${
-        checked ? 'translate-x-5' : 'translate-x-0.5'
-      }`}
-    />
-  </button>
-);
 
 const Container = () => {
   const [index, setIndex] = useState(0);
@@ -850,20 +540,9 @@ const Container = () => {
   // rate ของ "ระดับปัจจุบัน" (row +stack.length ในตาราง) สำหรับ banner — ต่างจาก currentRate ที่เป็น rate ของรอบถัดไป
   const bannerRate = getRate(isEventRate, useCash, useEnriched, itemType, Math.max(0, stack.length - 1));
 
-  // preload all frames for each mode
-  const waitingFrames = getAllFrameSrcs('waiting');
-  const processingFrames = getAllFrameSrcs('processing');
-  const successFrames = getAllFrameSrcs('success');
-  const failFrames = getAllFrameSrcs('fail');
-
+  // preload all frames for each mode (เฟรมเป็นค่าคงที่ precompute ใน constants/frames.js)
   useEffect(() => {
-    const allFrames = [
-      ...waitingFrames,
-      ...processingFrames,
-      ...successFrames,
-      ...failFrames,
-    ];
-    allFrames.forEach((src) => {
+    ALL_FRAMES.forEach((src) => {
       const img = new window.Image();
       img.src = src;
     });
@@ -1414,10 +1093,10 @@ const Container = () => {
         <div className="relative w-full overflow-hidden rounded-xl" style={{ maxWidth: 350, aspectRatio: '262 / 301', fontFamily: 'Tahoma, Geneva, sans-serif' }}>
 
           {/* Animation frames (bg) */}
-          {mode === 'wait' && renderFrames(waitingFrames, 'wait')}
-          {mode === 'process' && renderFrames(processingFrames, 'process')}
-          {mode === 'success' && renderFrames(successFrames, 'success')}
-          {mode === 'fail' && renderFrames(failFrames, 'fail')}
+          {mode === 'wait' && renderFrames(WAITING_FRAMES, 'wait')}
+          {mode === 'process' && renderFrames(PROCESSING_FRAMES, 'process')}
+          {mode === 'success' && renderFrames(SUCCESS_FRAMES, 'success')}
+          {mode === 'fail' && renderFrames(FAIL_FRAMES, 'fail')}
 
           {/* Item icon ใน slot */}
           {(() => {
