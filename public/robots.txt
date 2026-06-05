@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://ro-refine-simulate-i9a9.vercel.app/sitemap.xml
+Sitemap: https://ro-refine.com/sitemap.xml
