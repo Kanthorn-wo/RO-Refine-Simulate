@@ -499,7 +499,17 @@ const Container = () => {
       if (!res.ok) throw new Error(`เรียก API ไม่สำเร็จ (HTTP ${res.status})`);
       const data = await res.json();
       // แยกประเภทจาก itemTypeId (1=อาวุธ, 2=เกราะ) สำรองด้วย attack/defense
-      const lvl = Number(data.itemLevel) || 1;
+      let lvl = Number(data.itemLevel) || 1;
+      // เคสพิเศษ: โล่ (shield = itemTypeId 2 + itemSubTypeId 514) มัก return itemLevel = null
+      // ถ้าชื่อมี "LT" (เช่น -LT) ตัวพิมพ์ใหญ่ ถือเป็นโล่ Armor Level 2
+      if (
+        data.itemLevel == null &&
+        data.itemTypeId === 2 &&
+        data.itemSubTypeId === 514 &&
+        /LT/.test(data.name || '')
+      ) {
+        lvl = 2;
+      }
       let mapped;
       if (data.itemTypeId === 1 || (data.itemTypeId == null && data.attack > 0)) {
         mapped = `weapon${Math.min(Math.max(lvl, 1), 5)}`;
