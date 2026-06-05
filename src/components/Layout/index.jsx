@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
 import HeroBanner from '../HeroBanner';
-import ReportButton from '../ReportButton';
 import { APP_VERSION } from '../../version';
 import souneEffect01 from 'assets/sounds/bs_refine_1.wav';
 import souneEffect02 from 'assets/sounds/bs_refine_2.wav';
@@ -37,6 +36,8 @@ const Container = () => {
   const [isEventRate, setIsEventRate] = useState(false); // false = ไม่มี event, true = Event Rate Up
   const bsbTable = isEventRate ? BSB_REQUIRED_EVENT : BSB_REQUIRED_NORMAL;
   const intervalRef = useRef(null);
+  // เมื่อ true: เข้าโหมด success แบบนิ่งทันที (ข้าม intro animation ตีบวก) ใช้ตอนเลือกระดับเริ่มต้น
+  const skipSuccessIntroRef = useRef(false);
 
   // BSB ใช้ได้แค่ตีจาก +7 ถึง +14 → +15 เท่านั้น (stack.length 7..14)
   const bsbInRange = stack.length >= 7 && stack.length <= 14 && (bsbTable[stack.length] || 0) > 0;
@@ -80,6 +81,13 @@ const Container = () => {
   // แสดงภาพ success ทีละเฟรม (ไม่วน)
   useEffect(() => {
     if (mode === 'success') {
+      // เลือกระดับเริ่มต้นมาเลย: ข้าม animation ตีบวก ไปนิ่งที่ frame success loop ทันที
+      if (skipSuccessIntroRef.current) {
+        skipSuccessIntroRef.current = false;
+        setIsSuccessLoop(true);
+        setIndex(9);
+        return;
+      }
       setIsSuccessLoop(false);
       let i = 0;
       setIndex(0);
@@ -453,14 +461,25 @@ const Container = () => {
     setAutoRunning(false);
     const now = new Date().toLocaleTimeString();
     setStack(Array.from({ length: level }, () => ({ time: now })));
-    setMode('wait');
-    setIndex(0);
     setIsFail(false);
     setIsItemLost(false);
-    setIsSuccessLoop(false);
     setLastResult(null);
     setIsPlaying(false);
     setUseBSB(false); // ช่วงที่ใช้ BSB ได้อาจเปลี่ยน จึงรีเซ็ต toggle
+    if (level > 0) {
+      // เริ่มที่ระดับ > 0: โชว์ frame success แบบนิ่ง (ไอเทมตีบวกแล้ว) ให้ตรงกับตำแหน่งปุ่ม "เริ่มอีกครั้ง"
+      setIsSuccessLoop(true);
+      setIndex(9);
+      if (mode !== 'success') {
+        skipSuccessIntroRef.current = true; // เข้า success แบบข้าม intro animation
+        setMode('success');
+      }
+    } else {
+      // เริ่มที่ +0: กลับไป frame wait + ปุ่ม "อัพเกรด" ตำแหน่งกลาง (เดิม)
+      setMode('wait');
+      setIndex(0);
+      setIsSuccessLoop(false);
+    }
   };
 
   // เลือกประเภทไอเท็ม = เริ่มตีบวกใหม่ตั้งแต่ +0 และเคลียร์ผลลัพธ์ค้าง
@@ -1633,8 +1652,6 @@ const Container = () => {
       </div>
     )}
 
-    {/* ปุ่มแจ้งปัญหา ลอยมุมขวาล่าง */}
-    <ReportButton />
     </>
   );
 };
