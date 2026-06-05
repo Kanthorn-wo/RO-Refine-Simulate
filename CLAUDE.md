@@ -57,23 +57,27 @@ Auto มี state หลักดังนี้ — แก้ไขอะไร
 | `autoStart` | ระดับเริ่มต้น auto — **แยกจาก global start level** |
 | `autoTarget` | เป้าหมายระดับที่ auto จะตีถึง (> autoStart เสมอ) |
 | `autoRunning` | กำลังตี auto อยู่จริง |
-| `autoStoneRules` | แผนชนิดหินแต่ละช่วง `[{ id, from, stone }]` |
-| `autoUseBSB` | เปิด/ปิด BSB อัตโนมัติ |
-| `autoBSBStart` | ระดับเริ่มใส่ BSB (7 ถึง min(14, autoTarget-1)) |
-| `autoBSBEnd` | ระดับเลิกใส่ BSB exclusive (สูงสุด min(15, autoTarget)) |
+| `autoStoneRules` | แผนชนิดหิน+BSB แต่ละช่วง `[{ id, from, stone, stopOnLoss, bsb }]` |
+| `autoUseBSB` | master เปิด/ปิด BSB อัตโนมัติ (เปิดแล้วจึงโชว์ toggle BSB ต่อช่วง) |
 
 BSB section ซ่อนทั้งหมดเมื่อ `autoTarget < 8` เพราะ BSB ใช้ได้ตั้งแต่ +7→+8 auto ต้องตีถึงอย่างน้อย +8 จึงจะมีประโยชน์
 
-**Stone rules semantics ที่สำคัญมาก:** `from` ในแต่ละ rule คือ **destination level** ไม่ใช่ source — เพราะ auto loop เรียก `getPlannedStone(autoStoneRules, stack.length + 1)` (ส่ง stack.length+1 เข้าไป) ดังนั้น rule ที่ `from: 6` จะมีผลตอน item อยู่ที่ +5 กำลังตีไป +6 ถ้าจะแก้ stone rules ต้องเข้าใจ offset นี้
+**Stone rules semantics ที่สำคัญมาก:** `from` ในแต่ละ rule คือ **destination level** ไม่ใช่ source — auto loop เรียก `getPlannedStone(autoStoneRules, stack.length + 1)` ดังนั้น rule ที่ `from: 6` จะมีผลตอน item อยู่ที่ +5 กำลังตีไป +6 — **แต่ใน UI แสดงเป็น "เลเวลก่อนตี" (`from − 1`)** เพื่อให้ช่วงต่อกันพอดี (ปลายช่วงก่อน = ต้นช่วงถัดไป เช่น +0→+10, +10→+12) ไม่มี "+X~+X" กำกวม (option `value` ยังเป็น destination, label เป็น `value − 1`)
 
-**จำนวน stone rules สูงสุด** = `autoTarget − autoStart` ช่วง (from values คือ autoStart+1 ถึง autoTarget) — `addStoneRule` cap ที่ `autoTarget` ไม่ใช่ 20; cascade ใน `updateRuleFrom` ก็ cap ที่ `autoTarget` เช่นกัน เมื่อเต็มปุ่มจะเปลี่ยนเป็น "ครบทุกช่วงแล้ว (N ช่วง)" และ disabled
+**กำแพงจุดเปลี่ยนแร่ (`STONE_WALLS = [11]`):** แร่เปลี่ยน low→high ที่ destination +11 ทุก item type (ยืนยันได้ว่ามีจุดเดียว) → ช่วงห้ามคร่อม +10/+11 ทุก mutation ของ rules ผ่าน `normalizeStoneRules(rules, start, target, itemType, nextIdRef)` (module-level) ซึ่ง: บังคับ rule แรก = `start+1`, ใส่ขอบที่กำแพง 11 เมื่อ span คร่อม, ตัด rule นอกช่วง, แก้หินที่ใช้ไม่ได้ในห้องเป็น `bestStoneForRoom`. helper คู่กัน: `stoneValidInRoom` (enriched: `from ≤ 10`; hd: `from > getStoneMinLevel('hd')`; ตรงกับ disabled ของ stone slots ใน refine UI), `bestStoneForRoom` (Enriched > HD(เฉพาะ item ปกติ) > ปกติ), `isWallFrom`
 
-**`stopOnLoss` ใน stone rules:** แต่ละ rule มี `stopOnLoss: boolean` — toggle "หยุด Auto ถ้าเสี่ยงหาย" แสดงเฉพาะเมื่อช่วงนั้นมีระดับที่ล้มแล้ว item หายจริง (`toggleHasMeaning`) โดยตรวจ 3 เงื่อนไขพร้อมกัน: (1) stone ชนิดนั้น+ช่วงนั้นสามารถ item หายได้, (2) rate < 100% (ไม่งั้นล้มไม่ได้อยู่แล้ว), (3) BSB ไม่คุ้มกันตลอดทุกระดับในช่วง
+**แบ่งช่วง:** ปุ่ม "แบ่ง" (`splitStoneRule`) แบ่งช่วง ~กึ่งกลางในห้องเดิม (คัดลอก stone+bsb) — ไม่มีปุ่ม "+ เพิ่มช่วง"/`addStoneRule` แล้ว. ปุ่มลบ (`removeStoneRule`) รวมกับช่วงก่อนหน้า — **ช่วงแรก (i=0) และช่วงกำแพง (`from===11`) ล็อก ลบ/ย้ายไม่ได้**. dropdown `from` ถูก cap ที่ `next.from − 1` (อยู่ในห้อง ไม่ข้ามกำแพง)
+
+**ปุ่มเลือกหินต่อช่วง:** กรองด้วย `stoneValidInRoom` (ซ่อนหินที่ใช้ไม่ได้, flex-1 ขยายเต็ม) แต่ละปุ่มโชว์ **รูปแร่ + ชื่อแร่จริง** ของห้องนั้นจาก `getStoneOre(itemType, from − 1, stone)` (ชื่อ truncate `...`)
+
+**`stopOnLoss` ใน stone rules:** toggle "หยุด Auto ถ้าเสี่ยงหาย" แสดงเมื่อ `toggleHasMeaning(stone, itemType, from, toLevel, isEventRate, autoUseBSB, rule.bsb, bsbTable)` เป็น true — ตรวจ 3 เงื่อนไข: (1) stone+ช่วงนั้น item หายได้, (2) rate < 100%, (3) BSB ของช่วงนั้น (`rule.bsb`) ไม่คุ้มกันครบทุกระดับ
+
+**`bsb` ต่อช่วง:** แต่ละ rule มี `bsb: boolean` — toggle "ใส่ BSB ช่วงนี้" แสดงเฉพาะช่วงที่แตะ +7→+14 (`autoUseBSB && from ≤ 15 && toLevel ≥ 8`) อยากคุมละเอียด (เปิด/ปิด/เปิดใหม่) ให้กด "แบ่ง" แล้ว toggle ต่อช่วง — ไม่มี `autoBSBStart`/`autoBSBEnd` แล้ว
 
 **Auto loop (useEffect):** ทำงานเมื่อ `autoRunning && !isPlaying && mode !== 'process'` โดยลำดับ:
 1. เช็ค stop condition (ถึง target, item หาย)
 2. ปรับชนิดหินตามแผน (`getPlannedStone` → `getEffectiveStone`) — ถ้าต้องเปลี่ยน `useCash`/`useEnriched` จะ return รอ re-render ก่อน
-3. ปรับ BSB toggle ตาม `autoBSBStart`/`autoBSBEnd` — ถ้าต้องเปลี่ยนก็ return รอ re-render เช่นกัน
+3. ปรับ BSB toggle ตาม `applicableRule.bsb` (ภายใต้กฎ +7→+14) — ถ้าต้องเปลี่ยนก็ return รอ re-render เช่นกัน
 4. เช็ค `applicableRule.stopOnLoss` — ถ้าหินถัดไปเสี่ยง item หาย, BSB ไม่คุ้มกัน **และ rate < 100%**: หยุด
 5. `setTimeout(handleRefine, 450)` เพื่อตีรอบถัดไป
 
@@ -125,11 +129,11 @@ Deploy หลักใช้ **Vercel** (auto build จาก push master, root 
 - การคำนวณอัตราสำเร็จและกติกาแพ้/ชนะกระจุกอยู่ใน `handleRefine` เดียว แก้ตรงไหนต้องไล่ flow ของ `useCash`, `useEnriched`, `useBSB`, `itemType`, `stack.length` ให้ครบทุกสาขา
 - `useEffect` ของแต่ละโหมด animation depend เฉพาะ `mode` (และบางตัวก็ `isFail`/`isSuccessLoop`) ถ้าเพิ่ม state ที่ต้อง reset ตอนเปลี่ยนโหมดให้ระวัง interval ตกค้าง
 - auto loop `useEffect` มี dependency array ยาว — ถ้าเพิ่ม state ที่ auto loop ต้องอ่านต้องใส่ใน deps ด้วย (มี `// eslint-disable-next-line react-hooks/exhaustive-deps` เพราะ handleRefine เป็น closure)
-- `autoStoneRules[0].from` ล็อคไว้ (user แก้ไม่ได้) และ derive จาก `autoStart` ผ่าน `useEffect([autoStart])` — ห้ามแก้ค่านี้โดยตรงใน handler อื่น
+- `autoStoneRules[0].from` ล็อคไว้ (= `autoStart+1`) และช่วงกำแพง (`from===11`) ก็ล็อก — ทุก mutation ของ rules ต้องผ่าน `normalizeStoneRules` ซึ่งบังคับ invariant พวกนี้ (effect `[autoStart, autoTarget, itemType, ...]` + handler `updateRuleFrom`/`splitStoneRule`/`removeStoneRule`)
 - เมื่อ `autoRefine` เปิดและ `autoStart` เปลี่ยน → stack จะ sync ทันทีผ่าน `handleAutoStartChange` ซึ่งทำงานเป็น event handler ไม่ใช่ useEffect (ทำให้ไม่มี stale closure)
 - `getPlannedStone` รับ `stack.length + 1` เสมอ (destination level) — อย่าส่ง `stack.length` เพราะจะ offset ผิด
 - Log/stats (`log`, `oreUsed`, `bsbUsedTotal`) สะสมข้าม session จนกว่าจะกด "ล้าง Session" (`handleClearSession`) — ตั้งใจให้เป็น global session counter
-- `toggleHasMeaning()` (module-level helper) แทนที่ `stoneCanLoseItem` เดิม — ตรวจ 3 เงื่อนไขพร้อมกัน: stone หายได้ + rate < 100% + BSB ไม่คุ้มครบช่วง ถ้าจะแก้เงื่อนไข toggle ต้องแก้ที่ฟังก์ชันนี้เท่านั้น
+- `toggleHasMeaning(..., autoUseBSB, ruleBsb, bsbTable)` (ใน `stones.js`) — ตรวจ 3 เงื่อนไข: stone หายได้ + rate < 100% + BSB ของช่วงนั้น (`ruleBsb`) ไม่คุ้มครบช่วง (รับ `rule.bsb` ไม่ใช่ start/end แล้ว) ถ้าจะแก้เงื่อนไข toggle ต้องแก้ที่ฟังก์ชันนี้
 
 #### Log item structure
 แต่ละ entry ใน `log` state มี field:
@@ -157,7 +161,7 @@ Deploy หลักใช้ **Vercel** (auto build จาก push master, root 
 - `MINOR` (+0.1.0) — ฟีเจอร์ใหม่, เพิ่ม component
 - `MAJOR` (+1.0.0) — เปลี่ยน architecture, redesign ใหญ่
 
-version ปัจจุบัน: **1.4.0**
+version ปัจจุบัน: **1.5.0**
 
 ## Patch Notes (changelog)
 

@@ -18,6 +18,44 @@ import { frameCount, WAITING_FRAMES, PROCESSING_FRAMES, SUCCESS_FRAMES, FAIL_FRA
 // หมายเหตุ: เว็บเป็น static site คีย์นี้จะถูก build ติดไปกับ JS และเป็นสาธารณะ
 const DIVINE_PRIDE_API_KEY = '7a8b539b5e6171b362a6ef264e43dffc';
 
+// ── ระบบช่วงหิน Auto: กำแพงที่จุดเปลี่ยนแร่ ───────────────────────────────
+// แร่เปลี่ยน low→high ที่ destination +11 (low ≤+10 / high ≥+11) → ช่วงห้ามคร่อมกำแพงนี้
+const STONE_WALLS = [11];
+const isWallFrom = (from) => STONE_WALLS.includes(from);
+
+// หิน stone ใช้ได้ในห้องของ destination `from` ไหม (validity คิดจาก source = from-1)
+const stoneValidInRoom = (itemType, from, stone) => {
+  if (stone === 'enriched') return from <= 10;                         // Enriched เฉพาะห้อง low (+1~+10)
+  if (stone === 'hd') return from > getStoneMinLevel('hd', itemType);  // HD ใช้ได้เมื่อ source≥min → destination>min (8 ปกติ / 11 special)
+  return true;                                                          // normal ใช้ได้เสมอ
+};
+
+// หินที่ดีที่สุดของห้องที่ destination `from` อยู่: Enriched (โอกาสสูง) > HD (กันหาย เฉพาะ item ปกติ) > ปกติ
+const bestStoneForRoom = (itemType, from) => {
+  if (stoneValidInRoom(itemType, from, 'enriched')) return 'enriched';
+  const isSpecial = itemType === 'weapon5' || itemType === 'armor2';
+  if (!isSpecial && stoneValidInRoom(itemType, from, 'hd')) return 'hd';
+  return 'normal';
+};
+
+// ปรับ stone rules ให้ถูกเสมอ: rule แรก = start+1, มีกำแพงที่จุดเปลี่ยนแร่ (ช่วงไม่คร่อม),
+// ตัด rule นอกช่วง, หินทุกช่วง valid ต่อห้อง (ถ้าไม่ valid → ใช้หินที่ดีที่สุดของห้อง)
+const normalizeStoneRules = (rules, start, target, itemType, nextIdRef) => {
+  const minFrom = Math.max(1, start + 1);
+  const cap = Math.max(minFrom, target);
+  const byFrom = new Map();
+  for (const r of rules) {
+    if (r.from >= minFrom && r.from <= cap && !byFrom.has(r.from)) byFrom.set(r.from, r);
+  }
+  const froms = new Set([minFrom, ...byFrom.keys()]);
+  for (const w of STONE_WALLS) if (minFrom < w && w <= cap) froms.add(w); // span คร่อมกำแพง → ใส่ขอบที่กำแพง
+  return [...froms].sort((a, b) => a - b).map((from) => {
+    const existing = byFrom.get(from);
+    let stone = existing ? existing.stone : bestStoneForRoom(itemType, from);
+    if (!stoneValidInRoom(itemType, from, stone)) stone = bestStoneForRoom(itemType, from);
+    return existing ? { ...existing, stone } : { id: nextIdRef.current++, from, stone, stopOnLoss: false, bsb: false };
+  });
+};
 
 const Container = () => {
   const [index, setIndex] = useState(0);
@@ -154,11 +192,10 @@ const Container = () => {
   const [autoTarget, setAutoTarget] = useState(10); // เป้าหมายระดับ (+N) ที่จะตีถึง
   const [autoRunning, setAutoRunning] = useState(false); // กำลังตี auto อยู่
   // แผนชนิดหินแต่ละช่วงระหว่าง auto: รายการ { id, from, stone, stopOnLoss }
-  const [autoStoneRules, setAutoStoneRules] = useState([{ id: 0, from: 1, stone: 'normal', stopOnLoss: false }]);
+  const [autoStoneRules, setAutoStoneRules] = useState([{ id: 0, from: 1, stone: 'enriched', stopOnLoss: false, bsb: false }]);
   const nextRuleId = useRef(1);
   const [autoUseBSB, setAutoUseBSB] = useState(false); // เปิด/ปิดการใส่ BSB อัตโนมัติระหว่าง auto
-  const [autoBSBStart, setAutoBSBStart] = useState(7); // ระดับที่จะเริ่มใส่ BSB (BSB ใช้ได้ +7→+14)
-  const [autoBSBEnd, setAutoBSBEnd] = useState(15); // ระดับที่จะเลิกใส่ BSB (exclusive; 15 = ครอบถึง +14)
+  // BSB คุมเป็น flag ต่อช่วง (rule.bsb) แล้ว — ไม่ใช้ start/end window อีก (ภายใต้กฎ BSB ใช้ได้ +7→+14)
 
   const handleRefine = () => {
     if (isPlaying) return;
@@ -294,16 +331,16 @@ const Container = () => {
       setUseEnriched(wantEnriched);
       return;
     }
-    // ใส่/ถอด BSB ตามช่วง [start, end)
+    // rule ที่คุมระดับถัดไป (currentLevel = stack.length + 1)
+    const applicableRule = [...autoStoneRules].sort((a, b) => b.from - a.from).find(r => r.from <= stack.length + 1);
+    // ใส่/ถอด BSB ตาม flag ของช่วง (ภายใต้กฎ BSB ใช้ได้ +7→+14)
     if (autoUseBSB) {
-      const wantBSB = stack.length >= autoBSBStart && stack.length < autoBSBEnd;
+      const wantBSB = !!applicableRule?.bsb && stack.length >= 7 && stack.length <= 14 && (bsbTable[stack.length] || 0) > 0;
       if (wantBSB !== useBSB) {
         setUseBSB(wantBSB);
         return;
       }
     }
-    // ตรวจ stopOnLoss ของ rule ที่ใช้งานอยู่
-    const applicableRule = [...autoStoneRules].sort((a, b) => b.from - a.from).find(r => r.from <= stack.length + 1);
     if (applicableRule?.stopOnLoss) {
       const isSpecial = itemType === 'weapon5' || itemType === 'armor2';
       const wouldLoseOnFail = isSpecial ? stack.length >= 10 : !wantCash;
@@ -318,28 +355,10 @@ const Container = () => {
     const t = setTimeout(() => handleRefine(), 450);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoRunning, isPlaying, mode, stack.length, isItemLost, autoTarget, autoStoneRules, useCash, useEnriched, autoUseBSB, autoBSBStart, autoBSBEnd, useBSB, itemType, bsbTable, isEventRate]);
+  }, [autoRunning, isPlaying, mode, stack.length, isItemLost, autoTarget, autoStoneRules, useCash, useEnriched, autoUseBSB, useBSB, itemType, bsbTable, isEventRate]);
 
-  // เปลี่ยนเป้าหมาย → clamp BSBStart/End ให้สอดคล้องกับ autoTarget
+  // target ต้อง > start เสมอ
   useEffect(() => {
-    setAutoBSBStart(prev => Math.min(prev, Math.min(14, autoTarget - 1)));
-    setAutoBSBEnd(prev => Math.min(prev, Math.min(15, autoTarget)));
-  }, [autoTarget]);
-  useEffect(() => {
-    setAutoBSBEnd((v) => Math.min(Math.max(v, autoBSBStart + 1), Math.min(15, autoTarget)));
-  }, [autoBSBStart, autoTarget]);
-  // เมื่อ autoStart เปลี่ยน → อัปเดต stone rules ให้ from แรกตรงกับ start
-  useEffect(() => {
-    setAutoStoneRules(rs => {
-      const newFrom = Math.max(1, autoStart + 1);
-      const kept = rs.filter((r, i) => i === 0 || r.from > autoStart);
-      const next = kept.map((r, i) => i === 0 ? { ...r, from: newFrom } : r);
-      for (let j = 1; j < next.length; j++) {
-        if (next[j].from <= next[j - 1].from) next[j].from = Math.min(next[j - 1].from + 1, autoTarget);
-      }
-      return next;
-    });
-    // clamp autoTarget ให้ > autoStart เสมอ
     setAutoTarget(t => (t <= autoStart ? Math.min(autoStart + 1, 20) : t));
   }, [autoStart]);
 
@@ -348,14 +367,24 @@ const Container = () => {
     setAutoStart(level);
     const now = new Date().toLocaleTimeString();
     setStack(Array.from({ length: level }, () => ({ time: now })));
-    setMode('wait');
-    setIndex(0);
     setIsFail(false);
     setIsItemLost(false);
-    setIsSuccessLoop(false);
     setLastResult(null);
     setIsPlaying(false);
     setUseBSB(false);
+    if (level > 0) {
+      // เริ่มที่ระดับ > 0: โชว์ frame success แบบนิ่ง ให้ตรงกับตำแหน่งปุ่ม (เคสเดียวกับ handleStartLevelChange)
+      setIsSuccessLoop(true);
+      setIndex(9);
+      if (mode !== 'success') {
+        skipSuccessIntroRef.current = true;
+        setMode('success');
+      }
+    } else {
+      setMode('wait');
+      setIndex(0);
+      setIsSuccessLoop(false);
+    }
   };
 
   // เริ่ม/หยุด auto ตีบวก
@@ -390,52 +419,50 @@ const Container = () => {
   // จัดการแผนชนิดหินแต่ละช่วง (auto)
   const updateRuleStone = (id, stone) => setAutoStoneRules(rs => rs.map(r => r.id === id ? { ...r, stone, stopOnLoss: false } : r));
   const updateRuleStopOnLoss = (id, value) => setAutoStoneRules(rs => rs.map(r => r.id === id ? { ...r, stopOnLoss: value } : r));
+  const updateRuleBSB = (id, value) => setAutoStoneRules(rs => rs.map(r => r.id === id ? { ...r, bsb: value } : r));
 
-  // เมื่อเปลี่ยน itemType ให้ reset rule ที่ไม่ valid อีกต่อไป
+  // ปรับช่วงหินให้ถูกเสมอเมื่อ start/target/itemType เปลี่ยน (ใส่กำแพง, ตัดนอกช่วง, หิน valid ต่อห้อง)
+  // + เคลียร์ stopOnLoss ที่หมดความหมาย
   useEffect(() => {
     setAutoStoneRules((rs) => {
-      const sorted = [...rs].sort((a, b) => a.from - b.from);
-      return rs.map((r, i) => {
-        const next = sorted[i + 1];
-        const toLevel = next ? next.from - 1 : autoTarget;
-        let updated = { ...r };
-        if (r.stone === 'hd' && r.from < getStoneMinLevel('hd', itemType)) {
-          updated = { ...updated, stone: 'normal', stopOnLoss: false };
+      const normalized = normalizeStoneRules(rs, autoStart, autoTarget, itemType, nextRuleId);
+      return normalized.map((r, i) => {
+        const toLevel = normalized[i + 1] ? normalized[i + 1].from - 1 : autoTarget;
+        if (r.stopOnLoss && !toggleHasMeaning(r.stone, itemType, r.from, toLevel, isEventRate, autoUseBSB, r.bsb, bsbTable)) {
+          return { ...r, stopOnLoss: false };
         }
-        // reset stopOnLoss ถ้า stone ชนิดนี้ไม่เสี่ยง item หายสำหรับ itemType ใหม่
-        if (updated.stopOnLoss && !toggleHasMeaning(updated.stone, itemType, updated.from, toLevel, isEventRate, autoUseBSB, autoBSBStart, autoBSBEnd, bsbTable)) {
-          updated = { ...updated, stopOnLoss: false };
-        }
-        return updated;
+        return r;
       });
     });
-  }, [itemType, autoTarget]);
-  // แก้ระดับเริ่มของช่วง → บังคับให้มากกว่าช่วงก่อนหน้า และดันช่วงถัด ๆ ให้เพิ่มขึ้นตาม (cascade)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoStart, autoTarget, itemType, isEventRate, autoUseBSB]);
+  // แก้ระดับเริ่มของช่วง → ต้องมากกว่าช่วงก่อนหน้า แล้ว normalize (ใส่กำแพง/แก้หินให้เอง)
   const updateRuleFrom = (id, newFrom) => setAutoStoneRules(rs => {
     const idx = rs.findIndex(r => r.id === id);
-    if (idx <= 0) return rs; // ช่วงแรกล็อคที่ +1
+    if (idx <= 0 || isWallFrom(rs[idx].from)) return rs; // ช่วงแรก + กำแพง ล็อก
     const next = rs.map(r => ({ ...r }));
     next[idx].from = Math.max(newFrom, next[idx - 1].from + 1);
-    // cascade ช่วงถัดไป
-    for (let j = idx + 1; j < next.length; j++) {
-      if (next[j].from <= next[j - 1].from) next[j].from = Math.min(next[j - 1].from + 1, autoTarget);
-    }
-    // reset stone ที่ใช้ไม่ได้ที่ from ใหม่
-    for (let j = idx; j < next.length; j++) {
-      if (next[j].stone === 'enriched' && next[j].from >= 10) next[j].stone = 'normal';
-      if (next[j].stone === 'hd' && next[j].from < getStoneMinLevel('hd', itemType)) next[j].stone = 'normal';
-    }
-    return next;
+    return normalizeStoneRules(next, autoStart, autoTarget, itemType, nextRuleId);
   });
-  const addStoneRule = () => setAutoStoneRules(rs => {
-    const last = rs[rs.length - 1];
-    if (last.from >= autoTarget) return rs; // ไม่มีช่วงเหลือแล้ว (last rule ครอบถึง autoTarget แล้ว)
-    return [...rs, { id: nextRuleId.current++, from: Math.min(last.from + 1, autoTarget), stone: 'normal', stopOnLoss: false }];
+  // ซอยช่วงนี้เป็น 2 (แบ่ง ~กึ่งกลางในห้องเดิม) — คัดลอกหินจากช่วงเดิม แล้ว normalize
+  const splitStoneRule = (id) => setAutoStoneRules(rs => {
+    const idx = rs.findIndex(r => r.id === id);
+    if (idx < 0) return rs;
+    const rule = rs[idx];
+    const toLevel = rs[idx + 1] ? rs[idx + 1].from - 1 : autoTarget;
+    if (rule.from >= toLevel) return rs; // ช่วงกว้าง 1 ระดับ ซอยไม่ได้
+    const mid = rule.from + Math.ceil((toLevel - rule.from + 1) / 2); // ขอบใหม่ ~กึ่งกลาง
+    const inserted = [
+      ...rs.slice(0, idx + 1),
+      { id: nextRuleId.current++, from: mid, stone: rule.stone, stopOnLoss: false, bsb: rule.bsb },
+      ...rs.slice(idx + 1),
+    ];
+    return normalizeStoneRules(inserted, autoStart, autoTarget, itemType, nextRuleId);
   });
   const removeStoneRule = (id) => setAutoStoneRules(rs => {
     const idx = rs.findIndex(r => r.id === id);
-    if (idx <= 0) return rs; // ลบช่วงแรก (baseline +1) ไม่ได้
-    return rs.filter(r => r.id !== id);
+    if (idx <= 0 || isWallFrom(rs[idx].from)) return rs; // ลบช่วงแรก + กำแพง ไม่ได้
+    return normalizeStoneRules(rs.filter(r => r.id !== id), autoStart, autoTarget, itemType, nextRuleId);
   });
 
   const handleBackToWait = () => {
@@ -951,6 +978,7 @@ const Container = () => {
                   const next = autoStoneRules[i + 1];
                   const toLevel = next ? next.from - 1 : autoTarget;
                   const minFrom = i === 0 ? Math.max(1, autoStart + 1) : autoStoneRules[i - 1].from + 1;
+                  const isWall = i > 0 && isWallFrom(rule.from); // กำแพงเปลี่ยนแร่ — ล็อก
                   return (
                     <div key={rule.id} className="rounded-lg border border-slate-700 bg-[#0f1117] p-2">
                       <div className="flex items-center gap-2">
@@ -959,16 +987,24 @@ const Container = () => {
                           <select
                             value={rule.from}
                             onChange={(e) => updateRuleFrom(rule.id, Number(e.target.value))}
-                            disabled={autoRunning || i === 0}
+                            disabled={autoRunning || i === 0 || isWall}
                             className="cursor-pointer appearance-none rounded-lg border border-slate-600 bg-[#181a20] py-1 pl-2 pr-6 text-sm font-bold text-indigo-300 outline-none disabled:cursor-not-allowed disabled:opacity-50"
                           >
-                            {Array.from({ length: 20 - minFrom + 1 }, (_, n) => minFrom + n).map((lvl) => (
-                              <option key={lvl} value={lvl} className="bg-[#0f1117]">+{lvl}</option>
+                            {Array.from({ length: Math.max(0, (next ? next.from - 1 : autoTarget) - minFrom + 1) }, (_, n) => minFrom + n).map((lvl) => (
+                              <option key={lvl} value={lvl} className="bg-[#0f1117]">+{lvl - 1}</option>
                             ))}
                           </select>
                           <span className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-xs text-indigo-300">▾</span>
                         </div>
                         <span className="text-xs text-slate-500">ถึง +{toLevel}</span>
+                        {isWall && (
+                          <span
+                            className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[0.6rem] font-bold text-amber-300"
+                            title="จุดเปลี่ยนแร่ +10/+11 — ระบบแยกช่วงให้อัตโนมัติ ลบ/ย้ายไม่ได้"
+                          >
+                            จุดเปลี่ยนแร่
+                          </span>
+                        )}
                         {rule.stone === 'hd' && rule.from < getStoneMinLevel('hd', itemType) && (
                           <span
                             className="ml-1 cursor-help text-[0.65rem] font-semibold text-amber-400 underline decoration-dotted underline-offset-2"
@@ -977,52 +1013,79 @@ const Container = () => {
                             ⚠ ก่อน +{getStoneMinLevel('hd', itemType)} ใช้ปกติแทน
                           </span>
                         )}
-                        {i > 0 && (
-                          <button
-                            type="button"
-                            onClick={() => removeStoneRule(rule.id)}
-                            disabled={autoRunning}
-                            title="ลบช่วงนี้"
-                            aria-label="ลบช่วงนี้"
-                            className="ml-auto rounded p-1 text-rose-300 hover:bg-rose-500/10 disabled:cursor-not-allowed disabled:opacity-40"
-                          >
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 002 2h8a2 2 0 002-2l1-12M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3" />
-                            </svg>
-                          </button>
-                        )}
-                      </div>
-                      <div className="mt-2 grid grid-cols-3 gap-1.5">
-                        {['normal', 'enriched', 'hd'].map((s) => {
-                          const sMin = getStoneMinLevel(s, itemType);
-                          const outOfRange = rule.from < (sMin || 1) || (s === 'enriched' && rule.from >= 10);
-                          const isSpecialItem = itemType === 'weapon5' || itemType === 'armor2';
-                          const hint = outOfRange
-                            ? s === 'hd'
-                              ? `HD ใช้ได้ตั้งแต่ +${sMin}`
-                              : `Enriched ใช้ได้ถึง +9 เท่านั้น`
-                            : s === 'hd'
-                            ? `ล้ม${isSpecialItem && toLevel >= 11 ? 'หาย' : 'ลด −1'}`
-                            : s === 'enriched'
-                            ? `ล้ม${isSpecialItem && toLevel < 11 ? 'ลด −1' : 'หาย'} (+โอกาส)`
-                            : `ล้ม${isSpecialItem && toLevel < 11 ? 'ลด −3' : 'หาย'}`;
-                          return (
+                        <div className="ml-auto flex items-center gap-1">
+                          {rule.from < toLevel && (
                             <button
-                              key={s}
                               type="button"
-                              onClick={() => updateRuleStone(rule.id, s)}
-                              disabled={autoRunning || outOfRange}
-                              title={hint}
-                              className={`rounded-md border px-1 py-1 text-xs font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
-                                rule.stone === s ? STONE_META[s].active : 'border-slate-700 text-slate-400 hover:border-slate-500'
-                              }`}
+                              onClick={() => splitStoneRule(rule.id)}
+                              disabled={autoRunning}
+                              title="แบ่งช่วงนี้เป็น 2"
+                              className="rounded border border-slate-600 px-1.5 py-0.5 text-[0.65rem] font-semibold text-indigo-300 transition-colors hover:border-indigo-400/70 disabled:cursor-not-allowed disabled:opacity-40"
                             >
-                              {STONE_META[s].label}
+                              แบ่ง
                             </button>
-                          );
-                        })}
+                          )}
+                          {i > 0 && !isWall && (
+                            <button
+                              type="button"
+                              onClick={() => removeStoneRule(rule.id)}
+                              disabled={autoRunning}
+                              title="ลบช่วงนี้ (รวมกับช่วงก่อนหน้า)"
+                              aria-label="ลบช่วงนี้"
+                              className="rounded p-1 text-rose-300 hover:bg-rose-500/10 disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 002 2h8a2 2 0 002-2l1-12M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3" />
+                              </svg>
+                            </button>
+                          )}
+                        </div>
                       </div>
-                      {toggleHasMeaning(rule.stone, itemType, rule.from, toLevel, isEventRate, autoUseBSB, autoBSBStart, autoBSBEnd, bsbTable) && (
+                      <div className="mt-2 flex gap-1.5">
+                        {['normal', 'enriched', 'hd']
+                          .filter((s) => stoneValidInRoom(itemType, rule.from, s)) // ซ่อนหินที่ใช้ไม่ได้ในช่วงนี้
+                          .map((s) => {
+                            const ore = getStoneOre(itemType, rule.from - 1, s); // แร่จริงของห้องนี้
+                            const isSpecialItem = itemType === 'weapon5' || itemType === 'armor2';
+                            const hint =
+                              s === 'hd'
+                                ? `ล้ม${isSpecialItem && toLevel >= 11 ? 'หาย' : 'ลด −1'}`
+                                : s === 'enriched'
+                                ? `ล้ม${isSpecialItem && toLevel < 11 ? 'ลด −1' : 'หาย'} (+โอกาส)`
+                                : `ล้ม${isSpecialItem && toLevel < 11 ? 'ลด −3' : 'หาย'}`;
+                            return (
+                              <button
+                                key={s}
+                                type="button"
+                                onClick={() => updateRuleStone(rule.id, s)}
+                                disabled={autoRunning}
+                                title={`${STONE_META[s].label}${ore ? ` (${ore})` : ''} — ${hint}`}
+                                className={`flex min-w-0 flex-1 items-center justify-center gap-1 rounded-md border px-1.5 py-1.5 transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                                  rule.stone === s ? STONE_META[s].active : 'border-slate-700 text-slate-300 hover:border-slate-500'
+                                }`}
+                              >
+                                {ORE_IMAGES[ore] ? (
+                                  <img src={ORE_IMAGES[ore]} alt={ore} className="h-4 w-4 shrink-0 object-contain" />
+                                ) : (
+                                  <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${ORE_COLORS[ore] || 'bg-slate-400'}`} />
+                                )}
+                                <span className="truncate text-[0.6rem] font-semibold leading-tight">{ore}</span>
+                              </button>
+                            );
+                          })}
+                      </div>
+                      {autoUseBSB && rule.from <= 15 && toLevel >= 8 && (
+                        <div className="mt-2 flex items-center justify-between rounded-md border border-emerald-900/50 bg-emerald-950/30 px-2 py-1.5">
+                          <span className="text-[0.7rem] font-semibold text-emerald-300">ใส่ BSB ช่วงนี้ (เฉพาะ +7→+14)</span>
+                          <Toggle
+                            checked={!!rule.bsb}
+                            onChange={(v) => updateRuleBSB(rule.id, v)}
+                            disabled={autoRunning}
+                            activeColor="bg-emerald-500"
+                          />
+                        </div>
+                      )}
+                      {toggleHasMeaning(rule.stone, itemType, rule.from, toLevel, isEventRate, autoUseBSB, rule.bsb, bsbTable) && (
                         <div className="mt-2 flex items-center justify-between rounded-md border border-rose-900/50 bg-rose-950/30 px-2 py-1.5">
                           <span className="text-[0.7rem] font-semibold text-rose-300">หยุด Auto ถ้าเสี่ยงหาย</span>
                           <Toggle
@@ -1037,20 +1100,7 @@ const Container = () => {
                   );
                 })}
               </div>
-              {(() => {
-                const isFull = autoStoneRules[autoStoneRules.length - 1].from >= autoTarget;
-                return (
-                  <button
-                    type="button"
-                    onClick={addStoneRule}
-                    disabled={autoRunning || isFull}
-                    title={isFull ? `ครบทุกช่วงแล้ว (+${autoStoneRules[0].from}–+${autoTarget})` : undefined}
-                    className="mt-2 w-full rounded-lg border border-dashed border-slate-600 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:border-indigo-400/70 hover:text-indigo-300 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    {isFull ? `ครบทุกช่วงแล้ว (${autoStoneRules.length} ช่วง)` : '+ เพิ่มช่วง'}
-                  </button>
-                );
-              })()}
+              <p className="mt-2 text-center text-[0.65rem] text-slate-500">กดปุ่ม "แบ่ง" ในแต่ละช่วงเพื่อแบ่งย่อย — ระบบกั้นจุดเปลี่ยนแร่ +10 ให้อัตโนมัติ</p>
             </div>
           )}
           {autoRefine && autoTarget >= 8 && (
@@ -1058,7 +1108,7 @@ const Container = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-sm font-semibold text-white">ใส่ BSB อัตโนมัติระหว่างทาง</div>
-                  <div className="mt-0.5 text-xs text-slate-400">ใส่ BSB เฉพาะช่วงที่กำหนด (BSB ใช้ได้ +7→+14)</div>
+                  <div className="mt-0.5 text-xs text-slate-400">เปิดแล้วเลือกเปิด/ปิด BSB ได้ทีละช่วงด้านบน (ใช้ได้ +7→+14)</div>
                 </div>
                 <Toggle
                   checked={autoUseBSB}
@@ -1068,48 +1118,7 @@ const Container = () => {
                 />
               </div>
               {autoUseBSB && (
-                <div className="mt-3 grid grid-cols-2 gap-2">
-                  <div>
-                    <label htmlFor="auto-bsb-start" className="mb-1 block text-xs font-semibold text-slate-300">
-                      เริ่มใส่ BSB ที่
-                    </label>
-                    <div className="relative">
-                      <select
-                        id="auto-bsb-start"
-                        value={autoBSBStart}
-                        onChange={(e) => setAutoBSBStart(Number(e.target.value))}
-                        disabled={autoRunning}
-                        className="w-full cursor-pointer appearance-none rounded-xl border border-slate-600 bg-[#0f1117] px-4 py-2 pr-10 font-bold text-emerald-300 outline-none transition-colors hover:border-emerald-400/70 focus-visible:border-emerald-400 focus-visible:ring-2 focus-visible:ring-emerald-300/40 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        {Array.from({ length: Math.max(0, Math.min(14, autoTarget - 1) - 6) }, (_, i) => {
-                          const lvl = 7 + i; // 7..min(14, autoTarget-1)
-                          return <option key={lvl} value={lvl} className="bg-[#0f1117] text-emerald-300">+{lvl}</option>;
-                        })}
-                      </select>
-                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-emerald-300">▾</span>
-                    </div>
-                  </div>
-                  <div>
-                    <label htmlFor="auto-bsb-end" className="mb-1 block text-xs font-semibold text-slate-300">
-                      เลิกใส่ BSB ที่
-                    </label>
-                    <div className="relative">
-                      <select
-                        id="auto-bsb-end"
-                        value={autoBSBEnd}
-                        onChange={(e) => setAutoBSBEnd(Number(e.target.value))}
-                        disabled={autoRunning}
-                        className="w-full cursor-pointer appearance-none rounded-xl border border-slate-600 bg-[#0f1117] px-4 py-2 pr-10 font-bold text-emerald-300 outline-none transition-colors hover:border-emerald-400/70 focus-visible:border-emerald-400 focus-visible:ring-2 focus-visible:ring-emerald-300/40 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        {Array.from({ length: Math.max(0, Math.min(15, autoTarget) - autoBSBStart) }, (_, i) => {
-                          const lvl = autoBSBStart + 1 + i; // (start+1)..min(15, autoTarget)
-                          return <option key={lvl} value={lvl} className="bg-[#0f1117] text-emerald-300">+{lvl}</option>;
-                        })}
-                      </select>
-                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-emerald-300">▾</span>
-                    </div>
-                  </div>
-                </div>
+                <p className="mt-2 text-[0.65rem] text-emerald-300/80">↑ เลื่อนขึ้นไปกดสวิตช์ "ใส่ BSB ช่วงนี้" ในแต่ละช่วง — แบ่งช่วงเพื่อคุมละเอียดได้ (เริ่ม/เลิก/มาใส่ใหม่)</p>
               )}
             </div>
           )}

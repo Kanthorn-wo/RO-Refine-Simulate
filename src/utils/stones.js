@@ -36,7 +36,8 @@ export const getPlannedStone = (rules, level) => {
 // ตรวจว่า toggle "หยุด Auto ถ้าเสี่ยงหาย" ควรแสดงสำหรับช่วงนี้ไหม
 // มีความหมายก็ต่อเมื่อมีอย่างน้อย 1 ระดับในช่วงที่: (1) ล้มแล้ว item หาย
 // (2) rate < 100% — ไม่งั้นล้มไม่ได้อยู่แล้ว  (3) BSB ไม่คุ้มกัน
-export const toggleHasMeaning = (stone, itemType, fromDest, toDest, isEventRate, autoUseBSB, autoBSBStart, autoBSBEnd, bsbTable) => {
+// ruleBsb = ช่วงนี้เปิด BSB ไหม (per-range flag) — BSB คุ้มกันได้เฉพาะ +7→+14 (stackLen 7..14)
+export const toggleHasMeaning = (stone, itemType, fromDest, toDest, isEventRate, autoUseBSB, ruleBsb, bsbTable) => {
   const isSpecial = itemType === 'weapon5' || itemType === 'armor2';
   for (let dest = fromDest; dest <= toDest; dest++) {
     const stackLen = dest - 1;
@@ -47,7 +48,7 @@ export const toggleHasMeaning = (stone, itemType, fromDest, toDest, isEventRate,
     const wouldLose = isSpecial ? stackLen >= 10 : !wC;
     if (!wouldLose) continue;
     if (getRate(isEventRate, wC, wE, itemType, stackLen) >= 100) continue;
-    const bsbProtects = autoUseBSB && stackLen >= autoBSBStart && stackLen < autoBSBEnd
+    const bsbProtects = autoUseBSB && ruleBsb
       && stackLen >= 7 && stackLen <= 14 && (bsbTable[stackLen] || 0) > 0;
     if (!bsbProtects) return true;
   }
