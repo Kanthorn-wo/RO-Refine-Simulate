@@ -11,6 +11,13 @@
 
 export const CHANGELOG = [
   {
+    version: '1.5.1',
+    date: '2026-06-05',
+    items: [
+      { type: 'improve', text: 'ระบบ Auto: ป้ายสวิตช์ BSB แต่ละช่วงแสดงช่วงระดับจริงที่จะใส่ BSB (เช่น +7→+10)' },
+    ],
+  },
+  {
     version: '1.5.0',
     date: '2026-06-05',
     items: [

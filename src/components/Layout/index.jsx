@@ -1076,7 +1076,7 @@ const Container = () => {
                       </div>
                       {autoUseBSB && rule.from <= 15 && toLevel >= 8 && (
                         <div className="mt-2 flex items-center justify-between rounded-md border border-emerald-900/50 bg-emerald-950/30 px-2 py-1.5">
-                          <span className="text-[0.7rem] font-semibold text-emerald-300">ใส่ BSB ช่วงนี้ (เฉพาะ +7→+14)</span>
+                          <span className="text-[0.7rem] font-semibold text-emerald-300">ใส่ BSB ช่วงนี้ (+{Math.max(7, rule.from - 1)}→+{Math.min(15, toLevel)})</span>
                           <Toggle
                             checked={!!rule.bsb}
                             onChange={(v) => updateRuleBSB(rule.id, v)}
