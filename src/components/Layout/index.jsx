@@ -678,7 +678,7 @@ const Container = () => {
       <div className="rounded-2xl border border-slate-700/60 bg-[#181a20]/90 p-5 shadow-lg shadow-black/30 lg:flex-1">
         {/* ประเภทไอเท็ม */}
         <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-          <label className="text-sm font-semibold text-slate-300">{t('item_type_label')}</label>
+          <label htmlFor="item-type" className="text-sm font-semibold text-slate-300">{t('item_type_label')}</label>
           <div role="group" aria-label="Item selection mode" className="inline-flex overflow-hidden rounded-lg border border-slate-600">
             <button
               type="button"
@@ -873,6 +873,7 @@ const Container = () => {
             onChange={setUseBSB}
             disabled={!bsbInRange || (autoRefine && autoUseBSB)}
             activeColor="bg-emerald-500"
+            ariaLabel="Black Smith Blessing (BSB)"
           />
         </div>
 
@@ -908,6 +909,7 @@ const Container = () => {
             }}
               disabled={autoRunning}
               activeColor="bg-indigo-500"
+              ariaLabel={t('auto_label')}
             />
           </div>
           {autoRefine && (
@@ -1067,6 +1069,7 @@ const Container = () => {
                             onChange={(v) => updateRuleBSB(rule.id, v)}
                             disabled={autoRunning}
                             activeColor="bg-emerald-500"
+                            ariaLabel={t('bsb_range_toggle', { from: Math.max(7, rule.from - 1), to: Math.min(15, toLevel) })}
                           />
                         </div>
                       )}
@@ -1078,6 +1081,7 @@ const Container = () => {
                             onChange={(v) => updateRuleStopOnLoss(rule.id, v)}
                             disabled={autoRunning}
                             activeColor="bg-rose-500"
+                            ariaLabel={t('stop_on_loss')}
                           />
                         </div>
                       )}
@@ -1100,6 +1104,7 @@ const Container = () => {
                   onChange={setAutoUseBSB}
                   disabled={autoRunning}
                   activeColor="bg-emerald-500"
+                  ariaLabel={t('bsb_auto_label')}
                 />
               </div>
               {autoUseBSB && (

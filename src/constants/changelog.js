@@ -12,6 +12,13 @@
 
 export const CHANGELOG = [
   {
+    version: '1.6.2',
+    date: '2026-06-09',
+    items: [
+      { type: 'improve', text: 'ปรับปรุง Accessibility — สวิตช์และ dropdown เลือกประเภทไอเท็มรองรับ screen reader ได้ดีขึ้น', textEn: 'Improved accessibility — toggles and item-type dropdown now have proper labels for screen readers' },
+    ],
+  },
+  {
     version: '1.6.1',
     date: '2026-06-09',
     items: [
