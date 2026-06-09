@@ -85,8 +85,8 @@ jobs:
       - name: Commit random changes
         if: env.SHOULD_COMMIT == 'true'
         run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
+          git config --local user.email "kanthorn.wo@gmail.com"
+          git config --local user.name "Kanthorn-wo"
           git add .
 
           if ! git diff --staged --quiet; then
