@@ -26,7 +26,7 @@ export const getFrameSrc = (type, index) => {
     prefix = 'bg_refining_fail_';
   }
   const num = index.toString().padStart(2, '0');
-  return `/images/${folder}/${prefix}${num}.bmp`;
+  return `/images/${folder}/${prefix}${num}.webp`;
 };
 
 // สร้าง array ของ path รูปแต่ละประเภท

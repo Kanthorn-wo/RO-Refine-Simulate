@@ -4,9 +4,12 @@ const HeroBanner = () => (
   <header>
     <div className="w-full overflow-hidden rounded-2xl shadow-lg shadow-black/40">
       <img
-        src="/og-image.png"
+        src="/og-image.webp"
         alt="RO Refine Simulator — จำลองตีบวก Ragnarok Online"
-        className="w-full block"
+        width="1200"
+        height="634"
+        fetchPriority="high"
+        className="w-full block h-auto"
       />
     </div>
     <h1 className="sr-only">จำลองตีบวก Ragnarok Online | RO Refine Simulator</h1>

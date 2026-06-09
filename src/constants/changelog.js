@@ -12,6 +12,13 @@
 
 export const CHANGELOG = [
   {
+    version: '1.6.1',
+    date: '2026-06-09',
+    items: [
+      { type: 'improve', text: 'ปรับปรุงให้หน้าเว็บโหลดเร็วขึ้น — รูปภาพและภาพเคลื่อนไหวเบาลงมาก', textEn: 'Faster page load — images and animations are now much lighter' },
+    ],
+  },
+  {
     version: '1.6.0',
     date: '2026-06-09',
     items: [
