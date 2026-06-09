@@ -8,121 +8,129 @@
 //   - รายละเอียดช่องโหว่ security (ถ้าจำเป็นให้เขียนกว้าง ๆ ว่า "ปรับปรุงความปลอดภัย")
 //   - เทคโนโลยี/refactor ภายใน: ชื่อ library, ชื่อไฟล์/ฟังก์ชัน, การปรับโครงสร้างโค้ด
 // เขียนเฉพาะสิ่งที่ "ผู้เล่นมองเห็น/ได้ประโยชน์" เป็นภาษาผู้ใช้
+// textEn = English version (optional — fallback to text if missing)
 
 export const CHANGELOG = [
+  {
+    version: '1.6.0',
+    date: '2026-06-09',
+    items: [
+      { type: 'feature', text: 'รองรับ 2 ภาษา (ไทย/อังกฤษ) — กดปุ่มธงเพื่อสลับภาษาได้ทันที', textEn: 'Bilingual support (Thai/English) — press the flag button to switch instantly' },
+    ],
+  },
   {
     version: '1.5.1',
     date: '2026-06-05',
     items: [
-      { type: 'improve', text: 'ระบบ Auto: ป้ายสวิตช์ BSB แต่ละช่วงแสดงช่วงระดับจริงที่จะใส่ BSB (เช่น +7→+10)' },
+      { type: 'improve', text: 'ระบบ Auto: ป้ายสวิตช์ BSB แต่ละช่วงแสดงช่วงระดับจริงที่จะใส่ BSB (เช่น +7→+10)', textEn: 'Auto: BSB toggle now shows the actual level range where BSB applies (e.g. +7→+10)' },
     ],
   },
   {
     version: '1.5.0',
     date: '2026-06-05',
     items: [
-      { type: 'feature', text: 'ระบบ Auto: ปุ่มเลือกหินแต่ละช่วงแสดงรูปแร่ + ชื่อแร่จริง และซ่อนหินที่ใช้ไม่ได้ในช่วงนั้น' },
-      { type: 'feature', text: 'ระบบ Auto: แบ่งช่วงตีบวกย่อยได้ด้วยปุ่ม "แบ่ง" และระบบกั้นจุดเปลี่ยนแร่ +10 ให้อัตโนมัติ' },
-      { type: 'feature', text: 'ระบบ Auto: ตั้งค่า BSB เปิด/ปิดได้ทีละช่วง (เริ่ม/เลิก/ใส่ใหม่ได้ ภายใต้กฎ +7→+14)' },
-      { type: 'improve', text: 'ระบบ Auto: แสดงช่วงแบบเลเวลก่อนตี (เช่น +0 ถึง +3) ให้ช่วงต่อกันพอดี อ่านง่ายขึ้น' },
+      { type: 'feature', text: 'ระบบ Auto: ปุ่มเลือกหินแต่ละช่วงแสดงรูปแร่ + ชื่อแร่จริง และซ่อนหินที่ใช้ไม่ได้ในช่วงนั้น', textEn: 'Auto: Stone buttons show ore icon + name, and hide stones unavailable for that range' },
+      { type: 'feature', text: 'ระบบ Auto: แบ่งช่วงตีบวกย่อยได้ด้วยปุ่ม "แบ่ง" และระบบกั้นจุดเปลี่ยนแร่ +10 ให้อัตโนมัติ', textEn: 'Auto: Split a range into two with the "Split" button; ore-change wall at +10 is auto-enforced' },
+      { type: 'feature', text: 'ระบบ Auto: ตั้งค่า BSB เปิด/ปิดได้ทีละช่วง (เริ่ม/เลิก/ใส่ใหม่ได้ ภายใต้กฎ +7→+14)', textEn: 'Auto: Toggle BSB per range independently (start/stop/resume within +7→+14)' },
+      { type: 'improve', text: 'ระบบ Auto: แสดงช่วงแบบเลเวลก่อนตี (เช่น +0 ถึง +3) ให้ช่วงต่อกันพอดี อ่านง่ายขึ้น', textEn: 'Auto: Ranges now display as pre-refine level (e.g. +0 to +3) for cleaner readability' },
     ],
   },
   {
     version: '1.4.1',
     date: '2026-06-05',
     items: [
-      { type: 'fix', text: 'แก้ตำแหน่งปุ่มตอนเลือกระดับเริ่มต้นของระบบ Auto ให้แสดงไอเทมที่ตีบวกแล้วถูกต้อง (เคสเดียวกับเลือกระดับตีบวกปกติ)' },
+      { type: 'fix', text: 'แก้ตำแหน่งปุ่มตอนเลือกระดับเริ่มต้นของระบบ Auto ให้แสดงไอเทมที่ตีบวกแล้วถูกต้อง (เคสเดียวกับเลือกระดับตีบวกปกติ)', textEn: 'Fixed button position when selecting Auto start level to correctly show the already-refined item' },
     ],
   },
   {
     version: '1.4.0',
     date: '2026-06-05',
     items: [
-      { type: 'feature', text: 'เพิ่มหน้าต่างประวัติการอัปเดต (Patch Notes) ดูสิ่งที่แก้ไขแต่ละเวอร์ชันได้' },
-      { type: 'fix', text: 'แก้ตำแหน่งปุ่มและภาพตอนเลือกระดับตีบวกเริ่มต้น ให้แสดงไอเทมที่ตีบวกแล้วถูกต้อง' },
+      { type: 'feature', text: 'เพิ่มหน้าต่างประวัติการอัปเดต (Patch Notes) ดูสิ่งที่แก้ไขแต่ละเวอร์ชันได้', textEn: 'Added Patch Notes window — view what changed in each version' },
+      { type: 'fix', text: 'แก้ตำแหน่งปุ่มและภาพตอนเลือกระดับตีบวกเริ่มต้น ให้แสดงไอเทมที่ตีบวกแล้วถูกต้อง', textEn: 'Fixed button and item display when selecting a starting refine level' },
     ],
   },
   {
     version: '1.3.1',
     date: '2026-06-05',
     items: [
-      { type: 'fix', text: 'แก้การค้นหาโล่ (Shield) ที่แสดงระดับเกราะผิด ตอนนี้แสดงเป็นเกราะเลเวล 2 ถูกต้อง' },
+      { type: 'fix', text: 'แก้การค้นหาโล่ (Shield) ที่แสดงระดับเกราะผิด ตอนนี้แสดงเป็นเกราะเลเวล 2 ถูกต้อง', textEn: 'Fixed Shield search showing wrong armor level; now correctly identified as Armor Lv.2' },
     ],
   },
   {
     version: '1.3.0',
     date: '2026-06-05',
     items: [
-      { type: 'improve', text: 'ปรับปรุงให้เว็บโหลดเร็วขึ้น' },
+      { type: 'improve', text: 'ปรับปรุงให้เว็บโหลดเร็วขึ้น', textEn: 'Improved page load speed' },
     ],
   },
   {
     version: '1.2.0',
     date: '2026-06-04',
     items: [
-      { type: 'feature', text: 'เพิ่มปุ่ม "แจ้งปัญหา" ลอยมุมขวาล่าง' },
-      { type: 'improve', text: 'เพิ่มข้อความ "ไอเทมแตกสลาย" ตอนตีบวกล้มเหลวแล้วไอเทมหาย' },
-      { type: 'fix', text: 'แก้ตำแหน่งส่วนท้าย (footer) ให้อยู่ด้านล่างสุดถูกต้อง' },
+      { type: 'feature', text: 'เพิ่มปุ่ม "แจ้งปัญหา" ลอยมุมขวาล่าง', textEn: 'Added floating "Report Issue" button at bottom-right' },
+      { type: 'improve', text: 'เพิ่มข้อความ "ไอเทมแตกสลาย" ตอนตีบวกล้มเหลวแล้วไอเทมหาย', textEn: 'Added "Item Destroyed" message when refine fails and item is lost' },
+      { type: 'fix', text: 'แก้ตำแหน่งส่วนท้าย (footer) ให้อยู่ด้านล่างสุดถูกต้อง', textEn: 'Fixed footer position to stay at the bottom' },
     ],
   },
   {
     version: '1.0.1',
     date: '2026-06-04',
     items: [
-      { type: 'feature', text: 'เพิ่มแบนเนอร์หัวเว็บ' },
+      { type: 'feature', text: 'เพิ่มแบนเนอร์หัวเว็บ', textEn: 'Added hero banner at top of page' },
     ],
   },
   {
     version: null,
     date: '2026-06-03',
     items: [
-      { type: 'feature', text: 'ย้ายการเลือกชนิดหินมาคลิกที่ช่องหินในหน้าตีบวกได้โดยตรง (รวมช่อง BSB)' },
-      { type: 'feature', text: 'แสดงรูปไอเทมเริ่มต้นเมื่อยังไม่ได้ค้นหา Item ID' },
-      { type: 'fix', text: 'เอาป้ายผลลัพธ์ที่บังรูปไอเทมออก' },
-      { type: 'fix', text: 'แก้ตำแหน่งปุ่มตอน Auto หยุดหลังไอเทมแตก' },
+      { type: 'feature', text: 'ย้ายการเลือกชนิดหินมาคลิกที่ช่องหินในหน้าตีบวกได้โดยตรง (รวมช่อง BSB)', textEn: 'Moved stone selection to clickable slots inside the refine window (including BSB slot)' },
+      { type: 'feature', text: 'แสดงรูปไอเทมเริ่มต้นเมื่อยังไม่ได้ค้นหา Item ID', textEn: 'Show default item icon when no Item ID has been searched' },
+      { type: 'fix', text: 'เอาป้ายผลลัพธ์ที่บังรูปไอเทมออก', textEn: 'Removed result badge that was covering the item icon' },
+      { type: 'fix', text: 'แก้ตำแหน่งปุ่มตอน Auto หยุดหลังไอเทมแตก', textEn: 'Fixed button position when Auto stops after item is destroyed' },
     ],
   },
   {
     version: null,
     date: '2026-06-02',
     items: [
-      { type: 'feature', text: 'ออกแบบการ์ดตีบวกใหม่ให้เหมือน Ragnarok + แบนเนอร์ "สำเร็จ X%" + แสดงรูปไอเทมในช่องช่างตีเหล็ก' },
-      { type: 'feature', text: 'เพิ่มปุ่ม "ล้าง Session" สำหรับรีเซ็ตสถิติและ log' },
-      { type: 'improve', text: 'ปรับหน้าตา log การตีบวกให้อ่านง่ายขึ้น' },
-      { type: 'fix', text: 'ซ่อนปุ่มระหว่างเล่นแอนิเมชันตีบวก' },
-      { type: 'fix', text: 'แก้ log ที่แสดงจำนวนระดับที่ลดผิด (เช่นแสดง −3 ทั้งที่จริงลดแค่ −1)' },
-      { type: 'fix', text: 'แก้แผนหินของ Auto ไม่ให้ตั้งช่วงย้อนกลับ และซ่อนตัวเลือก BSB เมื่อเป้าหมายต่ำกว่า +8' },
-      { type: 'fix', text: 'แก้ขนาดและตำแหน่งรูปไอเทมในช่องช่างตีเหล็ก' },
+      { type: 'feature', text: 'ออกแบบการ์ดตีบวกใหม่ให้เหมือน Ragnarok + แบนเนอร์ "สำเร็จ X%" + แสดงรูปไอเทมในช่องช่างตีเหล็ก', textEn: 'Redesigned refine card to match Ragnarok style + "Success X%" banner + item icon in smithing slot' },
+      { type: 'feature', text: 'เพิ่มปุ่ม "ล้าง Session" สำหรับรีเซ็ตสถิติและ log', textEn: 'Added "Clear Session" button to reset stats and log' },
+      { type: 'improve', text: 'ปรับหน้าตา log การตีบวกให้อ่านง่ายขึ้น', textEn: 'Improved refine log layout for better readability' },
+      { type: 'fix', text: 'ซ่อนปุ่มระหว่างเล่นแอนิเมชันตีบวก', textEn: 'Hide buttons during refine animation' },
+      { type: 'fix', text: 'แก้ log ที่แสดงจำนวนระดับที่ลดผิด (เช่นแสดง −3 ทั้งที่จริงลดแค่ −1)', textEn: 'Fixed log showing wrong level drop count (e.g. showing −3 when actual drop was −1)' },
+      { type: 'fix', text: 'แก้แผนหินของ Auto ไม่ให้ตั้งช่วงย้อนกลับ และซ่อนตัวเลือก BSB เมื่อเป้าหมายต่ำกว่า +8', textEn: 'Fixed Auto stone plan preventing backward ranges; hides BSB option when target is below +8' },
+      { type: 'fix', text: 'แก้ขนาดและตำแหน่งรูปไอเทมในช่องช่างตีเหล็ก', textEn: 'Fixed item icon size and position in the smithing slot' },
     ],
   },
   {
     version: null,
     date: '2026-06-01',
     items: [
-      { type: 'feature', text: 'เพิ่มระบบ Auto ตีบวก — วางแผนชนิดหินแต่ละช่วง, หยุดเมื่อเสี่ยงไอเทมหาย, ใส่ BSB อัตโนมัติ' },
-      { type: 'feature', text: 'เพิ่มหิน 3 ชนิด (ปกติ / Enriched / HD) พร้อมตารางอ้างอิงหิน' },
-      { type: 'fix', text: 'แก้สูตรอาวุธเลเวล 5 / เกราะเลเวล 2 — ตีล้มที่ +10 ขึ้นไปไอเทมหาย และใช้แร่ช่วง +10→+11 ถูกต้อง' },
-      { type: 'fix', text: 'ปิดการเลือกหิน HD ในระดับที่ยังใช้ไม่ได้' },
-      { type: 'fix', text: 'แก้ Auto ที่เริ่มใหม่ไม่ได้หลังกด "กลับไป" และ BSB ที่ค้างหลัง Auto จบ' },
+      { type: 'feature', text: 'เพิ่มระบบ Auto ตีบวก — วางแผนชนิดหินแต่ละช่วง, หยุดเมื่อเสี่ยงไอเทมหาย, ใส่ BSB อัตโนมัติ', textEn: 'Added Auto Refine — plan stone type per range, stop on item-loss risk, auto-insert BSB' },
+      { type: 'feature', text: 'เพิ่มหิน 3 ชนิด (ปกติ / Enriched / HD) พร้อมตารางอ้างอิงหิน', textEn: 'Added 3 stone types (Normal / Enriched / HD) with a stone reference table' },
+      { type: 'fix', text: 'แก้สูตรอาวุธเลเวล 5 / เกราะเลเวล 2 — ตีล้มที่ +10 ขึ้นไปไอเทมหาย และใช้แร่ช่วง +10→+11 ถูกต้อง', textEn: 'Fixed Weapon Lv.5 / Armor Lv.2 rules — fail at +10+ destroys item, ore at +10→+11 now correct' },
+      { type: 'fix', text: 'ปิดการเลือกหิน HD ในระดับที่ยังใช้ไม่ได้', textEn: 'Disabled HD stone selection at levels where it is not yet available' },
+      { type: 'fix', text: 'แก้ Auto ที่เริ่มใหม่ไม่ได้หลังกด "กลับไป" และ BSB ที่ค้างหลัง Auto จบ', textEn: 'Fixed Auto not restarting after pressing "Back", and BSB state stuck after Auto ends' },
     ],
   },
   {
     version: null,
     date: '2026-05-29',
     items: [
-      { type: 'feature', text: 'เพิ่มระบบนับแร่ที่ใช้ และค้นหาไอเทมด้วย Item ID (ตรวจชนิด/เลเวลอัตโนมัติ)' },
-      { type: 'feature', text: 'เพิ่มช่องกรอกราคา (Zenny / บาท) พร้อมสรุปค่าใช้จ่ายรวม' },
-      { type: 'fix', text: 'แก้ตารางอัตราสำเร็จเป็น 4 แบบ (มี/ไม่มี Event × หินปกติ/Cash) ให้ตรงตารางจริง รวมถึงช่องอาวุธเลเวล 4' },
-      { type: 'improve', text: 'ออกแบบหน้าตาเว็บใหม่ทั้งหมด' },
+      { type: 'feature', text: 'เพิ่มระบบนับแร่ที่ใช้ และค้นหาไอเทมด้วย Item ID (ตรวจชนิด/เลเวลอัตโนมัติ)', textEn: 'Added ore usage counter and item search by Item ID (type/level auto-detected)' },
+      { type: 'feature', text: 'เพิ่มช่องกรอกราคา (Zenny / บาท) พร้อมสรุปค่าใช้จ่ายรวม', textEn: 'Added price input (Zenny / Baht) with total cost summary' },
+      { type: 'fix', text: 'แก้ตารางอัตราสำเร็จเป็น 4 แบบ (มี/ไม่มี Event × หินปกติ/Cash) ให้ตรงตารางจริง รวมถึงช่องอาวุธเลเวล 4', textEn: 'Fixed success rate table to 4 modes (Event/No Event × Normal/Cash) with correct values, including Weapon Lv.4' },
+      { type: 'improve', text: 'ออกแบบหน้าตาเว็บใหม่ทั้งหมด', textEn: 'Redesigned the entire website layout' },
     ],
   },
   {
     version: null,
     date: '2026-05-28',
     items: [
-      { type: 'fix', text: 'แก้ตารางอัตราสำเร็จให้ตรงกับตารางอัตราทางการ (อาวุธ 1-5, เกราะ 1-2 ทุกระดับ)' },
-      { type: 'feature', text: 'เพิ่มปุ่มสลับโหมด Event Rate และแยกชนิดหินออกจากการเลือกอัตรา' },
-      { type: 'improve', text: 'ขยายช่วงที่ใช้ BSB ได้เป็นถึง +14 → +15' },
+      { type: 'fix', text: 'แก้ตารางอัตราสำเร็จให้ตรงกับตารางอัตราทางการ (อาวุธ 1-5, เกราะ 1-2 ทุกระดับ)', textEn: 'Fixed success rate table to match official rates (Weapon 1-5, Armor 1-2, all levels)' },
+      { type: 'feature', text: 'เพิ่มปุ่มสลับโหมด Event Rate และแยกชนิดหินออกจากการเลือกอัตรา', textEn: 'Added Event Rate toggle and separated stone type from rate selection' },
+      { type: 'improve', text: 'ขยายช่วงที่ใช้ BSB ได้เป็นถึง +14 → +15', textEn: 'Extended BSB usable range up to +14 → +15' },
     ],
   },
 ];

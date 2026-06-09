@@ -1,0 +1,275 @@
+export const TRANSLATIONS = {
+  th: {
+    // Rate table
+    rate_table_title: 'ตารางอัตราสำเร็จการตีบวก (%)',
+    no_event: 'ไม่มี Event',
+    event_rate_up: 'Event Rate Up',
+    level_col: 'ระดับ',
+    stone_normal_label: 'หินปกติ',
+
+    // Item type selector
+    item_type_label: 'ประเภทไอเท็ม',
+    select_manual: 'เลือกเอง',
+    search_by_id: 'ค้นจาก ID',
+    item_id_placeholder: 'ใส่ Item ID เช่น 610033',
+    searching: 'กำลังค้น…',
+    search_btn: 'ค้นหา',
+    copy_id_hint_pre: 'คัดลอก Item ID ได้จาก',
+    copy_id_hint_post: 'แล้วนำเลข ID มาวางในช่องด้านบน',
+    item_info_type: 'ประเภท',
+    item_info_weight: 'น้ำหนัก',
+    item_info_req_lvl: 'Level ที่ใช้',
+    item_info_slots: 'ช่องการ์ด',
+    loading_text: 'กำลังโหลด…',
+
+    // API errors
+    api_error_http: 'เรียก API ไม่สำเร็จ (HTTP {status})',
+    api_error_not_refinable: 'ไอเทมนี้ไม่ใช่อาวุธหรือเกราะที่ตีบวกได้',
+    api_fetch_fail: 'ดึงข้อมูลไม่สำเร็จ',
+
+    // Start level
+    start_level_label: 'เริ่มที่ระดับตีบวก',
+    auto_tag: '(Auto)',
+
+    // BSB
+    bsb_active_hint: 'ใช้ได้ — กันลดระดับ/ไอเทมหายเมื่อล้มเหลว',
+    bsb_range_hint: 'ใช้ได้เฉพาะช่วง +7 → +14',
+    bsb_per_level: 'BSB ที่ใช้ต่อระดับ',
+    bsb_unit: 'ชิ้น',
+    bsb_auto_label: 'ใส่ BSB อัตโนมัติระหว่างทาง',
+    bsb_auto_hint: 'เปิดแล้วเลือกเปิด/ปิด BSB ได้ทีละช่วงด้านบน (ใช้ได้ +7→+14)',
+    bsb_auto_scroll_hint: '↑ เลื่อนขึ้นไปกดสวิตช์ "ใส่ BSB ช่วงนี้" ในแต่ละช่วง — แบ่งช่วงเพื่อคุมละเอียดได้',
+    bsb_range_toggle: 'ใส่ BSB ช่วงนี้ (+{from}→+{to})',
+
+    // Auto refine
+    auto_label: 'Auto ตีบวก',
+    auto_hint: 'ตีอัตโนมัติจนถึงเป้าหมายที่ตั้งไว้',
+    auto_start_label: 'เริ่มต้นที่',
+    auto_target_label: 'ตีถึงระดับ',
+    stone_per_range: 'ชนิดหินแต่ละช่วง',
+    stone_per_range_hint: 'กำหนดว่าช่วงระดับไหนใช้หินอะไร — auto จะสลับให้เอง',
+    range_from: 'ตั้งแต่',
+    range_to: 'ถึง +',
+    ore_wall_label: 'จุดเปลี่ยนแร่',
+    ore_wall_title: 'จุดเปลี่ยนแร่ +10/+11 — ระบบแยกช่วงให้อัตโนมัติ ลบ/ย้ายไม่ได้',
+    hd_before_warn: 'ก่อน +{n} ใช้ปกติแทน',
+    hd_before_warn_title: 'หิน HD ยังใช้ไม่ได้ก่อน +{n} — ช่วงนั้นจะใช้หินปกติแทนอัตโนมัติ',
+    split_btn: 'แบ่ง',
+    split_title: 'แบ่งช่วงนี้เป็น 2',
+    remove_range_title: 'ลบช่วงนี้ (รวมกับช่วงก่อนหน้า)',
+    remove_range_aria: 'ลบช่วงนี้',
+    stop_on_loss: 'หยุด Auto ถ้าเสี่ยงหาย',
+    split_hint: 'กดปุ่ม "แบ่ง" ในแต่ละช่วงเพื่อแบ่งย่อย — ระบบกั้นจุดเปลี่ยนแร่ +10 ให้อัตโนมัติ',
+
+    // Refine window
+    view_stone_table: 'ดูตารางหินทั้งหมด',
+    stop_auto_btn: 'หยุด',
+    item_destroyed: 'ไอเทมแตกสลาย',
+    success_banner: 'สำเร็จ',
+    stone_normal: 'ปกติ',
+    hd_min_warn: '⚠ HD ใช้ได้ตั้งแต่ +',
+    back_btn: 'กลับไป',
+    upgrade_btn: 'อัพเกรด',
+    retry_btn: 'เริ่มอีกครั้ง',
+    start_auto_btn: 'เริ่ม Auto',
+
+    // Stats
+    session_stats: 'สถิติ Session',
+    clear_session: 'ล้าง Session',
+    total_attempts: 'ตีทั้งหมด',
+    success_count: 'สำเร็จ',
+    fail_count: 'แตก/ล้มเหลว',
+    times_unit: 'ครั้ง',
+    stack_log_title: 'Stack log',
+
+    // Log badges
+    badge_success: 'สำเร็จ',
+    badge_protected: 'ป้องกัน',
+    badge_item_lost: 'ไอเทมหาย',
+    badge_fail: 'ล้มเหลว',
+    badge_level_drop: 'ลด −',
+    log_stone_normal: 'หินปกติ',
+    roll_success_pct: 'โอกาสติด',
+    roll_fail_pct: 'โอกาสแตก',
+    roll_result: 'ผลออกฝั่ง',
+    roll_success_side: 'สำเร็จ',
+    roll_fail_side: 'แตก',
+    roll_at: 'ที่',
+
+    // Item usage summary
+    usage_title: 'สรุปการใช้ไอเทมทั้งหมด',
+    set_all_hint: 'ปรับทั้งหมด · หรือเลือกรายแถวด้านล่าง',
+    price_placeholder: 'ราคา/หน่วย',
+    total_label: 'รวมทั้งหมด',
+    ore_unit: 'ก้อน',
+    row_currency_title: 'สลับหน่วยเงินของแถวนี้',
+
+    // Stone modal
+    stone_table_title: 'ตารางหินตีบวกทั้งหมด',
+    close_btn: 'ปิด',
+    stone_col: 'หิน',
+    for_col: 'ใช้กับ',
+    range_col: 'ช่วง',
+    on_fail_col: 'ล้มเหลว',
+    note_col: 'หมายเหตุ',
+    stone_fail_item_lost: 'ไอเทมหาย',
+    stone_fail_drop_1: 'ลดระดับ −1',
+    stone_fail_drop_3: 'ลดระดับ −3',
+    stone_note_rate_up: '+โอกาส',
+
+    // Floating menu
+    menu_updates: 'อัปเดตใหม่',
+    menu_report: 'แจ้งปัญหา',
+    menu_open: 'เปิดเมนู',
+    menu_close: 'ปิดเมนู',
+
+    // Patch notes modal
+    patch_title: 'มีอะไรใหม่บ้าง',
+    patch_subtitle: 'ประวัติการอัปเดต · เวอร์ชันล่าสุด',
+    patch_close: 'ปิดหน้าต่างนี้',
+    patch_acknowledge: 'รับทราบแล้ว — ไม่แสดงอีกใน 7 วัน',
+    change_type_feature: 'ใหม่',
+    change_type_fix: 'แก้บั๊ก',
+    change_type_improve: 'ปรับปรุง',
+
+    // Language toggle
+    lang_toggle_label: 'เปลี่ยนภาษา',
+  },
+
+  en: {
+    // Rate table
+    rate_table_title: 'Refine Rate Table (%)',
+    no_event: 'No Event',
+    event_rate_up: 'Event Rate Up',
+    level_col: 'Lvl',
+    stone_normal_label: 'Normal',
+
+    // Item type selector
+    item_type_label: 'Item Type',
+    select_manual: 'Manual',
+    search_by_id: 'By ID',
+    item_id_placeholder: 'Item ID e.g. 610033',
+    searching: 'Searching…',
+    search_btn: 'Search',
+    copy_id_hint_pre: 'Copy Item ID from',
+    copy_id_hint_post: 'then paste in the field above',
+    item_info_type: 'Type',
+    item_info_weight: 'Weight',
+    item_info_req_lvl: 'Req. Level',
+    item_info_slots: 'Card Slots',
+    loading_text: 'Loading…',
+
+    // API errors
+    api_error_http: 'API request failed (HTTP {status})',
+    api_error_not_refinable: 'This item cannot be refined',
+    api_fetch_fail: 'Failed to fetch data',
+
+    // Start level
+    start_level_label: 'Start Level',
+    auto_tag: '(Auto)',
+
+    // BSB
+    bsb_active_hint: 'Active — prevents loss on fail',
+    bsb_range_hint: 'Only in range +7 → +14',
+    bsb_per_level: 'BSB per level',
+    bsb_unit: 'pcs',
+    bsb_auto_label: 'Auto BSB on the way',
+    bsb_auto_hint: 'Enable, then toggle BSB per range above (+7→+14)',
+    bsb_auto_scroll_hint: '↑ Scroll up to toggle BSB per range — split for finer control',
+    bsb_range_toggle: 'BSB this range (+{from}→+{to})',
+
+    // Auto refine
+    auto_label: 'Auto Refine',
+    auto_hint: 'Auto-refine until target level',
+    auto_start_label: 'Start',
+    auto_target_label: 'Target',
+    stone_per_range: 'Stone per range',
+    stone_per_range_hint: 'Set stone per range — auto switches for you',
+    range_from: 'From',
+    range_to: 'to +',
+    ore_wall_label: 'Ore wall',
+    ore_wall_title: 'Ore change at +10/+11 — auto-locked, cannot delete/move',
+    hd_before_warn: 'Before +{n} uses normal',
+    hd_before_warn_title: 'HD not available before +{n} — that range uses normal stone',
+    split_btn: 'Split',
+    split_title: 'Split range in 2',
+    remove_range_title: 'Remove (merge with previous)',
+    remove_range_aria: 'Remove range',
+    stop_on_loss: 'Stop if item may break',
+    split_hint: 'Press "Split" to subdivide — ore wall at +10 is auto-locked',
+
+    // Refine window
+    view_stone_table: 'View stones',
+    stop_auto_btn: 'Stop',
+    item_destroyed: 'Item Destroyed',
+    success_banner: 'Success',
+    stone_normal: 'Normal',
+    hd_min_warn: '⚠ HD from +',
+    back_btn: 'Back',
+    upgrade_btn: 'Upgrade',
+    retry_btn: 'Retry',
+    start_auto_btn: 'Start Auto',
+
+    // Stats
+    session_stats: 'Session Stats',
+    clear_session: 'Clear',
+    total_attempts: 'Total',
+    success_count: 'Success',
+    fail_count: 'Fail',
+    times_unit: 'times',
+    stack_log_title: 'Stack log',
+
+    // Log badges
+    badge_success: 'Success',
+    badge_protected: 'Protected',
+    badge_item_lost: 'Item Lost',
+    badge_fail: 'Failed',
+    badge_level_drop: 'Drop −',
+    log_stone_normal: 'Normal',
+    roll_success_pct: 'Success',
+    roll_fail_pct: 'Fail',
+    roll_result: 'Result',
+    roll_success_side: 'success',
+    roll_fail_side: 'fail',
+    roll_at: 'at',
+
+    // Item usage summary
+    usage_title: 'Item Usage',
+    set_all_hint: 'Set all · or per row below',
+    price_placeholder: 'Price/unit',
+    total_label: 'Total',
+    ore_unit: 'pcs',
+    row_currency_title: 'Switch row currency',
+
+    // Stone modal
+    stone_table_title: 'Refine Stone Table',
+    close_btn: 'Close',
+    stone_col: 'Stone',
+    for_col: 'For',
+    range_col: 'Range',
+    on_fail_col: 'On Fail',
+    note_col: 'Note',
+    stone_fail_item_lost: 'Item Lost',
+    stone_fail_drop_1: 'Drop −1',
+    stone_fail_drop_3: 'Drop −3',
+    stone_note_rate_up: '+Rate',
+
+    // Floating menu
+    menu_updates: 'Updates',
+    menu_report: 'Report',
+    menu_open: 'Open menu',
+    menu_close: 'Close menu',
+
+    // Patch notes modal
+    patch_title: "What's New",
+    patch_subtitle: 'Changelog · Latest version',
+    patch_close: 'Close',
+    patch_acknowledge: 'Got it — hide for 7 days',
+    change_type_feature: 'New',
+    change_type_fix: 'Fix',
+    change_type_improve: 'Improve',
+
+    // Language toggle
+    lang_toggle_label: 'Language',
+  },
+};

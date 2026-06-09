@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
+import { useLang } from '../../contexts/LangContext';
 
 const REPORT_FORM_URL =
   'https://docs.google.com/forms/d/e/1FAIpQLSegZdTgvGgHiekYN-JiMeVtwvSvCbfvzLagkJa8ZSzQZpWFzw/viewform';
 
-// ปุ่ม FAB ลอยมุมขวาล่าง คลี่ออกเป็นเมนู (speed dial) — เพิ่ม action ใหม่ได้ที่ array ด้านล่าง
 const FloatingMenu = ({ onOpenPatchNotes }) => {
   const [open, setOpen] = useState(false);
+  const { t } = useLang();
 
-  // แต่ละ action: ใส่ className สีแบบเต็ม (ไม่ทำ dynamic เพราะ Tailwind purge)
   const actions = [
     {
       key: 'patch',
-      label: 'อัปเดตใหม่',
+      label: t('menu_updates'),
       btnClass: 'border-amber-400/40 bg-[#181a20]/95 text-amber-300 hover:bg-amber-400 hover:text-slate-900',
       onClick: () => {
         onOpenPatchNotes();
@@ -26,7 +26,7 @@ const FloatingMenu = ({ onOpenPatchNotes }) => {
     },
     {
       key: 'report',
-      label: 'แจ้งปัญหา',
+      label: t('menu_report'),
       btnClass: 'border-sky-400/40 bg-[#181a20]/95 text-sky-300 hover:bg-sky-400 hover:text-slate-900',
       href: REPORT_FORM_URL,
       icon: (
@@ -40,11 +40,9 @@ const FloatingMenu = ({ onOpenPatchNotes }) => {
 
   return (
     <>
-      {/* backdrop ปิดเมนูเมื่อคลิกที่อื่น */}
       {open && <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />}
 
       <div className="fixed bottom-4 right-4 z-40 flex flex-col items-end gap-3">
-        {/* action items — คลี่ขึ้นด้านบน */}
         {actions.map((a, i) => {
           const Tag = a.href ? 'a' : 'button';
           return (
@@ -71,11 +69,10 @@ const FloatingMenu = ({ onOpenPatchNotes }) => {
           );
         })}
 
-        {/* ปุ่มหลัก — กดเพื่อคลี่/พับ */}
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
-          aria-label={open ? 'ปิดเมนู' : 'เปิดเมนู'}
+          aria-label={open ? t('menu_close') : t('menu_open')}
           aria-expanded={open}
           className="flex h-14 w-14 items-center justify-center rounded-full border border-amber-400/50 bg-amber-400 text-slate-900 shadow-lg shadow-black/40 transition-transform hover:scale-105 active:scale-95"
         >

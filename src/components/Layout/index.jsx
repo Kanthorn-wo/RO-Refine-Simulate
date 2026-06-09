@@ -13,24 +13,22 @@ import { getRate } from '../../constants/refineRates';
 import { STONE_META, getStoneMinLevel, getEffectiveStone, getPlannedStone, toggleHasMeaning } from '../../utils/stones';
 import { ITEM_TYPE_LABELS, ORE_COLORS, ORE_IMAGES, getOreName, getStoneOre, STONE_REFERENCE } from '../../constants/ores';
 import { frameCount, WAITING_FRAMES, PROCESSING_FRAMES, SUCCESS_FRAMES, FAIL_FRAMES, ALL_FRAMES } from '../../constants/frames';
+import { useLang } from '../../contexts/LangContext';
 
 // API ของ divine-pride สำหรับค้นไอเทมจาก ID
 // หมายเหตุ: เว็บเป็น static site คีย์นี้จะถูก build ติดไปกับ JS และเป็นสาธารณะ
 const DIVINE_PRIDE_API_KEY = '7a8b539b5e6171b362a6ef264e43dffc';
 
 // ── ระบบช่วงหิน Auto: กำแพงที่จุดเปลี่ยนแร่ ───────────────────────────────
-// แร่เปลี่ยน low→high ที่ destination +11 (low ≤+10 / high ≥+11) → ช่วงห้ามคร่อมกำแพงนี้
 const STONE_WALLS = [11];
 const isWallFrom = (from) => STONE_WALLS.includes(from);
 
-// หิน stone ใช้ได้ในห้องของ destination `from` ไหม (validity คิดจาก source = from-1)
 const stoneValidInRoom = (itemType, from, stone) => {
-  if (stone === 'enriched') return from <= 10;                         // Enriched เฉพาะห้อง low (+1~+10)
-  if (stone === 'hd') return from > getStoneMinLevel('hd', itemType);  // HD ใช้ได้เมื่อ source≥min → destination>min (8 ปกติ / 11 special)
-  return true;                                                          // normal ใช้ได้เสมอ
+  if (stone === 'enriched') return from <= 10;
+  if (stone === 'hd') return from > getStoneMinLevel('hd', itemType);
+  return true;
 };
 
-// หินที่ดีที่สุดของห้องที่ destination `from` อยู่: Enriched (โอกาสสูง) > HD (กันหาย เฉพาะ item ปกติ) > ปกติ
 const bestStoneForRoom = (itemType, from) => {
   if (stoneValidInRoom(itemType, from, 'enriched')) return 'enriched';
   const isSpecial = itemType === 'weapon5' || itemType === 'armor2';
@@ -38,8 +36,6 @@ const bestStoneForRoom = (itemType, from) => {
   return 'normal';
 };
 
-// ปรับ stone rules ให้ถูกเสมอ: rule แรก = start+1, มีกำแพงที่จุดเปลี่ยนแร่ (ช่วงไม่คร่อม),
-// ตัด rule นอกช่วง, หินทุกช่วง valid ต่อห้อง (ถ้าไม่ valid → ใช้หินที่ดีที่สุดของห้อง)
 const normalizeStoneRules = (rules, start, target, itemType, nextIdRef) => {
   const minFrom = Math.max(1, start + 1);
   const cap = Math.max(minFrom, target);
@@ -48,7 +44,7 @@ const normalizeStoneRules = (rules, start, target, itemType, nextIdRef) => {
     if (r.from >= minFrom && r.from <= cap && !byFrom.has(r.from)) byFrom.set(r.from, r);
   }
   const froms = new Set([minFrom, ...byFrom.keys()]);
-  for (const w of STONE_WALLS) if (minFrom < w && w <= cap) froms.add(w); // span คร่อมกำแพง → ใส่ขอบที่กำแพง
+  for (const w of STONE_WALLS) if (minFrom < w && w <= cap) froms.add(w);
   return [...froms].sort((a, b) => a - b).map((from) => {
     const existing = byFrom.get(from);
     let stone = existing ? existing.stone : bestStoneForRoom(itemType, from);
@@ -58,29 +54,28 @@ const normalizeStoneRules = (rules, start, target, itemType, nextIdRef) => {
 };
 
 const Container = () => {
+  const { lang, setLang, t } = useLang();
+
   const [index, setIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [mode, setMode] = useState('wait'); // 'wait' หรือ 'process'
+  const [mode, setMode] = useState('wait');
   const [isSuccessLoop, setIsSuccessLoop] = useState(false);
   const [stack, setStack] = useState([]);
   const [isFail, setIsFail] = useState(false);
-  const [lastResult, setLastResult] = useState(null); // 'success' | 'fail' | null
-  const [useCash, setUseCash] = useState(false); // true = หิน HD (ล้มลดระดับ)
-  const [useEnriched, setUseEnriched] = useState(false); // true = หิน Enriched (Cash ล้มหาย + โอกาสสูง)
+  const [lastResult, setLastResult] = useState(null);
+  const [useCash, setUseCash] = useState(false);
+  const [useEnriched, setUseEnriched] = useState(false);
   const [isItemLost, setIsItemLost] = useState(false);
-  const [log, setLog] = useState([]); // log สำหรับแสดงผลทุก action
+  const [log, setLog] = useState([]);
   const [useBSB, setUseBSB] = useState(false);
-  const [itemType, setItemType] = useState('armor1'); // เพิ่ม state สำหรับประเภทไอเท็ม
-  const [isEventRate, setIsEventRate] = useState(false); // false = ไม่มี event, true = Event Rate Up
+  const [itemType, setItemType] = useState('armor1');
+  const [isEventRate, setIsEventRate] = useState(false);
   const bsbTable = isEventRate ? BSB_REQUIRED_EVENT : BSB_REQUIRED_NORMAL;
   const intervalRef = useRef(null);
-  // เมื่อ true: เข้าโหมด success แบบนิ่งทันที (ข้าม intro animation ตีบวก) ใช้ตอนเลือกระดับเริ่มต้น
   const skipSuccessIntroRef = useRef(false);
 
-  // BSB ใช้ได้แค่ตีจาก +7 ถึง +14 → +15 เท่านั้น (stack.length 7..14)
   const bsbInRange = stack.length >= 7 && stack.length <= 14 && (bsbTable[stack.length] || 0) > 0;
 
-  // แสดงภาพ wait แบบวนลูปเมื่อไม่ได้ process
   useEffect(() => {
     if (mode === 'wait') {
       intervalRef.current = setInterval(() => {
@@ -90,7 +85,6 @@ const Container = () => {
     }
   }, [mode]);
 
-  // แสดงภาพ process ทีละเฟรม (ไม่วน)
   useEffect(() => {
     if (mode === 'process') {
       let i = 0;
@@ -116,10 +110,8 @@ const Container = () => {
     }
   }, [mode, isFail]);
 
-  // แสดงภาพ success ทีละเฟรม (ไม่วน)
   useEffect(() => {
     if (mode === 'success') {
-      // เลือกระดับเริ่มต้นมาเลย: ข้าม animation ตีบวก ไปนิ่งที่ frame success loop ทันที
       if (skipSuccessIntroRef.current) {
         skipSuccessIntroRef.current = false;
         setIsSuccessLoop(true);
@@ -135,7 +127,7 @@ const Container = () => {
           setIndex(i);
         } else {
           clearInterval(intervalRef.current);
-          setIsSuccessLoop(true); // เริ่มวน success 09-16
+          setIsSuccessLoop(true);
           setIndex(9);
         }
       }, 100);
@@ -143,7 +135,6 @@ const Container = () => {
     }
   }, [mode]);
 
-  // วน success 09-16
   useEffect(() => {
     if (mode === 'success' && isSuccessLoop) {
       let i = 9;
@@ -157,7 +148,6 @@ const Container = () => {
     }
   }, [mode, isSuccessLoop]);
 
-  // แสดงภาพ fail วน 14-19
   useEffect(() => {
     if (mode === 'fail') {
       let i = 15;
@@ -171,31 +161,25 @@ const Container = () => {
     }
   }, [mode]);
 
-  // State สำหรับนับจำนวนไอเทมที่ใช้
   const [bsbUsedTotal, setBsbUsedTotal] = useState(0);
-  const [oreUsed, setOreUsed] = useState({}); // นับแร่ที่ใช้ แยกตามชื่อแร่
-  // สกุลเงินที่ใช้คำนวณราคา ('zenny' | 'baht') และราคาต่อหน่วยของแต่ละไอเทม
-  const [currency, setCurrency] = useState('zenny'); // หน่วยเงินรวม (global) ใช้เป็นค่าตั้งต้นของทุกแถว
-  const [rowCurrency, setRowCurrency] = useState({}); // override หน่วยเงินรายแถว { key: 'zenny'|'baht' }
+  const [oreUsed, setOreUsed] = useState({});
+  const [currency, setCurrency] = useState('zenny');
+  const [rowCurrency, setRowCurrency] = useState({});
   const [prices, setPrices] = useState({ normal: '', enriched: '', cash: '', bsb: '' });
-  // โหมดเลือกไอเทม: 'dropdown' (เลือกเอง) หรือ 'id' (ค้นจาก Item ID ผ่าน API)
   const [inputMode, setInputMode] = useState('dropdown');
   const [itemIdInput, setItemIdInput] = useState('');
-  const [apiItem, setApiItem] = useState(null); // ผลลัพธ์จาก API ที่ค้นมา
+  const [apiItem, setApiItem] = useState(null);
   const [apiLoading, setApiLoading] = useState(false);
   const [apiError, setApiError] = useState('');
-  const [showItemInfo, setShowItemInfo] = useState(false); // accordion ข้อมูลไอเทม
+  const [showItemInfo, setShowItemInfo] = useState(false);
   const [showStoneModal, setShowStoneModal] = useState(false);
-  // ระบบ Auto ตีบวก: ตีอัตโนมัติจนถึงเป้าหมายที่ตั้งไว้
-  const [autoRefine, setAutoRefine] = useState(false); // เปิด/ปิดโหมด auto
-  const [autoStart, setAutoStart] = useState(0); // ระดับเริ่มต้นของ auto (แยกจาก global start)
-  const [autoTarget, setAutoTarget] = useState(10); // เป้าหมายระดับ (+N) ที่จะตีถึง
-  const [autoRunning, setAutoRunning] = useState(false); // กำลังตี auto อยู่
-  // แผนชนิดหินแต่ละช่วงระหว่าง auto: รายการ { id, from, stone, stopOnLoss }
+  const [autoRefine, setAutoRefine] = useState(false);
+  const [autoStart, setAutoStart] = useState(0);
+  const [autoTarget, setAutoTarget] = useState(10);
+  const [autoRunning, setAutoRunning] = useState(false);
   const [autoStoneRules, setAutoStoneRules] = useState([{ id: 0, from: 1, stone: 'enriched', stopOnLoss: false, bsb: false }]);
   const nextRuleId = useRef(1);
-  const [autoUseBSB, setAutoUseBSB] = useState(false); // เปิด/ปิดการใส่ BSB อัตโนมัติระหว่าง auto
-  // BSB คุมเป็น flag ต่อช่วง (rule.bsb) แล้ว — ไม่ใช้ start/end window อีก (ภายใต้กฎ BSB ใช้ได้ +7→+14)
+  const [autoUseBSB, setAutoUseBSB] = useState(false);
 
   const handleRefine = () => {
     if (isPlaying) return;
@@ -205,29 +189,26 @@ const Container = () => {
     setIsSuccessLoop(false);
     setIsItemLost(false);
     setLastResult(null);
-    // คำนวณ level ปัจจุบัน (stack.length + 1)
     const currentLevel = stack.length + 1;
-    // ดึงอัตราสำเร็จจากตารางตามประเภทและชนิดหิน (Enriched บวกโบนัส)
     const rate = getRate(isEventRate, useCash, useEnriched, itemType, currentLevel - 1) / 100;
     const roll = Math.random();
     const isSuccess = roll < rate;
-    // รายละเอียดการสุ่ม: บอกโอกาสติด/แตก แล้วระบุว่าผลออกฝั่งไหน ที่ค่ากี่ %
     const rollPct = roll * 100;
     const successPct = rate * 100;
     const failPct = 100 - successPct;
-    const rollDetail = `โอกาสติด ${successPct.toFixed(2)}% / โอกาสแตก ${failPct.toFixed(2)}% → ผลออกฝั่ง${isSuccess ? 'สำเร็จ' : 'แตก'} ที่ ${rollPct.toFixed(2)}%`;
+    const rollData = { successPct, failPct, rollPct, isSuccess };
     let newStack = [...stack];
     let logMsg = '';
     let playFailSound = false;
     let bsbUsed = 0;
-    // เช็ค BSB เงื่อนไข — เปิด toggle และอยู่ในช่วง +7..+14 (ไม่จำกัดจำนวนแล้ว)
+    let resultType = 'fail';
+    let dropAmount = null;
+
     let canUseBSB = false;
     if (useBSB && currentLevel >= 8 && currentLevel <= 15) {
       bsbUsed = bsbTable[currentLevel - 1] || 0;
       canUseBSB = bsbUsed > 0;
     }
-    // นับจำนวนไอเทมที่ใช้
-    // นับแร่ที่ใช้ตามประเภทไอเท็มและระดับเป้าหมาย (แร่ = หินที่ใช้ตีจริง)
     const oreName = getOreName(itemType, stack.length, useCash, useEnriched);
     if (oreName) {
       setOreUsed(prev => ({ ...prev, [oreName]: (prev[oreName] || 0) + 1 }));
@@ -238,40 +219,48 @@ const Container = () => {
     if (isSuccess) {
       newStack.push({ time: new Date().toLocaleTimeString() });
       logMsg = `+${stack.length} → +${stack.length + 1} : สำเร็จ`;
+      resultType = 'success';
     } else if (canUseBSB) {
-      // ใช้ BSB ป้องกันการลดระดับและการหายของไอเทม (ทั้งหินธรรมดาและแครช)
       logMsg = `+${stack.length} → +${stack.length} : ล้มเหลว (ใช้ BSB ${bsbUsed} ชิ้น ป้องกัน${useCash ? 'ลดระดับ' : 'ไอเทมหาย'})`;
+      resultType = 'bsb_protect';
     } else if (itemType === 'weapon5' || itemType === 'armor2') {
       if (stack.length >= 10) {
-        // High range (+10+): ล้มแล้วหายทุกกรณี (ทั้ง Etel ปกติ และ HD Etel)
-        // BSB ในช่วงที่ใช้ได้จะถูกเช็คและจัดการก่อนถึงบรรทัดนี้แล้ว
         setIsItemLost(true);
         newStack = [];
         logMsg = `+${stack.length} → +0 : ล้มเหลว (ไอเทมหาย)`;
         playFailSound = true;
+        resultType = 'item_lost';
       } else {
-        // Low range (+0~9): ไม่แตกทุกกรณี — enriched=-1, normal=-3, HD fallback เป็น normal=-3
         const drop = useEnriched ? 1 : 3;
         const newLevel = Math.max(0, stack.length - drop);
         const actualDrop = stack.length - newLevel;
         newStack = newStack.slice(0, newLevel);
         logMsg = `+${stack.length} → +${newLevel} : ล้มเหลว (ลดระดับ ${actualDrop} ขั้น)`;
+        resultType = 'level_drop';
+        dropAmount = actualDrop;
       }
     } else if (useCash && stack.length > 0) {
-      // หินแครชไม่ใช้ BSB - ลดระดับ (ประเภทอื่น)
       newStack = newStack.slice(0, -1);
       logMsg = `+${stack.length} → +${stack.length - 1} : ล้มเหลว (ลดระดับ)`;
+      resultType = 'level_drop';
+      dropAmount = 1;
     } else if (!useCash) {
-      // หินธรรมดาไม่ใช้ BSB - ไอเทมหาย (ประเภทอื่น)
       setIsItemLost(true);
       newStack = [];
       logMsg = `+${stack.length} → +0 : ล้มเหลว (ไอเทมหาย)`;
       playFailSound = true;
+      resultType = 'item_lost';
     }
+    const rollDetail = `โอกาสติด ${successPct.toFixed(2)}% / โอกาสแตก ${failPct.toFixed(2)}% → ผลออกฝั่ง${isSuccess ? 'สำเร็จ' : 'แตก'} ที่ ${rollPct.toFixed(2)}%`;
     logMsg = `${logMsg} — ${rollDetail}`;
     setStack(newStack);
     setLog(prev => [...prev, {
       msg: logMsg,
+      fromLevel: stack.length,
+      toLevel: newStack.length,
+      resultType,
+      dropAmount,
+      rollData,
       itemType,
       useCash,
       useEnriched,
@@ -282,9 +271,7 @@ const Container = () => {
     }]);
     setIsFail(!isSuccess);
 
-    // เช็คเงื่อนไขการเล่นเสียงและสิ้นสุดเกม
     if (playFailSound) {
-      // ไอเทมถูกทำลาย/หาย = เล่นเสียง fail อย่างเดียวแล้วจบ
       const soundEffectFailOnly = new Audio(souneEffectFail);
       soundEffectFailOnly.play();
       soundEffectFailOnly.onended = () => {
@@ -309,19 +296,15 @@ const Container = () => {
     };
   };
 
-  // Auto ตีบวก: เมื่อรอบที่แล้วจบ (isPlaying = false) ให้ตีต่อจนถึงเป้าหรือไอเทมหาย
   useEffect(() => {
     if (!autoRunning) return;
-    if (isPlaying || mode === 'process') return; // รอ animation/เสียงรอบนี้จบก่อน
-    // หยุดเมื่อถึงเป้าหมาย
+    if (isPlaying || mode === 'process') return;
     if (stack.length >= autoTarget) {
       setAutoRunning(false);
-      if (autoUseBSB) setUseBSB(false); // reset BSB ที่ auto เปิดไว้
+      if (autoUseBSB) setUseBSB(false);
       return;
     }
-    // หยุดเมื่อไอเทมหาย (ต้องเริ่มไอเทมใหม่)
     if (isItemLost) { setAutoRunning(false); return; }
-    // ปรับชนิดหินตามแผนของระดับถัดไป (currentLevel = stack.length + 1) ก่อน แล้วรอ re-render ค่อยตี
     const rawStone = getPlannedStone(autoStoneRules, stack.length + 1);
     const plannedStone = getEffectiveStone(rawStone, itemType, stack.length);
     const wantCash = plannedStone === 'hd';
@@ -331,9 +314,7 @@ const Container = () => {
       setUseEnriched(wantEnriched);
       return;
     }
-    // rule ที่คุมระดับถัดไป (currentLevel = stack.length + 1)
     const applicableRule = [...autoStoneRules].sort((a, b) => b.from - a.from).find(r => r.from <= stack.length + 1);
-    // ใส่/ถอด BSB ตาม flag ของช่วง (ภายใต้กฎ BSB ใช้ได้ +7→+14)
     if (autoUseBSB) {
       const wantBSB = !!applicableRule?.bsb && stack.length >= 7 && stack.length <= 14 && (bsbTable[stack.length] || 0) > 0;
       if (wantBSB !== useBSB) {
@@ -352,17 +333,15 @@ const Container = () => {
         return;
       }
     }
-    const t = setTimeout(() => handleRefine(), 450);
-    return () => clearTimeout(t);
+    const t2 = setTimeout(() => handleRefine(), 450);
+    return () => clearTimeout(t2);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoRunning, isPlaying, mode, stack.length, isItemLost, autoTarget, autoStoneRules, useCash, useEnriched, autoUseBSB, useBSB, itemType, bsbTable, isEventRate]);
 
-  // target ต้อง > start เสมอ
   useEffect(() => {
-    setAutoTarget(t => (t <= autoStart ? Math.min(autoStart + 1, 20) : t));
+    setAutoTarget(t2 => (t2 <= autoStart ? Math.min(autoStart + 1, 20) : t2));
   }, [autoStart]);
 
-  // เปลี่ยน autoStart → อัปเดต stack preview ทันที (dropdown disabled ขณะ running อยู่แล้ว)
   const handleAutoStartChange = (level) => {
     setAutoStart(level);
     const now = new Date().toLocaleTimeString();
@@ -373,7 +352,6 @@ const Container = () => {
     setIsPlaying(false);
     setUseBSB(false);
     if (level > 0) {
-      // เริ่มที่ระดับ > 0: โชว์ frame success แบบนิ่ง ให้ตรงกับตำแหน่งปุ่ม (เคสเดียวกับ handleStartLevelChange)
       setIsSuccessLoop(true);
       setIndex(9);
       if (mode !== 'success') {
@@ -387,11 +365,9 @@ const Container = () => {
     }
   };
 
-  // เริ่ม/หยุด auto ตีบวก
   const handleStartAuto = () => {
     if (autoRunning || isPlaying) return;
     if (autoStart >= autoTarget) return;
-    // reset stack ไปที่ autoStart เสมอเมื่อเริ่ม auto session ใหม่
     const now = new Date().toLocaleTimeString();
     setStack(Array.from({ length: autoStart }, () => ({ time: now })));
     setMode('wait');
@@ -406,7 +382,6 @@ const Container = () => {
   };
   const handleStopAuto = () => {
     setAutoRunning(false);
-    // reset BSB ที่ auto เปิดไว้ กันค้างหลัง auto หยุด
     if (autoUseBSB) setUseBSB(false);
   };
 
@@ -416,13 +391,10 @@ const Container = () => {
     setBsbUsedTotal(0);
   };
 
-  // จัดการแผนชนิดหินแต่ละช่วง (auto)
   const updateRuleStone = (id, stone) => setAutoStoneRules(rs => rs.map(r => r.id === id ? { ...r, stone, stopOnLoss: false } : r));
   const updateRuleStopOnLoss = (id, value) => setAutoStoneRules(rs => rs.map(r => r.id === id ? { ...r, stopOnLoss: value } : r));
   const updateRuleBSB = (id, value) => setAutoStoneRules(rs => rs.map(r => r.id === id ? { ...r, bsb: value } : r));
 
-  // ปรับช่วงหินให้ถูกเสมอเมื่อ start/target/itemType เปลี่ยน (ใส่กำแพง, ตัดนอกช่วง, หิน valid ต่อห้อง)
-  // + เคลียร์ stopOnLoss ที่หมดความหมาย
   useEffect(() => {
     setAutoStoneRules((rs) => {
       const normalized = normalizeStoneRules(rs, autoStart, autoTarget, itemType, nextRuleId);
@@ -436,22 +408,21 @@ const Container = () => {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoStart, autoTarget, itemType, isEventRate, autoUseBSB]);
-  // แก้ระดับเริ่มของช่วง → ต้องมากกว่าช่วงก่อนหน้า แล้ว normalize (ใส่กำแพง/แก้หินให้เอง)
+
   const updateRuleFrom = (id, newFrom) => setAutoStoneRules(rs => {
     const idx = rs.findIndex(r => r.id === id);
-    if (idx <= 0 || isWallFrom(rs[idx].from)) return rs; // ช่วงแรก + กำแพง ล็อก
+    if (idx <= 0 || isWallFrom(rs[idx].from)) return rs;
     const next = rs.map(r => ({ ...r }));
     next[idx].from = Math.max(newFrom, next[idx - 1].from + 1);
     return normalizeStoneRules(next, autoStart, autoTarget, itemType, nextRuleId);
   });
-  // ซอยช่วงนี้เป็น 2 (แบ่ง ~กึ่งกลางในห้องเดิม) — คัดลอกหินจากช่วงเดิม แล้ว normalize
   const splitStoneRule = (id) => setAutoStoneRules(rs => {
     const idx = rs.findIndex(r => r.id === id);
     if (idx < 0) return rs;
     const rule = rs[idx];
     const toLevel = rs[idx + 1] ? rs[idx + 1].from - 1 : autoTarget;
-    if (rule.from >= toLevel) return rs; // ช่วงกว้าง 1 ระดับ ซอยไม่ได้
-    const mid = rule.from + Math.ceil((toLevel - rule.from + 1) / 2); // ขอบใหม่ ~กึ่งกลาง
+    if (rule.from >= toLevel) return rs;
+    const mid = rule.from + Math.ceil((toLevel - rule.from + 1) / 2);
     const inserted = [
       ...rs.slice(0, idx + 1),
       { id: nextRuleId.current++, from: mid, stone: rule.stone, stopOnLoss: false, bsb: rule.bsb },
@@ -461,7 +432,7 @@ const Container = () => {
   });
   const removeStoneRule = (id) => setAutoStoneRules(rs => {
     const idx = rs.findIndex(r => r.id === id);
-    if (idx <= 0 || isWallFrom(rs[idx].from)) return rs; // ลบช่วงแรก + กำแพง ไม่ได้
+    if (idx <= 0 || isWallFrom(rs[idx].from)) return rs;
     return normalizeStoneRules(rs.filter(r => r.id !== id), autoStart, autoTarget, itemType, nextRuleId);
   });
 
@@ -471,9 +442,8 @@ const Container = () => {
     setIndex(0);
     setIsSuccessLoop(false);
     setIsFail(false);
-    setIsItemLost(false); // เคลียร์สถานะไอเทมหาย ไม่งั้นเริ่ม auto/ตีใหม่ไม่ได้
+    setIsItemLost(false);
     setLastResult(null);
-    // ถ้า auto เปิดอยู่ → reset กลับไปที่ autoStart เพื่อพร้อม session ถัดไป
     if (autoRefine) {
       const now = new Date().toLocaleTimeString();
       setStack(Array.from({ length: autoStart }, () => ({ time: now })));
@@ -482,8 +452,6 @@ const Container = () => {
     }
   };
 
-  // เลือกเริ่มที่ระดับตีบวกใด ๆ — กระโดดไประดับนั้นทันทีและเคลียร์ผลลัพธ์ค้าง
-  // (rate/ปุ่ม/ตาราง derive จาก stack.length อยู่แล้ว จึงสอดคล้องกันเอง)
   const handleStartLevelChange = (level) => {
     setAutoRunning(false);
     const now = new Date().toLocaleTimeString();
@@ -492,24 +460,21 @@ const Container = () => {
     setIsItemLost(false);
     setLastResult(null);
     setIsPlaying(false);
-    setUseBSB(false); // ช่วงที่ใช้ BSB ได้อาจเปลี่ยน จึงรีเซ็ต toggle
+    setUseBSB(false);
     if (level > 0) {
-      // เริ่มที่ระดับ > 0: โชว์ frame success แบบนิ่ง (ไอเทมตีบวกแล้ว) ให้ตรงกับตำแหน่งปุ่ม "เริ่มอีกครั้ง"
       setIsSuccessLoop(true);
       setIndex(9);
       if (mode !== 'success') {
-        skipSuccessIntroRef.current = true; // เข้า success แบบข้าม intro animation
+        skipSuccessIntroRef.current = true;
         setMode('success');
       }
     } else {
-      // เริ่มที่ +0: กลับไป frame wait + ปุ่ม "อัพเกรด" ตำแหน่งกลาง (เดิม)
       setMode('wait');
       setIndex(0);
       setIsSuccessLoop(false);
     }
   };
 
-  // เลือกประเภทไอเท็ม = เริ่มตีบวกใหม่ตั้งแต่ +0 และเคลียร์ผลลัพธ์ค้าง
   const selectItemType = (type) => {
     setAutoRunning(false);
     setItemType(type);
@@ -521,20 +486,17 @@ const Container = () => {
     setIsSuccessLoop(false);
     setLastResult(null);
     setIsPlaying(false);
-    setUseEnriched(false); // weapon5/armor2 ไม่มี Enriched และเริ่มไอเทมใหม่จึงรีเซ็ต
+    setUseEnriched(false);
   };
 
-  // Enriched ใช้ได้เฉพาะ level < 10 — พอถึง +10 ขึ้นไปให้กลับไปหินปกติอัตโนมัติ
   useEffect(() => {
     if (useEnriched && stack.length >= 10) setUseEnriched(false);
   }, [useEnriched, stack.length]);
-  // weapon5/armor2 ไม่มี HD ที่ +0~9 — ถ้าเลือก HD ไว้แล้วระดับลดลงมาให้กลับหินปกติ
   useEffect(() => {
     const isSpecial = itemType === 'weapon5' || itemType === 'armor2';
     if (isSpecial && useCash && stack.length < 10) setUseCash(false);
   }, [itemType, useCash, stack.length]);
 
-  // ค้นไอเทมจาก ID ผ่าน divine-pride API แล้วแยกประเภท (weapon/armor) อัตโนมัติ
   const handleFetchItem = async () => {
     const id = itemIdInput.trim();
     if (!id || apiLoading) return;
@@ -542,12 +504,9 @@ const Container = () => {
     setApiError('');
     try {
       const res = await fetch(`https://www.divine-pride.net/api/database/Item/${id}?apiKey=${DIVINE_PRIDE_API_KEY}`);
-      if (!res.ok) throw new Error(`เรียก API ไม่สำเร็จ (HTTP ${res.status})`);
+      if (!res.ok) throw new Error(t('api_error_http', { status: res.status }));
       const data = await res.json();
-      // แยกประเภทจาก itemTypeId (1=อาวุธ, 2=เกราะ) สำรองด้วย attack/defense
       let lvl = Number(data.itemLevel) || 1;
-      // เคสพิเศษ: โล่ (shield = itemTypeId 2 + itemSubTypeId 514) มัก return itemLevel = null
-      // ถ้าชื่อมี "LT" (เช่น -LT) ตัวพิมพ์ใหญ่ ถือเป็นโล่ Armor Level 2
       if (
         data.itemLevel == null &&
         data.itemTypeId === 2 &&
@@ -562,7 +521,7 @@ const Container = () => {
       } else if (data.itemTypeId === 2 || (data.itemTypeId == null && data.defense > 0)) {
         mapped = `armor${Math.min(Math.max(lvl, 1), 2)}`;
       } else {
-        throw new Error('ไอเทมนี้ไม่ใช่อาวุธหรือเกราะที่ตีบวกได้');
+        throw new Error(t('api_error_not_refinable'));
       }
       setApiItem({
         id: data.id,
@@ -581,23 +540,18 @@ const Container = () => {
       selectItemType(mapped);
     } catch (err) {
       setApiItem(null);
-      setApiError(err.message || 'ดึงข้อมูลไม่สำเร็จ');
+      setApiError(err.message || t('api_fetch_fail'));
     } finally {
       setApiLoading(false);
     }
   };
 
-  // คำนวณอัตราสำเร็จปัจจุบัน
   const currentLevel = stack.length + 1;
-  // ดึงอัตราสำเร็จจากตารางตามประเภทและชนิดหิน (Enriched บวกโบนัส)
-  // เช็คว่าหินที่เลือกอยู่ใช้ได้จริงที่ระดับปัจจุบันไหม (HD ต้องอยู่ในช่วง minLevel)
   const hdMinLevel = getStoneMinLevel('hd', itemType);
   const stoneBlocksRefine = useCash && stack.length < hdMinLevel;
   const currentRate = getRate(isEventRate, useCash, useEnriched, itemType, currentLevel - 1);
-  // rate ของ "ระดับปัจจุบัน" (row +stack.length ในตาราง) สำหรับ banner — ต่างจาก currentRate ที่เป็น rate ของรอบถัดไป
   const bannerRate = getRate(isEventRate, useCash, useEnriched, itemType, Math.max(0, stack.length - 1));
 
-  // preload all frames for each mode (เฟรมเป็นค่าคงที่ precompute ใน constants/frames.js)
   useEffect(() => {
     ALL_FRAMES.forEach((src) => {
       const img = new window.Image();
@@ -605,7 +559,6 @@ const Container = () => {
     });
   }, []);
 
-  // helper render รูปเฟรมตามโหมด
   const renderFrames = (frames, label) =>
     frames.map((src, i) => (
       <img
@@ -617,18 +570,54 @@ const Container = () => {
       />
     ));
 
+  // helper แปล fail/note ใน STONE_REFERENCE ตามภาษา
+  const stoneFailLabel = (fail) => {
+    if (fail === 'ไอเทมหาย') return t('stone_fail_item_lost');
+    if (fail === 'ลดระดับ −1') return t('stone_fail_drop_1');
+    if (fail === 'ลดระดับ −3') return t('stone_fail_drop_3');
+    return fail;
+  };
+  const stoneNoteLabel = (note) => {
+    if (note === '+โอกาส') return t('stone_note_rate_up');
+    return note;
+  };
+
   return (
     <>
     <div className="w-full max-w-4xl mx-auto flex flex-col gap-5">
       {/* Hero Banner */}
       <HeroBanner />
 
+      {/* Language toggle */}
+      <div className="flex justify-end -mt-2">
+        <div role="group" aria-label={t('lang_toggle_label')} className="inline-flex overflow-hidden rounded-lg border border-slate-600">
+          <button
+            type="button"
+            onClick={() => setLang('th')}
+            className={`px-3 py-1.5 text-sm transition-colors ${
+              lang === 'th' ? 'bg-amber-400 font-bold text-slate-900' : 'bg-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            🇹🇭 TH
+          </button>
+          <button
+            type="button"
+            onClick={() => setLang('en')}
+            className={`border-l border-slate-600 px-3 py-1.5 text-sm transition-colors ${
+              lang === 'en' ? 'bg-amber-400 font-bold text-slate-900' : 'bg-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            🇬🇧 EN
+          </button>
+        </div>
+      </div>
+
       {/* ตารางอัตราสำเร็จ */}
       <section aria-labelledby="rate-table-heading">
       <div className="rounded-2xl border border-slate-700/60 bg-[#181a20]/90 p-4 shadow-lg shadow-black/30">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h2 id="rate-table-heading" className="m-0 text-base font-bold text-amber-300">
-            ตารางอัตราสำเร็จการตีบวก (%) — {isEventRate ? 'Event Rate Up' : 'ไม่มี Event'} · {useEnriched ? 'Enriched' : useCash ? 'HD' : 'หินปกติ'}
+            {t('rate_table_title')} — {isEventRate ? t('event_rate_up') : t('no_event')} · {useEnriched ? 'Enriched' : useCash ? 'HD' : t('stone_normal_label')}
           </h2>
           <div role="group" aria-label="Rate mode" className="inline-flex overflow-hidden rounded-lg border border-slate-600">
             <button
@@ -638,7 +627,7 @@ const Container = () => {
                 !isEventRate ? 'bg-amber-400 font-bold text-slate-900' : 'bg-transparent text-slate-400 hover:text-slate-200'
               }`}
             >
-              ไม่มี Event
+              {t('no_event')}
             </button>
             <button
               type="button"
@@ -647,7 +636,7 @@ const Container = () => {
                 isEventRate ? 'bg-amber-400 font-bold text-slate-900' : 'bg-transparent text-slate-400 hover:text-slate-200'
               }`}
             >
-              Event Rate Up
+              {t('event_rate_up')}
             </button>
           </div>
         </div>
@@ -655,7 +644,7 @@ const Container = () => {
           <table className="w-full min-w-[520px] table-fixed border-collapse text-sm">
             <thead>
               <tr className="bg-[#23272f]">
-                <th className="min-w-[60px] border border-slate-800 p-1.5 text-amber-400">ระดับ</th>
+                <th className="min-w-[60px] border border-slate-800 p-1.5 text-amber-400">{t('level_col')}</th>
                 {Object.entries(ITEM_TYPE_LABELS).map(([key, label]) => (
                   <th key={key} className="min-w-[90px] truncate border border-slate-800 p-1.5 text-amber-400">{label}</th>
                 ))}
@@ -683,14 +672,14 @@ const Container = () => {
       </div>
       </section>
 
-      {/* แถวเดสก์ท็อป: กล่อง option (ซ้าย) + กล่องตีบวก (ขวา) — responsive ซ้อนแนวตั้ง */}
+      {/* แถวเดสก์ท็อป: กล่อง option (ซ้าย) + กล่องตีบวก (ขวา) */}
       <div className="flex flex-col gap-5 lg:flex-row lg:items-stretch">
-      {/* การ์ดควบคุม: ประเภทไอเท็ม + toggle หิน + toggle BSB */}
+      {/* การ์ดควบคุม */}
       <div className="rounded-2xl border border-slate-700/60 bg-[#181a20]/90 p-5 shadow-lg shadow-black/30 lg:flex-1">
-        {/* ประเภทไอเท็ม: สลับระหว่างเลือกเอง (dropdown) หรือค้นจาก Item ID */}
+        {/* ประเภทไอเท็ม */}
         <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-          <label className="text-sm font-semibold text-slate-300">ประเภทไอเท็ม</label>
-          <div role="group" aria-label="โหมดเลือกไอเทม" className="inline-flex overflow-hidden rounded-lg border border-slate-600">
+          <label className="text-sm font-semibold text-slate-300">{t('item_type_label')}</label>
+          <div role="group" aria-label="Item selection mode" className="inline-flex overflow-hidden rounded-lg border border-slate-600">
             <button
               type="button"
               onClick={() => setInputMode('dropdown')}
@@ -698,7 +687,7 @@ const Container = () => {
                 inputMode === 'dropdown' ? 'bg-amber-400 font-bold text-slate-900' : 'bg-transparent text-slate-400 hover:text-slate-200'
               }`}
             >
-              เลือกเอง
+              {t('select_manual')}
             </button>
             <button
               type="button"
@@ -707,7 +696,7 @@ const Container = () => {
                 inputMode === 'id' ? 'bg-amber-400 font-bold text-slate-900' : 'bg-transparent text-slate-400 hover:text-slate-200'
               }`}
             >
-              ค้นจาก ID
+              {t('search_by_id')}
             </button>
           </div>
         </div>
@@ -735,7 +724,7 @@ const Container = () => {
                 value={itemIdInput}
                 onChange={e => setItemIdInput(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') handleFetchItem(); }}
-                placeholder="ใส่ Item ID เช่น 610033"
+                placeholder={t('item_id_placeholder')}
                 className="w-full rounded-xl border border-slate-600 bg-[#0f1117] px-4 py-2.5 text-white outline-none transition-colors hover:border-amber-400/70 focus-visible:border-amber-400 focus-visible:ring-2 focus-visible:ring-amber-300/40"
               />
               <button
@@ -744,12 +733,12 @@ const Container = () => {
                 disabled={apiLoading || !itemIdInput.trim()}
                 className="shrink-0 rounded-xl bg-amber-400 px-4 py-2.5 font-bold text-slate-900 transition-colors hover:bg-amber-300 disabled:cursor-not-allowed disabled:bg-slate-600 disabled:text-slate-400"
               >
-                {apiLoading ? 'กำลังค้น…' : 'ค้นหา'}
+                {apiLoading ? t('searching') : t('search_btn')}
               </button>
             </div>
 
             <p className="mt-2 text-xs text-slate-400">
-              คัดลอก Item ID ได้จาก{' '}
+              {t('copy_id_hint_pre')}{' '}
               <a
                 href="https://www.divine-pride.net/database/item"
                 target="_blank"
@@ -758,7 +747,7 @@ const Container = () => {
               >
                 divine-pride.net
               </a>
-              {' '}แล้วนำเลข ID มาวางในช่องด้านบน
+              {' '}{t('copy_id_hint_post')}
             </p>
 
             {apiError && (
@@ -772,7 +761,7 @@ const Container = () => {
                   <div className="h-3.5 w-1/2 animate-pulse rounded bg-slate-700/60" />
                   <div className="h-2.5 w-1/3 animate-pulse rounded bg-slate-700/50" />
                 </div>
-                <span className="shrink-0 text-xs text-amber-300">กำลังโหลด…</span>
+                <span className="shrink-0 text-xs text-amber-300">{t('loading_text')}</span>
               </div>
             ) : apiItem ? (
               <div className="mt-3 overflow-hidden rounded-xl border border-slate-700/60 bg-[#0f1117]">
@@ -800,14 +789,13 @@ const Container = () => {
                   <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 border-t border-slate-700/60 px-3 py-3 text-sm">
                     {(() => {
                       const isWeapon = apiItem.type.startsWith('weapon');
-                      // อาวุธโชว์เฉพาะ Attack, เกราะโชว์เฉพาะ Defense
                       const fields = [
-                        ['ประเภท', ITEM_TYPE_LABELS[apiItem.type]],
+                        [t('item_info_type'), ITEM_TYPE_LABELS[apiItem.type]],
                         ['itemLevel', apiItem.itemLevel],
                         isWeapon ? ['Attack', apiItem.attack ?? '-'] : ['Defense', apiItem.defense ?? '-'],
-                        ['น้ำหนัก', apiItem.weight ?? '-'],
-                        ['Level ที่ใช้', apiItem.requiredLevel ?? '-'],
-                        ['ช่องการ์ด', apiItem.slots ?? '-'],
+                        [t('item_info_weight'), apiItem.weight ?? '-'],
+                        [t('item_info_req_lvl'), apiItem.requiredLevel ?? '-'],
+                        [t('item_info_slots'), apiItem.slots ?? '-'],
                         ['Aegis name', apiItem.aegisName ?? '-'],
                       ];
                       return fields.map(([label, value]) => (
@@ -824,11 +812,11 @@ const Container = () => {
           </div>
         )}
 
-        {/* Dropdown เลือกระดับเริ่มต้น (manual) — dim เมื่อ auto เปิดอยู่ */}
+        {/* Dropdown เลือกระดับเริ่มต้น (manual) */}
         <div className={`transition-opacity ${autoRefine ? 'pointer-events-none opacity-40' : ''}`}>
           <label htmlFor="start-level" className="mt-4 mb-1.5 block text-sm font-semibold text-slate-300">
-            เริ่มที่ระดับตีบวก
-            {autoRefine && <span className="ml-2 text-xs font-normal text-slate-500">(Auto)</span>}
+            {t('start_level_label')}
+            {autoRefine && <span className="ml-2 text-xs font-normal text-slate-500">{t('auto_tag')}</span>}
           </label>
           <div className="relative">
             <select
@@ -845,8 +833,6 @@ const Container = () => {
             <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-amber-300">▾</span>
           </div>
         </div>
-
-        {/* ชนิดหินย้ายไปเลือกใน UI ตีบวก (stone slots) แล้ว */}
 
         {/* Toggle BSB */}
         <div
@@ -866,12 +852,12 @@ const Container = () => {
               <span className="group relative inline-flex">
                 <span className="flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-slate-500 text-[0.6rem] font-bold text-slate-300">i</span>
                 <div className="pointer-events-none absolute left-0 top-full z-20 mt-1 hidden w-48 rounded-lg border border-slate-600 bg-[#0f1117] p-2 text-xs font-normal shadow-lg group-hover:block">
-                  <div className="mb-1 font-bold text-amber-300">BSB ที่ใช้ต่อระดับ ({isEventRate ? 'Event' : 'Normal'})</div>
+                  <div className="mb-1 font-bold text-amber-300">{t('bsb_per_level')} ({isEventRate ? 'Event' : 'Normal'})</div>
                   <div className="space-y-0.5">
                     {bsbTable.map((qty, lvl) => qty > 0 ? (
                       <div key={lvl} className="flex justify-between">
                         <span className="text-slate-400">+{lvl} → +{lvl + 1}</span>
-                        <span className="font-semibold text-emerald-300">{qty} ชิ้น</span>
+                        <span className="font-semibold text-emerald-300">{qty} {t('bsb_unit')}</span>
                       </div>
                     ) : null)}
                   </div>
@@ -879,9 +865,7 @@ const Container = () => {
               </span>
             </div>
             <div className="mt-0.5 text-xs text-slate-400">
-              {bsbInRange
-                ? 'ใช้ได้ — กันลดระดับ/ไอเทมหายเมื่อล้มเหลว'
-                : 'ใช้ได้เฉพาะช่วง +7 → +14'}
+              {bsbInRange ? t('bsb_active_hint') : t('bsb_range_hint')}
             </div>
           </div>
           <Toggle
@@ -900,8 +884,8 @@ const Container = () => {
         >
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm font-semibold text-white">Auto ตีบวก</div>
-              <div className="mt-0.5 text-xs text-slate-400">ตีอัตโนมัติจนถึงเป้าหมายที่ตั้งไว้</div>
+              <div className="text-sm font-semibold text-white">{t('auto_label')}</div>
+              <div className="mt-0.5 text-xs text-slate-400">{t('auto_hint')}</div>
             </div>
             <Toggle
               checked={autoRefine}
@@ -910,7 +894,6 @@ const Container = () => {
               if (!v) {
                 setAutoRunning(false);
               } else {
-                // เปิด auto → sync stack ให้ตรงกับ autoStart ทันที
                 const now = new Date().toLocaleTimeString();
                 setStack(Array.from({ length: autoStart }, () => ({ time: now })));
                 setMode('wait');
@@ -931,7 +914,7 @@ const Container = () => {
             <div className="mt-3 grid grid-cols-2 gap-2">
               <div>
                 <label htmlFor="auto-start" className="mb-1 block text-xs font-semibold text-slate-300">
-                  เริ่มต้นที่
+                  {t('auto_start_label')}
                 </label>
                 <div className="relative">
                   <select
@@ -950,7 +933,7 @@ const Container = () => {
               </div>
               <div>
                 <label htmlFor="auto-target" className="mb-1 block text-xs font-semibold text-slate-300">
-                  ตีถึงระดับ
+                  {t('auto_target_label')}
                 </label>
                 <div className="relative">
                   <select
@@ -971,18 +954,18 @@ const Container = () => {
           )}
           {autoRefine && (
             <div className="mt-3 border-t border-slate-700/60 pt-3">
-              <div className="mb-1 text-sm font-semibold text-white">ชนิดหินแต่ละช่วง</div>
-              <div className="mb-2 text-xs text-slate-400">กำหนดว่าช่วงระดับไหนใช้หินอะไร — auto จะสลับให้เอง</div>
+              <div className="mb-1 text-sm font-semibold text-white">{t('stone_per_range')}</div>
+              <div className="mb-2 text-xs text-slate-400">{t('stone_per_range_hint')}</div>
               <div className="space-y-2">
                 {autoStoneRules.map((rule, i) => {
                   const next = autoStoneRules[i + 1];
                   const toLevel = next ? next.from - 1 : autoTarget;
                   const minFrom = i === 0 ? Math.max(1, autoStart + 1) : autoStoneRules[i - 1].from + 1;
-                  const isWall = i > 0 && isWallFrom(rule.from); // กำแพงเปลี่ยนแร่ — ล็อก
+                  const isWall = i > 0 && isWallFrom(rule.from);
                   return (
                     <div key={rule.id} className="rounded-lg border border-slate-700 bg-[#0f1117] p-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-slate-400">ตั้งแต่</span>
+                        <span className="text-xs text-slate-400">{t('range_from')}</span>
                         <div className="relative">
                           <select
                             value={rule.from}
@@ -996,21 +979,21 @@ const Container = () => {
                           </select>
                           <span className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-xs text-indigo-300">▾</span>
                         </div>
-                        <span className="text-xs text-slate-500">ถึง +{toLevel}</span>
+                        <span className="text-xs text-slate-500">{t('range_to')}{toLevel}</span>
                         {isWall && (
                           <span
                             className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[0.6rem] font-bold text-amber-300"
-                            title="จุดเปลี่ยนแร่ +10/+11 — ระบบแยกช่วงให้อัตโนมัติ ลบ/ย้ายไม่ได้"
+                            title={t('ore_wall_title')}
                           >
-                            จุดเปลี่ยนแร่
+                            {t('ore_wall_label')}
                           </span>
                         )}
                         {rule.stone === 'hd' && rule.from < getStoneMinLevel('hd', itemType) && (
                           <span
                             className="ml-1 cursor-help text-[0.65rem] font-semibold text-amber-400 underline decoration-dotted underline-offset-2"
-                            title={`หิน HD ยังใช้ไม่ได้ก่อน +${getStoneMinLevel('hd', itemType)} — ช่วง +${rule.from} ถึง +${getStoneMinLevel('hd', itemType) - 1} จะใช้หินปกติแทนอัตโนมัติ`}
+                            title={t('hd_before_warn_title', { n: getStoneMinLevel('hd', itemType) })}
                           >
-                            ⚠ ก่อน +{getStoneMinLevel('hd', itemType)} ใช้ปกติแทน
+                            ⚠ {t('hd_before_warn', { n: getStoneMinLevel('hd', itemType) })}
                           </span>
                         )}
                         <div className="ml-auto flex items-center gap-1">
@@ -1019,10 +1002,10 @@ const Container = () => {
                               type="button"
                               onClick={() => splitStoneRule(rule.id)}
                               disabled={autoRunning}
-                              title="แบ่งช่วงนี้เป็น 2"
+                              title={t('split_title')}
                               className="rounded border border-slate-600 px-1.5 py-0.5 text-[0.65rem] font-semibold text-indigo-300 transition-colors hover:border-indigo-400/70 disabled:cursor-not-allowed disabled:opacity-40"
                             >
-                              แบ่ง
+                              {t('split_btn')}
                             </button>
                           )}
                           {i > 0 && !isWall && (
@@ -1030,8 +1013,8 @@ const Container = () => {
                               type="button"
                               onClick={() => removeStoneRule(rule.id)}
                               disabled={autoRunning}
-                              title="ลบช่วงนี้ (รวมกับช่วงก่อนหน้า)"
-                              aria-label="ลบช่วงนี้"
+                              title={t('remove_range_title')}
+                              aria-label={t('remove_range_aria')}
                               className="rounded p-1 text-rose-300 hover:bg-rose-500/10 disabled:cursor-not-allowed disabled:opacity-40"
                             >
                               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
@@ -1043,16 +1026,16 @@ const Container = () => {
                       </div>
                       <div className="mt-2 flex gap-1.5">
                         {['normal', 'enriched', 'hd']
-                          .filter((s) => stoneValidInRoom(itemType, rule.from, s)) // ซ่อนหินที่ใช้ไม่ได้ในช่วงนี้
+                          .filter((s) => stoneValidInRoom(itemType, rule.from, s))
                           .map((s) => {
-                            const ore = getStoneOre(itemType, rule.from - 1, s); // แร่จริงของห้องนี้
+                            const ore = getStoneOre(itemType, rule.from - 1, s);
                             const isSpecialItem = itemType === 'weapon5' || itemType === 'armor2';
                             const hint =
                               s === 'hd'
-                                ? `ล้ม${isSpecialItem && toLevel >= 11 ? 'หาย' : 'ลด −1'}`
+                                ? `${t('badge_fail')} ${isSpecialItem && toLevel >= 11 ? t('stone_fail_item_lost') : t('stone_fail_drop_1')}`
                                 : s === 'enriched'
-                                ? `ล้ม${isSpecialItem && toLevel < 11 ? 'ลด −1' : 'หาย'} (+โอกาส)`
-                                : `ล้ม${isSpecialItem && toLevel < 11 ? 'ลด −3' : 'หาย'}`;
+                                ? `${t('badge_fail')} ${isSpecialItem && toLevel < 11 ? t('stone_fail_drop_1') : t('stone_fail_item_lost')} (+${t('stone_note_rate_up')})`
+                                : `${t('badge_fail')} ${isSpecialItem && toLevel < 11 ? t('stone_fail_drop_3') : t('stone_fail_item_lost')}`;
                             return (
                               <button
                                 key={s}
@@ -1076,7 +1059,9 @@ const Container = () => {
                       </div>
                       {autoUseBSB && rule.from <= 15 && toLevel >= 8 && (
                         <div className="mt-2 flex items-center justify-between rounded-md border border-emerald-900/50 bg-emerald-950/30 px-2 py-1.5">
-                          <span className="text-[0.7rem] font-semibold text-emerald-300">ใส่ BSB ช่วงนี้ (+{Math.max(7, rule.from - 1)}→+{Math.min(15, toLevel)})</span>
+                          <span className="text-[0.7rem] font-semibold text-emerald-300">
+                            {t('bsb_range_toggle', { from: Math.max(7, rule.from - 1), to: Math.min(15, toLevel) })}
+                          </span>
                           <Toggle
                             checked={!!rule.bsb}
                             onChange={(v) => updateRuleBSB(rule.id, v)}
@@ -1087,7 +1072,7 @@ const Container = () => {
                       )}
                       {toggleHasMeaning(rule.stone, itemType, rule.from, toLevel, isEventRate, autoUseBSB, rule.bsb, bsbTable) && (
                         <div className="mt-2 flex items-center justify-between rounded-md border border-rose-900/50 bg-rose-950/30 px-2 py-1.5">
-                          <span className="text-[0.7rem] font-semibold text-rose-300">หยุด Auto ถ้าเสี่ยงหาย</span>
+                          <span className="text-[0.7rem] font-semibold text-rose-300">{t('stop_on_loss')}</span>
                           <Toggle
                             checked={rule.stopOnLoss}
                             onChange={(v) => updateRuleStopOnLoss(rule.id, v)}
@@ -1100,15 +1085,15 @@ const Container = () => {
                   );
                 })}
               </div>
-              <p className="mt-2 text-center text-[0.65rem] text-slate-500">กดปุ่ม "แบ่ง" ในแต่ละช่วงเพื่อแบ่งย่อย — ระบบกั้นจุดเปลี่ยนแร่ +10 ให้อัตโนมัติ</p>
+              <p className="mt-2 text-center text-[0.65rem] text-slate-500">{t('split_hint')}</p>
             </div>
           )}
           {autoRefine && autoTarget >= 8 && (
             <div className="mt-3 border-t border-slate-700/60 pt-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-sm font-semibold text-white">ใส่ BSB อัตโนมัติระหว่างทาง</div>
-                  <div className="mt-0.5 text-xs text-slate-400">เปิดแล้วเลือกเปิด/ปิด BSB ได้ทีละช่วงด้านบน (ใช้ได้ +7→+14)</div>
+                  <div className="text-sm font-semibold text-white">{t('bsb_auto_label')}</div>
+                  <div className="mt-0.5 text-xs text-slate-400">{t('bsb_auto_hint')}</div>
                 </div>
                 <Toggle
                   checked={autoUseBSB}
@@ -1118,7 +1103,7 @@ const Container = () => {
                 />
               </div>
               {autoUseBSB && (
-                <p className="mt-2 text-[0.65rem] text-emerald-300/80">↑ เลื่อนขึ้นไปกดสวิตช์ "ใส่ BSB ช่วงนี้" ในแต่ละช่วง — แบ่งช่วงเพื่อคุมละเอียดได้ (เริ่ม/เลิก/มาใส่ใหม่)</p>
+                <p className="mt-2 text-[0.65rem] text-emerald-300/80">{t('bsb_auto_scroll_hint')}</p>
               )}
             </div>
           )}
@@ -1128,16 +1113,15 @@ const Container = () => {
       {/* หน้าต่างตีบวก */}
       <div className="flex flex-col items-center gap-3 rounded-2xl border border-slate-700/60 bg-[#181a20]/90 p-5 shadow-lg shadow-black/30 lg:flex-1 lg:justify-center">
 
-        {/* Animation frame = main canvas, ทุก UI overlay อยู่ข้างใน */}
+        {/* Animation frame */}
         <div className="relative w-full overflow-hidden rounded-xl" style={{ maxWidth: 350, aspectRatio: '262 / 301', fontFamily: 'Tahoma, Geneva, sans-serif' }}>
 
-          {/* Animation frames (bg) */}
           {mode === 'wait' && renderFrames(WAITING_FRAMES, 'wait')}
           {mode === 'process' && renderFrames(PROCESSING_FRAMES, 'process')}
           {mode === 'success' && renderFrames(SUCCESS_FRAMES, 'success')}
           {mode === 'fail' && renderFrames(FAIL_FRAMES, 'fail')}
 
-          {/* Item icon ใน slot */}
+          {/* Item icon */}
           {(() => {
             const src = apiItem && apiItem.type === itemType
               ? apiItem.imageUrl
@@ -1153,13 +1137,13 @@ const Container = () => {
 
           {/* ── OVERLAY z-[3] ── */}
 
-          {/* ปุ่มดูตารางหิน — มุมซ้ายบน */}
-          <button type="button" onClick={() => setShowStoneModal(true)} title="ดูตารางหินทั้งหมด"
+          {/* ปุ่มดูตารางหิน */}
+          <button type="button" onClick={() => setShowStoneModal(true)} title={t('view_stone_table')}
             className="absolute z-[4] flex cursor-pointer items-center justify-center rounded-full font-bold text-white transition-transform hover:scale-110"
             style={{ top:10, left:10, width:22, height:22, fontSize:'0.7rem',
               background:'rgba(15,17,23,0.85)', border:'1px solid rgba(148,163,184,0.6)', boxShadow:'0 1px 4px rgba(0,0,0,0.5)' }}>?</button>
 
-          {/* badge ควบคุมโดย Auto — มุมซ้ายบน (เลื่อนขวาจากปุ่ม ?) ตอน auto คุมหิน */}
+          {/* badge Auto */}
           {autoRunning && (
             <span className="absolute z-[4] rounded-full font-bold text-indigo-200"
               style={{ top:11, left:38, padding:'2px 8px', fontSize:'0.6rem', background:'rgba(79,70,229,0.85)', border:'1px solid rgba(129,140,248,0.6)' }}>
@@ -1167,9 +1151,9 @@ const Container = () => {
             </span>
           )}
 
-          {/* Stop Auto badge — มุมขวาบน แสดงตลอดตอน auto ทำงาน (ไม่กระพริบตาม animation) */}
+          {/* Stop Auto badge */}
           {autoRefine && autoRunning && (
-            <button onClick={handleStopAuto} title="หยุด Auto"
+            <button onClick={handleStopAuto} title={t('stop_auto_btn')}
               className="group absolute z-[5] flex cursor-pointer items-center gap-1 rounded-full font-bold text-white transition-all hover:scale-105 active:scale-95"
               style={{
                 top:10, right:10, padding:'3px 8px 3px 6px', fontSize:'0.5rem',
@@ -1181,20 +1165,20 @@ const Container = () => {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-300 opacity-75" />
                 <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-rose-100" />
               </span>
-              <span className="tracking-wide">หยุด</span>
+              <span className="tracking-wide">{t('stop_auto_btn')}</span>
               <span className="opacity-70" style={{ fontSize:'0.42rem' }}>+{autoTarget}</span>
             </button>
           )}
 
-          {/* 1. Success % banner — top 14px */}
+          {/* Success % banner */}
           <div className="absolute z-[3] flex items-center justify-center gap-2"
             style={{ top:14, left:'5%', width:'90%', padding:'3px 8px' }}>
             <span className="text-sm font-extrabold tracking-wide">
               {mode === 'fail' && isItemLost ? (
-                <span style={{ color:'#000' }}>ไอเทมแตกสลาย</span>
+                <span style={{ color:'#000' }}>{t('item_destroyed')}</span>
               ) : (
                 <>
-                  <span style={{ color:'#000' }}>สำเร็จ </span>
+                  <span style={{ color:'#000' }}>{t('success_banner')} </span>
                   <span style={{ color:'#1d4ed8' }}>{Math.floor(bannerRate)}%</span>
                 </>
               )}
@@ -1207,13 +1191,12 @@ const Container = () => {
             )}
           </div>
 
-          {/* 2. Stone selector slots — top 11% (คลิกเลือกชนิดหินได้, dim อันที่ใช้ไม่ได้) */}
+          {/* Stone selector slots */}
           <div className="absolute z-[3] flex items-end justify-center"
             style={{ top:'11%', left:'50%', transform:'translateX(-50%)', gap:4, pointerEvents: autoRefine ? 'none' : 'auto', opacity: autoRefine ? 0.5 : 1 }}>
             {(() => {
-              // 3 ชนิดหิน: ปกติ / Enriched / HD — ใช้ getOreName/getStoneOre คำนวณแร่ของช่วงปัจจุบัน
               const stones = [
-                { key:'normal',   label:'ปกติ',     active: !useCash && !useEnriched, disabled:false,
+                { key:'normal',   label: t('stone_normal'), active: !useCash && !useEnriched, disabled:false,
                   activeC:'56,189,248',  onClick:() => { setUseCash(false); setUseEnriched(false); } },
                 { key:'enriched', label:'Enriched', active: useEnriched,              disabled: stack.length >= 10,
                   activeC:'251,191,36',  onClick:() => { setUseCash(false); setUseEnriched(true); } },
@@ -1252,7 +1235,7 @@ const Container = () => {
                 );
               });
             })()}
-            {/* BSB slot — คลิก toggle ได้ */}
+            {/* BSB slot */}
             {(() => {
               const bsbActive = useBSB && bsbInRange;
               return (
@@ -1284,15 +1267,15 @@ const Container = () => {
             })()}
           </div>
 
-          {/* 3. Warning (ถ้าหิน HD block) — top 60% */}
+          {/* Warning HD block */}
           {stoneBlocksRefine && (
             <div className="absolute z-[3] flex items-center justify-center gap-1"
               style={{ top:'60%', left:'50%', transform:'translateX(-50%)', background:'rgba(239,68,68,0.75)', borderRadius:4, padding:'2px 8px' }}>
-              <span style={{ fontSize:'0.65rem', fontWeight:700, color:'#fff' }}>⚠ HD ใช้ได้ตั้งแต่ +{hdMinLevel}</span>
+              <span style={{ fontSize:'0.65rem', fontWeight:700, color:'#fff' }}>{t('hd_min_warn')}{hdMinLevel}</span>
             </div>
           )}
 
-          {/* 5. Item name + level — top 78% */}
+          {/* Item name + level */}
           <div className="absolute z-[3] flex items-center justify-center gap-1.5"
             style={{ top:'76%', left:'50%', transform:'translateX(-50%)', color:'#000', whiteSpace:'nowrap' }}>
             <span className={`text-sm font-semibold ${
@@ -1303,11 +1286,10 @@ const Container = () => {
             </span>
           </div>
 
-          {/* 6. Buttons — ซ่อนระหว่าง animation */}
+          {/* Buttons */}
           {!isPlaying && mode !== 'process' && (() => {
             const isTibok = stack.length > 0 || (mode === 'success' && isSuccessLoop);
             const isTwoBtn = mode === 'fail' && (!autoRunning || isItemLost) && !autoRefine;
-            // auto ตีแตก (item หาย/ลดระดับ) แล้วหยุด: แสดง 2 ปุ่ม (กลับไป + เริ่ม Auto dim) — บังคับ bottom 4% / left 50% / width 83%
             const isTwoBtnAuto = autoRefine && !autoRunning && mode === 'fail';
             return (
           <div className="absolute z-[3] flex items-center justify-center gap-7"
@@ -1316,28 +1298,26 @@ const Container = () => {
               <button onClick={handleBackToWait}
                 className="cursor-pointer rounded font-bold text-amber-200 transition-opacity hover:opacity-80"
                 style={{ background:'transparent',color:'#000', padding:'15px 45px', fontSize:'0.75rem' }}>
-                กลับไป
+                {t('back_btn')}
               </button>
             )}
-            {/* Manual refine button */}
             {!autoRefine && (
               <button onClick={handleRefine}
                 disabled={isPlaying || stoneBlocksRefine || mode==='process' || (mode==='fail' && isItemLost)}
                 className="flex-1 cursor-pointer rounded font-bold transition-opacity hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-40"
                 style={{ background:'transparent', color:'#000', padding: (stack.length===0 && !(mode==='success' && isSuccessLoop)) ? '31px 0' : '19px 0', fontSize:'0.8rem' }}>
-                {stack.length===0 && !(mode==='success' && isSuccessLoop) ? 'อัพเกรด' : 'เริ่มอีกครั้ง'}
+                {stack.length===0 && !(mode==='success' && isSuccessLoop) ? t('upgrade_btn') : t('retry_btn')}
                 {!(stack.length===0 && !(mode==='success' && isSuccessLoop)) && (
                   <span style={{ display:'block', fontSize:'0.65rem', opacity:0.7 }}>Rate: {Math.floor(currentRate)}%</span>
                 )}
               </button>
             )}
-            {/* Start Auto button (ปุ่มหยุดแยกเป็น badge มุมขวาบน) */}
             {autoRefine && !autoRunning && (
               <button onClick={handleStartAuto}
                 disabled={isPlaying || mode==='process' || autoStart>=autoTarget || (mode==='fail' && isItemLost)}
                 className="flex-1 cursor-pointer rounded font-bold disabled:cursor-not-allowed disabled:opacity-40 hover:opacity-70"
                 style={{ background:'transparent', color:'#000', padding:'10px 0', fontSize:'0.8rem' }}>
-                เริ่ม Auto
+                {t('start_auto_btn')}
                 <span style={{ display:'block', fontSize:'0.6rem', opacity:0.8 ,color:'#fff'}}>+{autoStart}→+{autoTarget}</span>
               </button>
             )}
@@ -1350,7 +1330,7 @@ const Container = () => {
       </div>
       </div>
 
-      {/* สรุปจำนวนครั้งที่ตี: ทั้งหมด / สำเร็จ / แตก (คำนวณจาก log) */}
+      {/* สรุปจำนวนครั้งที่ตี */}
       {(() => {
         const totalAttempts = log.length;
         const successCount = log.filter((l) => l.isSuccess).length;
@@ -1359,31 +1339,31 @@ const Container = () => {
         return (
           <>
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400">สถิติ Session</span>
+            <span className="text-xs font-semibold text-slate-400">{t('session_stats')}</span>
             <button
               type="button"
               onClick={handleClearSession}
               disabled={autoRunning || totalAttempts === 0}
               className="rounded-lg border border-slate-600 px-3 py-1 text-xs font-semibold text-slate-300 transition-colors hover:border-rose-400/60 hover:text-rose-300 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              ล้าง Session
+              {t('clear_session')}
             </button>
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div className="rounded-xl border border-slate-700/60 bg-[#181a20]/90 px-4 py-3 text-center">
-              <div className="text-xs font-semibold text-slate-400">ตีทั้งหมด</div>
+              <div className="text-xs font-semibold text-slate-400">{t('total_attempts')}</div>
               <div className="text-2xl font-bold text-amber-300">{totalAttempts}</div>
-              <div className="text-xs text-slate-500">ครั้ง</div>
+              <div className="text-xs text-slate-500">{t('times_unit')}</div>
             </div>
             <div className="rounded-xl border border-emerald-700/40 bg-emerald-950/20 px-4 py-3 text-center">
-              <div className="text-xs font-semibold text-slate-400">สำเร็จ</div>
+              <div className="text-xs font-semibold text-slate-400">{t('success_count')}</div>
               <div className="text-2xl font-bold text-emerald-400">{successCount}</div>
               <div className="text-xs text-slate-500">{successPct.toFixed(1)}%</div>
             </div>
             <div className="rounded-xl border border-rose-700/40 bg-rose-950/20 px-4 py-3 text-center">
-              <div className="text-xs font-semibold text-slate-400">แตก/ล้มเหลว</div>
+              <div className="text-xs font-semibold text-slate-400">{t('fail_count')}</div>
               <div className="text-2xl font-bold text-rose-400">{failCount}</div>
-              <div className="text-xs text-slate-500">ครั้ง</div>
+              <div className="text-xs text-slate-500">{t('times_unit')}</div>
             </div>
           </div>
           </>
@@ -1398,60 +1378,95 @@ const Container = () => {
             if (el) el.scrollTop = el.scrollHeight;
           }}
         >
-          <div className="mb-2 text-xs font-semibold text-slate-500">Stack log</div>
+          <div className="mb-2 text-xs font-semibold text-slate-500">{t('stack_log_title')}</div>
           <ul className="space-y-0">
             {log.map((item, idx) => {
-              const sep = item.msg.indexOf(' — ');
-              const mainPart = sep >= 0 ? item.msg.slice(0, sep) : item.msg;
-              const rollDetail = sep >= 0 ? item.msg.slice(sep + 3) : '';
-              const levelMatch = mainPart.match(/^(\+\d+\s*→\s*\+\d+)/);
-              const levelStr = levelMatch ? levelMatch[1] : '';
+              // Level arrow: prefer structured data, fallback to msg parsing
+              const levelStr = item.fromLevel !== undefined
+                ? `+${item.fromLevel} → +${item.toLevel}`
+                : (() => {
+                    const sep = item.msg.indexOf(' — ');
+                    const mainPart = sep >= 0 ? item.msg.slice(0, sep) : item.msg;
+                    const m = mainPart.match(/^(\+\d+\s*→\s*\+\d+)/);
+                    return m ? m[1] : '';
+                  })();
 
-              // result badge
+              // Result badge from structured resultType
               let resultBadge;
-              if (item.isSuccess) {
-                resultBadge = (
-                  <span className="inline-flex items-center rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 text-[0.68rem] font-bold text-emerald-300">
-                    สำเร็จ
-                  </span>
-                );
-              } else if (item.bsbConsumed > 0) {
-                resultBadge = (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/15 px-2 py-0.5 text-[0.68rem] font-bold text-amber-300">
-                    <img src="/images/blacksmith_blessing.png" alt="BSB" className="h-3.5 w-3.5 object-contain" />
-                    ป้องกัน ×{item.bsbConsumed}
-                  </span>
-                );
-              } else if (item.msg.includes('ไอเทมหาย')) {
-                resultBadge = (
-                  <span className="inline-flex items-center rounded-full border border-rose-400/50 bg-rose-500/20 px-2 py-0.5 text-[0.68rem] font-bold text-rose-300">
-                    ไอเทมหาย
-                  </span>
-                );
-              } else {
-                const dropMatch = mainPart.match(/ลดระดับ\s*(\d+)\s*ขั้น/);
-                const isDropOne = mainPart.includes('ลดระดับ') && !dropMatch;
-                resultBadge = (
-                  <span className="inline-flex items-center rounded-full border border-rose-500/40 bg-rose-500/10 px-2 py-0.5 text-[0.68rem] font-bold text-rose-400">
-                    {dropMatch ? `ลด −${dropMatch[1]}` : isDropOne ? 'ลด −1' : 'ล้มเหลว'}
-                  </span>
-                );
+              switch (item.resultType) {
+                case 'success':
+                  resultBadge = (
+                    <span className="inline-flex items-center rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 text-[0.68rem] font-bold text-emerald-300">
+                      {t('badge_success')}
+                    </span>
+                  );
+                  break;
+                case 'bsb_protect':
+                  resultBadge = (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/15 px-2 py-0.5 text-[0.68rem] font-bold text-amber-300">
+                      <img src="/images/blacksmith_blessing.png" alt="BSB" className="h-3.5 w-3.5 object-contain" />
+                      {t('badge_protected')} ×{item.bsbConsumed}
+                    </span>
+                  );
+                  break;
+                case 'item_lost':
+                  resultBadge = (
+                    <span className="inline-flex items-center rounded-full border border-rose-400/50 bg-rose-500/20 px-2 py-0.5 text-[0.68rem] font-bold text-rose-300">
+                      {t('badge_item_lost')}
+                    </span>
+                  );
+                  break;
+                case 'level_drop':
+                  resultBadge = (
+                    <span className="inline-flex items-center rounded-full border border-rose-500/40 bg-rose-500/10 px-2 py-0.5 text-[0.68rem] font-bold text-rose-400">
+                      {t('badge_level_drop')}{item.dropAmount ?? 1}
+                    </span>
+                  );
+                  break;
+                default:
+                  // fallback: parse from msg (backward compat)
+                  resultBadge = (() => {
+                    if (item.isSuccess) {
+                      return (
+                        <span className="inline-flex items-center rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 text-[0.68rem] font-bold text-emerald-300">
+                          {t('badge_success')}
+                        </span>
+                      );
+                    }
+                    if (item.bsbConsumed > 0) {
+                      return (
+                        <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/15 px-2 py-0.5 text-[0.68rem] font-bold text-amber-300">
+                          <img src="/images/blacksmith_blessing.png" alt="BSB" className="h-3.5 w-3.5 object-contain" />
+                          {t('badge_protected')} ×{item.bsbConsumed}
+                        </span>
+                      );
+                    }
+                    if (item.msg && item.msg.includes('ไอเทมหาย')) {
+                      return (
+                        <span className="inline-flex items-center rounded-full border border-rose-400/50 bg-rose-500/20 px-2 py-0.5 text-[0.68rem] font-bold text-rose-300">
+                          {t('badge_item_lost')}
+                        </span>
+                      );
+                    }
+                    return (
+                      <span className="inline-flex items-center rounded-full border border-rose-500/40 bg-rose-500/10 px-2 py-0.5 text-[0.68rem] font-bold text-rose-400">
+                        {t('badge_fail')}
+                      </span>
+                    );
+                  })();
               }
 
               return (
                 <li key={idx} className="border-b border-slate-800/50 py-1.5 last:border-0">
                   <div className="flex flex-wrap items-center gap-1.5">
-                    {/* เลขลำดับ */}
                     <span className="w-7 shrink-0 text-right text-[0.68rem] tabular-nums text-slate-600">
                       #{idx + 1}
                     </span>
-                    {/* ประเภทไอเทม */}
                     {item.itemType && ITEM_TYPE_LABELS[item.itemType] && (
                       <span className="rounded bg-[#3a2e1e] px-1.5 py-0.5 text-[0.68rem] font-bold text-amber-300">
                         {ITEM_TYPE_LABELS[item.itemType]}
                       </span>
                     )}
-                    {/* แร่ (รูป + ชื่อ) หรือ fallback stone badge */}
                     {item.oreName && ORE_IMAGES[item.oreName] ? (
                       <span className="inline-flex items-center gap-1 rounded bg-[#1a2230] px-1.5 py-0.5 text-[0.68rem] font-semibold text-sky-300">
                         <img src={ORE_IMAGES[item.oreName]} alt={item.oreName} className="h-4 w-4 object-contain" />
@@ -1461,29 +1476,32 @@ const Container = () => {
                       <span className={`rounded px-1.5 py-0.5 text-[0.68rem] font-bold ${
                         item.useEnriched ? 'bg-[#3a3420] text-amber-200' : item.useCash ? 'bg-[#3a3220] text-orange-300' : 'bg-[#1e2a3a] text-sky-300'
                       }`}>
-                        {item.useEnriched ? 'Enriched' : item.useCash ? 'HD' : 'หินปกติ'}
+                        {item.useEnriched ? 'Enriched' : item.useCash ? 'HD' : t('log_stone_normal')}
                       </span>
                     )}
-                    {/* BSB active */}
                     {item.useBSB && (
                       <span className="inline-flex items-center gap-0.5 rounded bg-[#1b3322] px-1.5 py-0.5 text-[0.68rem] font-bold text-emerald-400">
                         <img src="/images/blacksmith_blessing.png" alt="BSB" className="h-4 w-4 object-contain" />
                         BSB
                       </span>
                     )}
-                    {/* level arrow */}
                     {levelStr && (
                       <span className="font-mono text-xs font-semibold text-slate-300">{levelStr}</span>
                     )}
-                    {/* result badge */}
                     {resultBadge}
                   </div>
-                  {/* roll detail */}
-                  {rollDetail && (
+                  {/* Roll detail */}
+                  {item.rollData ? (
                     <div className="ml-9 mt-0.5 text-[0.65rem] leading-relaxed text-slate-600">
-                      {rollDetail}
+                      {t('roll_success_pct')} {item.rollData.successPct.toFixed(2)}% / {t('roll_fail_pct')} {item.rollData.failPct.toFixed(2)}% → {t('roll_result')}: {item.rollData.isSuccess ? t('roll_success_side') : t('roll_fail_side')} {t('roll_at')} {item.rollData.rollPct.toFixed(2)}%
                     </div>
-                  )}
+                  ) : (() => {
+                    const sep = item.msg ? item.msg.indexOf(' — ') : -1;
+                    const detail = sep >= 0 ? item.msg.slice(sep + 3) : '';
+                    return detail ? (
+                      <div className="ml-9 mt-0.5 text-[0.65rem] leading-relaxed text-slate-600">{detail}</div>
+                    ) : null;
+                  })()}
                 </li>
               );
             })}
@@ -1494,32 +1512,28 @@ const Container = () => {
       {/* สรุปการใช้ไอเทมทั้งหมด */}
       {(() => {
         const num = (v) => Number(v) || 0;
-        // หน่วยเงินของแต่ละแถว: ใช้ override รายแถวก่อน ไม่งั้น fallback หน่วยรวม
         const curOf = (key) => rowCurrency[key] || currency;
         const unitOf = (cur) => (cur === 'baht' ? '฿' : 'Zenny');
         const fmtCur = (v, cur) => (cur === 'baht' ? `฿${num(v).toLocaleString('en-US')}` : `${num(v).toLocaleString('en-US')} Zenny`);
-        // แถวแร่ที่ใช้ (เฉพาะที่ใช้ไปแล้ว) ต่อท้ายแถวหิน/BSB
         const oreRows = Object.entries(oreUsed)
           .filter(([, qty]) => qty > 0)
-          .map(([name, qty]) => ({ key: `ore:${name}`, label: name, unit: 'ก้อน', qty, oreColor: ORE_COLORS[name] || 'bg-slate-400', icon: ORE_IMAGES[name] || null }));
+          .map(([name, qty]) => ({ key: `ore:${name}`, label: name, unit: t('ore_unit'), qty, oreColor: ORE_COLORS[name] || 'bg-slate-400', icon: ORE_IMAGES[name] || null }));
         const rows = [
-          { key: 'bsb', label: 'Black Smith Blessing', unit: 'ชิ้น', qty: bsbUsedTotal, icon: bsbImg },
+          { key: 'bsb', label: 'Black Smith Blessing', unit: t('bsb_unit'), qty: bsbUsedTotal, icon: bsbImg },
           ...oreRows,
         ];
-        // ยอดรวมแยกตามสกุลเงิน (เพราะแต่ละแถวเลือกหน่วยเองได้)
         const totals = rows.reduce((acc, r) => {
           acc[curOf(r.key)] += r.qty * num(prices[r.key]);
           return acc;
         }, { zenny: 0, baht: 0 });
-        // สกุลที่มีแถวใช้อยู่จริง (แสดงยอดรวมแม้ยังไม่กรอกราคา)
         const usedBaht = rows.some((r) => curOf(r.key) === 'baht');
         const usedZenny = rows.some((r) => curOf(r.key) === 'zenny');
         return (
           <div className="rounded-2xl border border-slate-700/60 bg-[#181a20]/90 p-4">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <b className="text-lg font-bold text-amber-300">สรุปการใช้ไอเทมทั้งหมด</b>
+              <b className="text-lg font-bold text-amber-300">{t('usage_title')}</b>
               <div className="flex flex-col items-end gap-1">
-                <div role="group" aria-label="สกุลเงินทั้งหมด" className="inline-flex overflow-hidden rounded-lg border border-slate-600">
+                <div role="group" aria-label="Currency" className="inline-flex overflow-hidden rounded-lg border border-slate-600">
                   <button
                     type="button"
                     onClick={() => { setCurrency('zenny'); setRowCurrency({}); }}
@@ -1536,10 +1550,10 @@ const Container = () => {
                       currency === 'baht' ? 'bg-amber-400 font-bold text-slate-900' : 'bg-transparent text-slate-400 hover:text-slate-200'
                     }`}
                   >
-                    ฿ บาท
+                    ฿ {lang === 'th' ? 'บาท' : 'Baht'}
                   </button>
                 </div>
-                <span className="text-[0.65rem] text-slate-500">ปรับทั้งหมด · หรือเลือกรายแถวด้านล่าง</span>
+                <span className="text-[0.65rem] text-slate-500">{t('set_all_hint')}</span>
               </div>
             </div>
             <ul className="space-y-2">
@@ -1564,13 +1578,13 @@ const Container = () => {
                     inputMode="numeric"
                     value={prices[r.key] ?? ''}
                     onChange={(e) => setPrices((p) => ({ ...p, [r.key]: e.target.value }))}
-                    placeholder="ราคา/หน่วย"
+                    placeholder={t('price_placeholder')}
                     className="w-24 rounded-md border border-slate-600 bg-[#181a20] px-2 py-1 text-right text-white outline-none transition-colors focus-visible:border-amber-400 focus-visible:ring-2 focus-visible:ring-amber-300/30 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                   />
                   <button
                     type="button"
                     onClick={() => setRowCurrency((p) => ({ ...p, [r.key]: rc === 'zenny' ? 'baht' : 'zenny' }))}
-                    title="สลับหน่วยเงินของแถวนี้"
+                    title={t('row_currency_title')}
                     className="min-w-[52px] rounded-md border border-slate-600 px-1.5 py-1 text-xs font-bold text-slate-300 transition-colors hover:border-amber-400/70 hover:text-amber-300"
                   >
                     {unitOf(rc)}
@@ -1582,7 +1596,7 @@ const Container = () => {
               })}
             </ul>
             <div className="mt-3 flex items-center justify-between rounded-lg border border-amber-400/40 bg-amber-400/10 px-3 py-2.5">
-              <span className="font-bold text-amber-300">รวมทั้งหมด</span>
+              <span className="font-bold text-amber-300">{t('total_label')}</span>
               <span className="flex flex-col items-end gap-0.5 text-lg font-bold text-emerald-300">
                 {usedBaht && <span>{fmtCur(totals.baht, 'baht')}</span>}
                 {usedZenny && <span>{fmtCur(totals.zenny, 'zenny')}</span>}
@@ -1600,7 +1614,6 @@ const Container = () => {
     </div>
 
     {/* Stone info modal */}
-
     {showStoneModal && (
       <div
         className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
@@ -1611,22 +1624,22 @@ const Container = () => {
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between border-b border-slate-700/60 px-5 py-4">
-            <h2 className="text-base font-bold text-amber-300">ตารางหินตีบวกทั้งหมด</h2>
+            <h2 className="text-base font-bold text-amber-300">{t('stone_table_title')}</h2>
             <button
               type="button"
               onClick={() => setShowStoneModal(false)}
               className="rounded-lg border border-slate-600 px-3 py-1 text-sm text-slate-300 hover:border-slate-400"
-            >ปิด</button>
+            >{t('close_btn')}</button>
           </div>
           <div className="overflow-y-auto p-4">
             <table className="w-full border-collapse text-sm">
               <thead className="sticky top-0 z-10">
                 <tr className="bg-[#181a20] text-xs text-slate-400">
-                  <th className="border border-slate-700 p-2 text-left">หิน</th>
-                  <th className="border border-slate-700 p-2 text-center">ใช้กับ</th>
-                  <th className="border border-slate-700 p-2 text-center">ช่วง</th>
-                  <th className="border border-slate-700 p-2 text-center">ล้มเหลว</th>
-                  <th className="border border-slate-700 p-2 text-center">หมายเหตุ</th>
+                  <th className="border border-slate-700 p-2 text-left">{t('stone_col')}</th>
+                  <th className="border border-slate-700 p-2 text-center">{t('for_col')}</th>
+                  <th className="border border-slate-700 p-2 text-center">{t('range_col')}</th>
+                  <th className="border border-slate-700 p-2 text-center">{t('on_fail_col')}</th>
+                  <th className="border border-slate-700 p-2 text-center">{t('note_col')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -1649,8 +1662,8 @@ const Container = () => {
                       <td className="border border-slate-700 p-2 text-center font-bold text-indigo-300">{r.range}</td>
                       <td className={`border border-slate-700 p-2 text-center text-xs font-semibold ${
                         r.fail.includes('หาย') ? 'text-rose-400' : r.fail.includes('−1') ? 'text-orange-300' : 'text-amber-300'
-                      }`}>{r.fail}</td>
-                      <td className="border border-slate-700 p-2 text-center text-xs text-sky-300">{r.note}</td>
+                      }`}>{stoneFailLabel(r.fail)}</td>
+                      <td className="border border-slate-700 p-2 text-center text-xs text-sky-300">{stoneNoteLabel(r.note)}</td>
                     </tr>
                   )
                 )}

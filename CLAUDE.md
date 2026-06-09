@@ -20,7 +20,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Entry และ shell
 - `index.html` → `src/main.jsx` mount `<App />` (ไม่ใช้ `StrictMode` ห่อ children เพิ่ม)
-- `src/App.jsx` render เฉพาะ `<Container />` จาก `src/components/Layout/index.jsx` — ตรรกะทั้งหมดของแอปอยู่ที่ Container เดียว
+- `src/App.jsx` ห่อทุกอย่างด้วย `<LangProvider>` แล้ว render `<Container />`, `<FloatingMenu />`, `<PatchNotesModal />`
+
+### ระบบ 2 ภาษา (i18n)
+- `src/i18n/translations.js` — `TRANSLATIONS` object มีทั้ง `th` และ `en` key สำหรับทุก string ใน UI
+- `src/contexts/LangContext.jsx` — `LangProvider`, `useLang()` → `{ lang, setLang, t(key, params?) }` โดย `t()` รองรับ placeholder `{key}` เช่น `t('hd_before_warn', { n: 7 })`
+  - persist ภาษาใน localStorage (`ro_refine_lang`)
+  - ทุก component ที่แสดง text ใช้ `useLang()` แทนการ hardcode ภาษาไทย
+- ปุ่มสลับภาษา (🇹🇭 TH / 🇬🇧 EN) แสดงต่ำกว่า HeroBanner ใน Layout
 
 ### Pure helpers / data ที่แยกออกจาก `index.jsx` แล้ว
 ตรรกะ stateful ทั้งหมดยังอยู่ใน `Container` (`index.jsx`) แต่ค่าคงที่/ฟังก์ชัน pure ถูกแยกเป็นโมดูลย่อย (import กลับเข้า index.jsx):
@@ -150,7 +157,8 @@ Deploy หลักใช้ **Vercel** (auto build จาก push master, root 
 - เลขลำดับ `#N` นำหน้าทุก entry
 - แสดงรูปแร่จาก `ORE_IMAGES[item.oreName]` + ชื่อ (fallback เป็น stone badge ถ้าไม่มีรูป)
 - BSB แสดงด้วยรูป `/images/blacksmith_blessing.png`
-- result badge แยกตาม: `isSuccess` → สำเร็จ, `bsbConsumed > 0` → ป้องกัน ×N, `ไอเทมหาย` ใน msg → ไอเทมหาย, `ลดระดับ N ขั้น` → ลด −N, อื่น → ล้มเหลว
+- result badge แยกตาม `item.resultType`: `'success'` → สำเร็จ, `'bsb_protect'` → ป้องกัน ×N, `'item_lost'` → ไอเทมหาย, `'level_drop'` → ลด −N (จาก `item.dropAmount`), อื่น → ล้มเหลว
+- log entry เพิ่ม field: `resultType`, `dropAmount`, `rollData: {successPct, failPct, rollPct, isSuccess}`, `fromLevel`, `toLevel` — ใช้ render badge และ roll detail โดยไม่ต้อง parse string msg
 
 ## Version
 
@@ -161,7 +169,7 @@ Deploy หลักใช้ **Vercel** (auto build จาก push master, root 
 - `MINOR` (+0.1.0) — ฟีเจอร์ใหม่, เพิ่ม component
 - `MAJOR` (+1.0.0) — เปลี่ยน architecture, redesign ใหญ่
 
-version ปัจจุบัน: **1.5.0**
+version ปัจจุบัน: **1.6.0**
 
 ## Patch Notes (changelog)
 
