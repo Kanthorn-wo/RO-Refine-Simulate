@@ -214,7 +214,8 @@ const Container = () => {
     if (oreName) {
       setOreUsed(prev => ({ ...prev, [oreName]: (prev[oreName] || 0) + 1 }));
     }
-    if (!isSuccess && canUseBSB) {
+    // BSB ถูกใช้ทุกครั้งที่ตีในช่วงที่ active — ตีติดก็เสีย (ตามกติกาเกมจริง)
+    if (canUseBSB) {
       setBsbUsedTotal(prev => prev + bsbUsed);
     }
     if (isSuccess) {
@@ -266,7 +267,7 @@ const Container = () => {
       useCash,
       useEnriched,
       useBSB,
-      bsbConsumed: (!isSuccess && canUseBSB) ? bsbUsed : 0,
+      bsbConsumed: canUseBSB ? bsbUsed : 0,
       isSuccess,
       oreName: oreName || null,
     }]);
@@ -1492,7 +1493,7 @@ const Container = () => {
                     {item.useBSB && (
                       <span className="inline-flex items-center gap-0.5 rounded bg-[#1b3322] px-1.5 py-0.5 text-[0.68rem] font-bold text-emerald-400">
                         <img src="/images/blacksmith_blessing.png" alt="BSB" className="h-4 w-4 object-contain" />
-                        BSB
+                        BSB{item.bsbConsumed > 0 ? ` ×${item.bsbConsumed}` : ''}
                       </span>
                     )}
                     {levelStr && (

@@ -35,6 +35,13 @@ export const simulateRound = ({ itemType, startLevel, targetLevel, stone, useBSB
       ores[oreName] = (ores[oreName] || 0) + 1;
       oresTotal++;
     }
+    // BSB ถูกใช้ทุกครั้งที่ตีในช่วงที่ active — ตีติดก็เสีย (ตามกติกาเกมจริง)
+    const currentLevel = level + 1;
+    let bsbCost = 0;
+    if (useBSB && currentLevel >= 8 && currentLevel <= 15) {
+      bsbCost = bsbTable[currentLevel - 1] || 0;
+    }
+    if (bsbCost > 0) bsbUsed += bsbCost;
     const rate = getRate(isEventRate, useCash, useEnriched, itemType, level) / 100;
     if (Math.random() < rate) {
       level++;
@@ -42,13 +49,8 @@ export const simulateRound = ({ itemType, startLevel, targetLevel, stone, useBSB
       continue;
     }
     // fail — ลำดับสาขาเดียวกับ handleRefine
-    const currentLevel = level + 1;
-    let bsbCost = 0;
-    if (useBSB && currentLevel >= 8 && currentLevel <= 15) {
-      bsbCost = bsbTable[currentLevel - 1] || 0;
-    }
     if (bsbCost > 0) {
-      bsbUsed += bsbCost; // BSB คุ้มกัน — ระดับเดิม
+      // BSB คุ้มกัน — ระดับเดิม (หักไปแล้วด้านบน)
     } else if (isSpecial) {
       if (level >= 10) {
         itemsLost++;

@@ -56,7 +56,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 #### BSB (Black Smith Blessing)
 - ใช้ได้ที่ `stack.length` 7–14 (ตีจาก +7→+8 ถึง +14→+15) เช็คผ่าน `bsbInRange`
 - จำนวน BSB ต่อระดับมาจาก `BSB_REQUIRED_NORMAL` / `BSB_REQUIRED_EVENT` ใน `src/constants/refineConfig.js` เลือกตาม `isEventRate`
-- เมื่อมี BSB: log บอกว่าป้องกัน "ลดระดับ" (HD) หรือ "ไอเทมหาย" (หินธรรมดา/Enriched) แล้วแต่ชนิดหิน
+- **BSB ถูกหักทุกครั้งที่ตีในช่วงที่ active — ตีติดก็เสีย** (กติกาเกมจริง) ทั้งใน `handleRefine` และ `simulate.js` — การ "ป้องกัน" คือผลตอนล้มเท่านั้น แต่การ "หัก" เกิดทุก attempt
+- เมื่อมี BSB: log บอกว่าป้องกัน "ลดระดับ" (HD) หรือ "ไอเทมหาย" (หินธรรมดา/Enriched) แล้วแต่ชนิดหิน + chip BSB ใน log โชว์ ×N ที่ใช้ทุก entry ที่มีการหัก
 
 #### ระบบ Auto ตีบวก
 Auto มี state หลักดังนี้ — แก้ไขอะไรใน auto ต้องอ่านทั้งกลุ่มนี้:
@@ -173,7 +174,7 @@ Deploy หลักใช้ **Vercel** (auto build จาก push master, root 
 - `MINOR` (+0.1.0) — ฟีเจอร์ใหม่, เพิ่ม component
 - `MAJOR` (+1.0.0) — เปลี่ยน architecture, redesign ใหญ่
 
-version ปัจจุบัน: **1.9.2**
+version ปัจจุบัน: **1.9.3**
 
 ## Patch Notes (changelog)
 

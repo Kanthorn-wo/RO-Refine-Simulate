@@ -12,6 +12,13 @@
 
 export const CHANGELOG = [
   {
+    version: '1.9.3',
+    date: '2026-06-10',
+    items: [
+      { type: 'fix', text: 'แก้การนับ BSB ให้ตรงตามเกม — BSB ถูกใช้ทุกครั้งที่ตี (ตีติดก็เสีย) มีผลทั้งโหมดปกติและโหมดจำลอง พร้อมแสดงจำนวนที่ใช้ใน log ทุกครั้ง', textEn: 'Fixed BSB counting to match the game — BSB is consumed on every attempt (success included), in both normal and simulator modes, with the amount shown in the log' },
+    ],
+  },
+  {
     version: '1.9.2',
     date: '2026-06-10',
     items: [
