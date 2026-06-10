@@ -30,9 +30,9 @@ const RateUpIcon = ({ className }) => (
       d="M24 3c1.6 8.4-1.6 12.9-5.4 16.7C15 23.2 12 27 12 32a12 12 0 0 0 24 0c0-3-1-5.7-2.6-7.9-2 2.4-4.6 3.3-4.6 3.3 2-6.4.8-14.3-4.8-21.4z"
     />
     {/* ลูกศรขึ้น */}
-    <g className="rateup-arrow" stroke="#fff" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" fill="none">
-      <path d="M24 38v-10.5" />
-      <path d="M18.8 32.7 24 27.5l5.2 5.2" />
+    <g className="rateup-arrow" stroke="#fff" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" fill="none">
+      <path d="M24 37v-8.5" />
+      <path d="M19.8 32.7 24 28.5l4.2 4.2" />
     </g>
   </svg>
 );
