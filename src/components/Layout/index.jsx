@@ -9,6 +9,7 @@ import souneEffectFail from 'assets/sounds/bs_refine_failed.wav';
 import bsbImg from 'assets/images/blacksmith_blessing.png';
 import { BSB_REQUIRED_NORMAL, BSB_REQUIRED_EVENT } from '../../constants/refineConfig';
 import Toggle from '../Toggle';
+import SimulatorPanel from '../SimulatorPanel';
 import { getRate } from '../../constants/refineRates';
 import { STONE_META, getStoneMinLevel, getEffectiveStone, getPlannedStone, toggleHasMeaning } from '../../utils/stones';
 import { ITEM_TYPE_LABELS, ORE_COLORS, ORE_IMAGES, getOreName, getStoneOre, STONE_REFERENCE } from '../../constants/ores';
@@ -1335,6 +1336,9 @@ const Container = () => {
         {/* ── จบ animation frame ── */}
       </div>
       </div>
+
+      {/* Simulator หาค่าเฉลี่ย (Monte Carlo) — ซ่อนใน panel slide เหนือสถิติ Session */}
+      <SimulatorPanel itemType={itemType} isEventRate={isEventRate} bsbTable={bsbTable} />
 
       {/* สรุปจำนวนครั้งที่ตี */}
       {(() => {

@@ -12,6 +12,13 @@
 
 export const CHANGELOG = [
   {
+    version: '1.9.0',
+    date: '2026-06-10',
+    items: [
+      { type: 'feature', text: 'เพิ่มโหมดจำลองหาค่าเฉลี่ย (Beta) — เลือกช่วงระดับ ชนิดหิน BSB และจำนวนรอบ แล้วดูค่าเฉลี่ยตีติด/ล้ม/ไอเทมแตก/หิน/BSB พร้อมกราฟการกระจายและค่าเบี่ยงเบนมาตรฐาน (กดเปิดได้ที่แถบม่วงเหนือสถิติ Session)', textEn: 'New Average Simulator (Beta) — pick a level range, stone, BSB and number of rounds to see average successes/fails/broken items/stones/BSB with a distribution chart and standard deviation (open via the purple bar above Session Stats)' },
+    ],
+  },
+  {
     version: '1.8.1',
     date: '2026-06-10',
     items: [
