@@ -114,6 +114,8 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable }) => {
         };
         setResults({
           runs: all,
+          // เก็บ config ที่ใช้รันจริง — กัน state ปัจจุบันถูกเปลี่ยนหลังรันแล้วข้อความใต้กราฟเพี้ยน
+          cfgUsed: { startLevel, targetLevel },
           stats: summarize(attempts),
           attempts,
           metrics: {
@@ -374,6 +376,8 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable }) => {
                           p90: fmt(chartStats.p90, 0),
                           median: fmt(chartStats.median, 0),
                           unit: t(card.unit),
+                          start: results.cfgUsed.startLevel,
+                          target: results.cfgUsed.targetLevel,
                         })}
                       </p>
                     </div>
