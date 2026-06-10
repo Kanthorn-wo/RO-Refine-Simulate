@@ -47,7 +47,8 @@ export const LangProvider = ({ children }) => {
     let val = TRANSLATIONS[lang]?.[key] ?? TRANSLATIONS['th']?.[key] ?? key;
     if (params) {
       Object.entries(params).forEach(([k, v]) => {
-        val = val.replace(`{${k}}`, v);
+        // replaceAll: placeholder เดียวกันใช้ซ้ำได้หลายจุดในประโยค
+        val = val.replaceAll(`{${k}}`, v);
       });
     }
     return val;
