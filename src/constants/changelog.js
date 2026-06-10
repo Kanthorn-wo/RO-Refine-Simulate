@@ -1,7 +1,8 @@
 // ประวัติการอัปเดต (patch notes) — เรียงจากใหม่ไปเก่า
 // type ของแต่ละรายการ: 'feature' (ใหม่) | 'fix' (แก้บั๊ก) | 'improve' (ปรับปรุง)
-// กติกา: 1 push = 1 entry เดียว — รวบทุกการแก้ในรอบนั้นเป็น items หลายรายการ
-// (bump version เฉพาะตอน push ห้ามสร้าง entry แยกหลาย version ถี่ ๆ)
+// กติกา: 1 วัน = ไม่เกิน 1 entry — push ซ้ำวันเดิมให้รวม items เข้า entry เดิมแล้วอัปเดต version เป็นตัวล่าสุด
+// คัดเฉพาะเรื่องที่ผู้เล่นได้ประโยชน์ชัด ๆ — แก้คำ/บั๊กเล็กไม่มี impact/feature จิ๋ว/แก้ของที่เพิ่งออกวันเดียวกัน = ไม่ใส่
+// เรื่องแนวเดียวกันรวมเป็นข้อเดียว (bump version เฉพาะตอน push)
 //
 // ⚠️ patch notes แสดงต่อสาธารณะ — ก่อนเพิ่มรายการ ห้ามใส่สิ่งเหล่านี้:
 //   - secret / credential: API key, token, GA ID, Google Form ID, endpoint/API provider ภายใน
@@ -17,32 +18,10 @@ export const CHANGELOG = [
     version: '1.7.1',
     date: '2026-06-10',
     items: [
-      { type: 'improve', text: 'โหมดจำลอง: ปรับคำอธิบายผลให้เข้าใจง่ายขึ้น และใช้คำว่า "ไอเทมหาย" ให้ตรงกันทั้งเว็บ', textEn: 'Simulator: clearer result wording, and "Items lost" now matches the term used across the site' },
-    ],
-  },
-  {
-    version: '1.7.0',
-    date: '2026-06-10',
-    items: [
-      { type: 'feature', text: 'โหมดจำลอง: กราฟใหม่ ชี้ดูค่าแต่ละแท่งได้ สลับดูได้ทั้ง ตี/หิน/BSB/ไอเทมแตก พร้อมเส้นโอกาสสะสมและคำแนะนำว่าควรเตรียมของเท่าไหร่ถึงพอ', textEn: 'Simulator: new interactive chart with tooltips, switchable between attempts/stones/BSB/broken items, plus a cumulative-chance line and a plain advice line on how much to stock up' },
-      { type: 'improve', text: 'โหมดจำลอง: รวมค่าเฉลี่ย/ต่ำสุด/สูงสุดไว้ในการ์ดเดียวต่อค่า อ่านง่ายขึ้น', textEn: 'Simulator: average/min/max merged into one card per stat for easier reading' },
-    ],
-  },
-  {
-    version: '1.6.0',
-    date: '2026-06-10',
-    items: [
-      { type: 'feature', text: 'เพิ่มโหมดจำลองหาค่าเฉลี่ย (Beta) — เลือกช่วงระดับ ชนิดหิน BSB และจำนวนรอบ (preset หรือพิมพ์เอง 10–1000) แล้วดูค่าเฉลี่ย/ต่ำสุด/สูงสุดของ ตีทั้งหมด/ตีติด/ล้มเหลว/ไอเทมแตก/หิน/BSB พร้อมกราฟการกระจายและค่าเบี่ยงเบนมาตรฐาน (กดเปิดได้ที่แถบม่วงเหนือสถิติ Session)', textEn: 'New Average Simulator (Beta) — pick a level range, stone, BSB and number of rounds (presets or custom 10–1000) to see average/min/max of attempts/successes/fails/broken items/stones/BSB with a distribution chart and standard deviation (open via the purple bar above Session Stats)' },
-      { type: 'fix', text: 'แก้การนับ BSB ให้ตรงตามเกม — BSB ถูกใช้ทุกครั้งที่ตี (ตีติดก็เสีย) มีผลทั้งโหมดปกติและโหมดจำลอง พร้อมแสดงจำนวนที่ใช้ใน log ทุกครั้ง', textEn: 'Fixed BSB counting to match the game — BSB is consumed on every attempt (success included), in both normal and simulator modes, with the amount shown in the log' },
-    ],
-  },
-  {
-    version: '1.5.0',
-    date: '2026-06-10',
-    items: [
+      { type: 'feature', text: 'เพิ่มโหมดจำลองหาค่าเฉลี่ย (Beta) — เลือกช่วงระดับ ชนิดหิน BSB และจำนวนรอบ แล้วดูค่าเฉลี่ย/ต่ำสุด/สูงสุดของ ตี/ติด/ล้ม/ไอเทมหาย/หิน/BSB พร้อมกราฟแบบชี้ดูค่าได้ เส้นโอกาสสะสม และคำแนะนำว่าควรเตรียมของเท่าไหร่ (กดเปิดที่แถบม่วงเหนือสถิติ Session)', textEn: 'New Average Simulator (Beta) — pick a level range, stone, BSB and rounds, then see avg/min/max of attempts/successes/fails/items lost/stones/BSB with an interactive chart, cumulative-chance line and advice on how much to stock up (open via the purple bar above Session Stats)' },
       { type: 'feature', text: 'เพิ่มหน้าเว็บภาษาอังกฤษที่ ro-refine.com/en/ — สลับภาษาแล้วลิงก์จะเปลี่ยนตามให้อัตโนมัติ', textEn: 'English version now available at ro-refine.com/en/ — switching language updates the link automatically' },
-      { type: 'improve', text: 'ชื่อหน้าเว็บบนแท็บเบราว์เซอร์เปลี่ยนตามภาษาที่เลือก', textEn: 'Browser tab title now follows the selected language' },
-      { type: 'fix', text: 'แก้เปอร์เซ็นต์สำเร็จบนแถบด้านบนไม่ตรงกับ Rate ที่ปุ่มตีบวก — ตอนนี้แสดงโอกาสของการตีครั้งถัดไปตรงกันแล้ว', textEn: 'Fixed success % on the top banner not matching the Rate on the refine button — both now show the next attempt\'s rate' },
+      { type: 'fix', text: 'แก้การนับ BSB ให้ตรงตามเกม — BSB ถูกใช้ทุกครั้งที่ตี (ตีติดก็เสีย) มีผลทั้งโหมดปกติและโหมดจำลอง', textEn: 'Fixed BSB counting to match the game — BSB is consumed on every attempt (success included), in both normal and simulator modes' },
+      { type: 'fix', text: 'แก้เปอร์เซ็นต์สำเร็จบนแถบด้านบนไม่ตรงกับ Rate ที่ปุ่มตีบวก', textEn: 'Fixed success % on the top banner not matching the Rate on the refine button' },
     ],
   },
   {
