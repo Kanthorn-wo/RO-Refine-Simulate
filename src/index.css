@@ -46,17 +46,10 @@ body {
   15% { opacity: 1; }
   100% { transform: translateY(-520%) scale(0.35); opacity: 0; }
 }
-@keyframes banner-drop {
-  from { transform: translateY(-100%); }
-  to { transform: translateY(0); }
-}
 .event-fire-bar {
   background: linear-gradient(90deg, #7f1d1d, #ea580c, #fbbf24, #ef4444, #b45309, #7f1d1d);
   background-size: 300% 100%;
   animation: fire-shift 5s ease-in-out infinite;
-}
-.event-fire-enter {
-  animation: fire-shift 5s ease-in-out infinite, banner-drop 0.35s ease-out;
 }
 .event-fire-glow {
   animation: fire-flicker 1.6s ease-in-out infinite;
@@ -83,18 +76,10 @@ body {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-4px); }
 }
-/* transition ตอนย่อ: pill หดย่อ+จางเข้ามาจากแนวแถบเดิม */
-@keyframes pill-in {
-  from { transform: translateY(-18px) scale(0.45); opacity: 0; }
-  to { transform: translateY(0) scale(1); opacity: 1; }
-}
-/* pill ตอนย่อ: เข้าฉากด้วย pill-in ก่อน แล้วค่อยเด้ง — delay bob ให้พ้นช่วง pill-in
-   เพราะทั้งคู่ animate transform ถ้าเล่นพร้อมกันตัวหลังในลิสต์จะทับตัวแรก */
-.event-fire-pill {
-  background: linear-gradient(90deg, #7f1d1d, #ea580c, #fbbf24, #ef4444, #b45309, #7f1d1d);
-  background-size: 300% 100%;
+/* โหมด pill (ตอนย่อ): เด้งขึ้นลงต่อเนื่อง — delay ให้ morph (0.5s) จบก่อนค่อยเริ่มเด้ง
+   ต้องประกาศ fire-shift ซ้ำในลิสต์เพราะ animation shorthand ทับของ .event-fire-bar */
+.event-pill-mode {
   animation:
-    pill-in 0.35s ease-out,
     fire-shift 5s ease-in-out infinite,
-    pill-bob 1.8s ease-in-out 0.35s infinite;
+    pill-bob 1.8s ease-in-out 0.5s infinite;
 }

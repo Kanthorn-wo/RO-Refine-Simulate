@@ -597,8 +597,13 @@ const Container = () => {
       />
     )}
     <div className="w-full max-w-4xl mx-auto flex flex-col gap-5">
-      {/* spacer กันเนื้อหาโดนแถบ Event (fixed) บัง — เฉพาะตอนกางเต็มแถบ */}
-      {isEventRate && !eventBarCollapsed && <div aria-hidden="true" className="h-8 sm:h-10" />}
+      {/* spacer กันเนื้อหาโดนแถบ Event (fixed) บัง — ยุบ/ขยายนุ่ม ๆ ตามสถานะแถบ (-mb-5 หักล้าง gap ตอนยุบ) */}
+      {isEventRate && (
+        <div
+          aria-hidden="true"
+          className={`transition-all duration-500 ease-in-out ${eventBarCollapsed ? 'h-0 -mb-5' : 'h-8 sm:h-10'}`}
+        />
+      )}
       {/* Hero Banner */}
       <HeroBanner />
 

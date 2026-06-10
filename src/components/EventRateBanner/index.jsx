@@ -44,61 +44,69 @@ const Chevron = ({ up, className }) => (
   </svg>
 );
 
-// แถบ Event Rate Up — fixed ลอยบนสุดเต็มจอ (ห้ามใช้ sticky: wrapper ใน App เป็น flex justify-center)
-// collapsed = ย่อเหลือ pill ลอยมุมขวาบน เด้งขึ้นลงตลอด กดเพื่อขยายกลับ
+// แถบ Event Rate Up — fixed ลอยบนสุด (ห้ามใช้ sticky: wrapper ใน App เป็น flex justify-center)
+// morph ชิ้นเดียว: container ตัวเดิม transition ขนาด/ตำแหน่ง/ความมน ระหว่างแถบเต็มจอ ↔ pill มุมขวาบน
+// เนื้อหา 2 ชั้น (เต็ม/pill) ซ้อนกันแล้ว crossfade ด้วย opacity
 const EventRateBanner = ({ collapsed, onToggle }) => {
   const { t } = useLang();
+  return (
+    <div
+      role={collapsed ? 'button' : undefined}
+      tabIndex={collapsed ? 0 : undefined}
+      aria-label={collapsed ? t('event_expand') : undefined}
+      title={collapsed ? t('event_expand') : undefined}
+      onClick={collapsed ? onToggle : undefined}
+      onKeyDown={collapsed ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle(); } } : undefined}
+      className={`event-fire-bar fixed top-0 right-0 z-40 overflow-hidden shadow-lg shadow-orange-950/60 transition-all duration-500 ease-in-out ${
+        collapsed
+          ? 'event-pill-mode mt-2 mr-3 h-9 w-[150px] cursor-pointer rounded-full ring-1 ring-amber-200/50 hover:scale-105'
+          : 'mt-0 mr-0 h-14 w-full rounded-none sm:h-20'
+      }`}
+    >
+      {/* glow + ลูกไฟ — จางหายตอนย่อ */}
+      <div className={`pointer-events-none absolute inset-0 transition-opacity duration-300 ${collapsed ? 'opacity-0' : 'opacity-100'}`}>
+        <div className="event-fire-glow absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(253,224,71,0.3),transparent_70%)]" />
+        {EMBERS.map((e, i) => (
+          <span
+            key={i}
+            className="event-ember"
+            style={{ left: e.left, width: e.size, height: e.size, animationDelay: e.delay, animationDuration: e.dur }}
+          />
+        ))}
+      </div>
 
-  if (collapsed) {
-    return (
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-label={t('event_expand')}
-        title={t('event_expand')}
-        className="event-fire-pill fixed right-3 top-2 z-40 flex items-center gap-1.5 overflow-hidden rounded-full py-1.5 pl-2.5 pr-3 shadow-lg shadow-orange-950/60 ring-1 ring-amber-200/50 transition-transform hover:scale-105"
-      >
+      {/* ชั้นเนื้อหาเต็ม */}
+      <div className={`absolute inset-0 z-[1] transition-opacity duration-300 ${collapsed ? 'pointer-events-none opacity-0' : 'opacity-100'}`}>
+        <div className="mx-auto flex h-full w-full max-w-4xl items-center justify-center gap-2.5 px-4 sm:gap-4">
+          <RateUpIcon className="h-9 w-9 drop-shadow-[0_0_8px_rgba(253,224,71,0.85)] sm:h-13 sm:w-13" />
+          <div className="text-center">
+            <div className="text-base font-extrabold uppercase tracking-[0.2em] text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)] sm:text-2xl">
+              Event Rate Up
+            </div>
+            <div className="text-[0.62rem] font-semibold text-amber-100/90 sm:text-xs">
+              {t('event_banner_sub')}
+            </div>
+          </div>
+          <RateUpIcon className="h-9 w-9 drop-shadow-[0_0_8px_rgba(253,224,71,0.85)] sm:h-13 sm:w-13" />
+        </div>
+        {/* ปุ่มย่อแถบ */}
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-label={t('event_collapse')}
+          title={t('event_collapse')}
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full border border-white/40 bg-black/25 p-1.5 text-white transition-colors hover:bg-black/50 sm:right-4"
+        >
+          <Chevron up className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+        </button>
+      </div>
+
+      {/* ชั้นเนื้อหา pill */}
+      <div className={`absolute inset-0 z-[1] flex items-center justify-center gap-1.5 transition-opacity duration-300 ${collapsed ? 'opacity-100' : 'pointer-events-none opacity-0'}`}>
         <RateUpIcon className="h-5 w-5 drop-shadow-[0_0_5px_rgba(253,224,71,0.85)]" />
         <span className="text-xs font-extrabold uppercase tracking-wider text-white drop-shadow">Rate Up</span>
         <Chevron up={false} className="h-3.5 w-3.5 text-white/90" />
-      </button>
-    );
-  }
-
-  return (
-    <div className="event-fire-bar event-fire-enter fixed inset-x-0 top-0 z-40 w-full overflow-hidden shadow-lg shadow-orange-950/60">
-      {/* glow กลางแถบ กระพริบแบบไฟ */}
-      <div className="event-fire-glow pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(253,224,71,0.3),transparent_70%)]" />
-      {/* ลูกไฟลอยขึ้น */}
-      {EMBERS.map((e, i) => (
-        <span
-          key={i}
-          className="event-ember"
-          style={{ left: e.left, width: e.size, height: e.size, animationDelay: e.delay, animationDuration: e.dur }}
-        />
-      ))}
-      <div className="relative z-[1] mx-auto flex h-14 w-full max-w-4xl items-center justify-center gap-2.5 px-4 sm:h-20 sm:gap-4">
-        <RateUpIcon className="h-9 w-9 drop-shadow-[0_0_8px_rgba(253,224,71,0.85)] sm:h-13 sm:w-13" />
-        <div className="text-center">
-          <div className="text-base font-extrabold uppercase tracking-[0.2em] text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)] sm:text-2xl">
-            Event Rate Up
-          </div>
-          <div className="text-[0.62rem] font-semibold text-amber-100/90 sm:text-xs">
-            {t('event_banner_sub')}
-          </div>
-        </div>
-        <RateUpIcon className="h-9 w-9 drop-shadow-[0_0_8px_rgba(253,224,71,0.85)] sm:h-13 sm:w-13" />
       </div>
-      {/* ปุ่มย่อแถบ */}
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-label={t('event_collapse')}
-        title={t('event_collapse')}
-        className="absolute right-2 top-1/2 z-[2] -translate-y-1/2 rounded-full border border-white/40 bg-black/25 p-1.5 text-white transition-colors hover:bg-black/50 sm:right-4"
-      >
-        <Chevron up className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-      </button>
     </div>
   );
 };
