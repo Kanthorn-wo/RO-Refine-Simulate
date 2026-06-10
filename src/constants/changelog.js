@@ -1,5 +1,7 @@
 // ประวัติการอัปเดต (patch notes) — เรียงจากใหม่ไปเก่า
 // type ของแต่ละรายการ: 'feature' (ใหม่) | 'fix' (แก้บั๊ก) | 'improve' (ปรับปรุง)
+// กติกา: 1 push = 1 entry เดียว — รวบทุกการแก้ในรอบนั้นเป็น items หลายรายการ
+// (bump version เฉพาะตอน push ห้ามสร้าง entry แยกหลาย version ถี่ ๆ)
 //
 // ⚠️ patch notes แสดงต่อสาธารณะ — ก่อนเพิ่มรายการ ห้ามใส่สิ่งเหล่านี้:
 //   - secret / credential: API key, token, GA ID, Google Form ID, endpoint/API provider ภายใน

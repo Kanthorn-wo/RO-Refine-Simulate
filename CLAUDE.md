@@ -169,10 +169,13 @@ Deploy หลักใช้ **Vercel** (auto build จาก push master, root 
 
 เลข version อยู่ที่ `src/version.js` ไฟล์เดียว export เป็น `APP_VERSION` string แสดงใน footer ของ Layout
 
-**ทุกครั้งก่อน push ต้องอัปเดตเลข version ก่อนเสมอ** โดยใช้ Semantic Versioning:
-- `PATCH` (+0.0.1) — bugfix, แก้ UI เล็กน้อย
-- `MINOR` (+0.1.0) — ฟีเจอร์ใหม่, เพิ่ม component
-- `MAJOR` (+1.0.0) — เปลี่ยน architecture, redesign ใหญ่
+**กติกาการ bump version (สำคัญ — เปลี่ยนใหม่ 2026-06-10):**
+- **ห้าม bump version ทุกครั้งที่แก้โค้ด/commit** — แก้กี่รอบก็ได้โดยไม่แตะ `version.js`
+- **bump version ครั้งเดียวเฉพาะตอนผู้ใช้สั่ง "push"** — 1 push = 1 version ใหม่ ไม่ว่าใน push นั้นจะสะสมการแก้ไว้กี่เรื่อง
+- ขนาดการ bump ใช้ Semantic Versioning ตามการเปลี่ยนแปลง **รวมทั้งหมด** ของรอบนั้น:
+  - `PATCH` (+0.0.1) — มีแต่ bugfix / แก้ UI เล็กน้อย
+  - `MINOR` (+0.1.0) — มีฟีเจอร์ใหม่อย่างน้อย 1 อย่าง
+  - `MAJOR` (+1.0.0) — เปลี่ยน architecture, redesign ใหญ่
 
 version ปัจจุบัน: **1.9.3**
 
@@ -180,7 +183,7 @@ version ปัจจุบัน: **1.9.3**
 
 ข้อมูล changelog อยู่ที่ `src/constants/changelog.js` (`CHANGELOG` array เรียงใหม่→เก่า, `LATEST_CHANGELOG_VERSION`, `CHANGE_TYPE_META`) แสดงผ่าน `src/components/PatchNotesModal/index.jsx` (เปิดผ่าน FloatingMenu เมนู "อัปเดตใหม่" หรือ auto-show)
 
-**เมื่อมี user-facing change ที่จะ push ควรเพิ่ม entry ใน `CHANGELOG` ด้วย** — ใส่ที่ตำแหน่งบนสุด (ใหม่สุด) `{ version, date: 'YYYY-MM-DD', items: [{ type, text }] }` โดย `type` = `'feature'` (ใหม่) / `'fix'` (แก้บั๊ก) / `'improve'` (ปรับปรุง) และอัปเดต `LATEST_CHANGELOG_VERSION` ให้ตรง `APP_VERSION` (derive จาก `CHANGELOG[0].version` อยู่แล้ว จึงแค่ใส่ version ใน entry ใหม่)
+**เพิ่ม entry ใน `CHANGELOG` เฉพาะตอนผู้ใช้สั่ง push (พร้อมกับ bump version)** — **1 push = 1 entry เดียว** รวบทุกการแก้ที่สะสมไว้ในรอบนั้นเป็น `items` หลายรายการใน entry เดียวกัน แยกชนิดด้วย badge `type` = `'feature'` (ใหม่) / `'fix'` (แก้บั๊ก) / `'improve'` (ปรับปรุง) — **ห้ามสร้าง entry แยกหลาย version ถี่ ๆ สำหรับการแก้ทีละเรื่อง** รูปแบบ: `{ version, date: 'YYYY-MM-DD', items: [{ type, text, textEn }] }` ใส่บนสุด (ใหม่สุด) — `LATEST_CHANGELOG_VERSION` derive จาก `CHANGELOG[0].version` อยู่แล้ว
 
 **ห้ามใส่ข้อมูลเหล่านี้ใน patch notes** (แสดงต่อสาธารณะ):
 - **Secret / credential** — API key, token, GA ID (`G-...`), Google Form ID, endpoint ภายใน
@@ -191,10 +194,15 @@ version ปัจจุบัน: **1.9.3**
 
 เขียนเฉพาะสิ่งที่ **ผู้เล่นมองเห็น/ได้ประโยชน์** เป็นภาษาผู้ใช้ (เลี่ยงศัพท์เทคนิคในโค้ด เช่น itemType, mapping, frame index) — กฎเดียวกันนี้ย่อไว้เป็น comment บนหัวไฟล์ `changelog.js` ด้วย
 
-## ก่อน git commit ทุกครั้ง
+## Workflow: commit ระหว่างทาง vs push
 
-ก่อน commit ทุกครั้ง ให้ทำตามลำดับนี้:
-1. อัปเดตเลข version ใน `src/version.js` ตามขนาดของการเปลี่ยนแปลง
-2. เทียบว่ามีอะไรเปลี่ยนในโค้ดที่ส่งผลต่อ architecture, state, helpers, หรือ behavior
-3. ถ้ามีอะไรต่างจากที่เขียนไว้ → แก้ CLAUDE.md ก่อน แล้วค่อย stage + commit รวมกัน
-4. ถ้าไม่มีอะไรเปลี่ยน → commit ได้เลย
+**commit ระหว่างทาง (ยังไม่ push):**
+1. **ไม่ bump version, ไม่เพิ่ม CHANGELOG** — แค่แก้โค้ด + commit ปกติ
+2. เทียบว่ามีอะไรเปลี่ยนที่ส่งผลต่อ architecture, state, helpers, หรือ behavior — ถ้ามี แก้ CLAUDE.md ให้ตรงแล้ว commit รวมกัน
+
+**เมื่อผู้ใช้สั่ง "push" ให้ทำตามลำดับนี้ครั้งเดียว:**
+1. รวบรวมการแก้ทั้งหมดตั้งแต่ push ครั้งก่อน (`git log <last-pushed>..HEAD` + การแก้ค้างใน working tree)
+2. bump version ใน `src/version.js` ครั้งเดียวตามขนาดรวมของรอบนั้น (ดู ## Version)
+3. เพิ่ม CHANGELOG **entry เดียว** สรุปทุกเรื่องเป็น items หลายรายการตาม badge (ดู ## Patch Notes)
+4. อัปเดตบรรทัด "version ปัจจุบัน" ใน CLAUDE.md
+5. commit (รวม version + changelog) แล้ว push
