@@ -70,3 +70,12 @@ body {
   filter: blur(0.5px);
   pointer-events: none;
 }
+@keyframes arrow-up-nudge {
+  0%, 100% { transform: translateY(2px); }
+  50% { transform: translateY(-2.5px); }
+}
+.rateup-arrow {
+  animation: arrow-up-nudge 1.1s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
