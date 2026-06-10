@@ -14,6 +14,14 @@
 
 export const CHANGELOG = [
   {
+    version: '1.7.0',
+    date: '2026-06-10',
+    items: [
+      { type: 'feature', text: 'โหมดจำลอง: กราฟใหม่ ชี้ดูค่าแต่ละแท่งได้ สลับดูได้ทั้ง ตี/หิน/BSB/ไอเทมแตก พร้อมเส้นโอกาสสะสมและคำแนะนำว่าควรเตรียมของเท่าไหร่ถึงพอ', textEn: 'Simulator: new interactive chart with tooltips, switchable between attempts/stones/BSB/broken items, plus a cumulative-chance line and a plain advice line on how much to stock up' },
+      { type: 'improve', text: 'โหมดจำลอง: รวมค่าเฉลี่ย/ต่ำสุด/สูงสุดไว้ในการ์ดเดียวต่อค่า อ่านง่ายขึ้น', textEn: 'Simulator: average/min/max merged into one card per stat for easier reading' },
+    ],
+  },
+  {
     version: '1.6.0',
     date: '2026-06-10',
     items: [
