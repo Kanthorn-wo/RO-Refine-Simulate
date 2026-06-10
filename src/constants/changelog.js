@@ -14,7 +14,7 @@
 
 export const CHANGELOG = [
   {
-    version: '1.9.3',
+    version: '1.6.0',
     date: '2026-06-10',
     items: [
       { type: 'feature', text: 'เพิ่มโหมดจำลองหาค่าเฉลี่ย (Beta) — เลือกช่วงระดับ ชนิดหิน BSB และจำนวนรอบ (preset หรือพิมพ์เอง 10–1000) แล้วดูค่าเฉลี่ย/ต่ำสุด/สูงสุดของ ตีทั้งหมด/ตีติด/ล้มเหลว/ไอเทมแตก/หิน/BSB พร้อมกราฟการกระจายและค่าเบี่ยงเบนมาตรฐาน (กดเปิดได้ที่แถบม่วงเหนือสถิติ Session)', textEn: 'New Average Simulator (Beta) — pick a level range, stone, BSB and number of rounds (presets or custom 10–1000) to see average/min/max of attempts/successes/fails/broken items/stones/BSB with a distribution chart and standard deviation (open via the purple bar above Session Stats)' },
@@ -22,7 +22,7 @@ export const CHANGELOG = [
     ],
   },
   {
-    version: '1.8.1',
+    version: '1.5.0',
     date: '2026-06-10',
     items: [
       { type: 'feature', text: 'เพิ่มหน้าเว็บภาษาอังกฤษที่ ro-refine.com/en/ — สลับภาษาแล้วลิงก์จะเปลี่ยนตามให้อัตโนมัติ', textEn: 'English version now available at ro-refine.com/en/ — switching language updates the link automatically' },
@@ -31,7 +31,7 @@ export const CHANGELOG = [
     ],
   },
   {
-    version: '1.6.2',
+    version: '1.4.0',
     date: '2026-06-09',
     items: [
       { type: 'feature', text: 'รองรับ 2 ภาษา (ไทย/อังกฤษ) — กดปุ่มธงเพื่อสลับภาษาได้ทันที', textEn: 'Bilingual support (Thai/English) — press the flag button to switch instantly' },
@@ -40,7 +40,7 @@ export const CHANGELOG = [
     ],
   },
   {
-    version: '1.5.1',
+    version: '1.3.0',
     date: '2026-06-05',
     items: [
       { type: 'feature', text: 'ระบบ Auto: ปุ่มเลือกหินแต่ละช่วงแสดงรูปแร่ + ชื่อแร่จริง และซ่อนหินที่ใช้ไม่ได้ในช่วงนั้น', textEn: 'Auto: Stone buttons show ore icon + name, and hide stones unavailable for that range' },
@@ -51,7 +51,7 @@ export const CHANGELOG = [
     ],
   },
   {
-    version: '1.4.1',
+    version: '1.2.0',
     date: '2026-06-05',
     items: [
       { type: 'feature', text: 'เพิ่มหน้าต่างประวัติการอัปเดต (Patch Notes) ดูสิ่งที่แก้ไขแต่ละเวอร์ชันได้', textEn: 'Added Patch Notes window — view what changed in each version' },
@@ -59,7 +59,7 @@ export const CHANGELOG = [
     ],
   },
   {
-    version: '1.3.1',
+    version: '1.1.0',
     date: '2026-06-05',
     items: [
       { type: 'improve', text: 'ปรับปรุงให้เว็บโหลดเร็วขึ้น', textEn: 'Improved page load speed' },
@@ -67,7 +67,7 @@ export const CHANGELOG = [
     ],
   },
   {
-    version: '1.2.0',
+    version: '1.0.0',
     date: '2026-06-04',
     items: [
       { type: 'feature', text: 'เพิ่มแบนเนอร์หัวเว็บ', textEn: 'Added hero banner at top of page' },
