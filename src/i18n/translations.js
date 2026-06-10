@@ -154,7 +154,7 @@ export const TRANSLATIONS = {
     sim_avg_attempts: 'ตีทั้งหมด',
     sim_avg_success: 'ตีติด',
     sim_avg_fail: 'ล้มเหลว',
-    sim_avg_lost: 'ไอเทมแตก',
+    sim_avg_lost: 'ไอเทมหาย',
     sim_avg_stone: 'หินที่ใช้',
     sim_avg_bsb: 'BSB ที่ใช้',
     sim_unit_times: 'ครั้ง',
@@ -176,7 +176,7 @@ export const TRANSLATIONS = {
     sim_col_success: 'ติด',
     sim_col_fail: 'ล้ม',
     sim_col_stone: 'หิน',
-    sim_col_lost: 'แตก',
+    sim_col_lost: 'หาย',
 
     // SEO (document title / meta — synced at runtime per language)
     seo_title: 'จำลองตีบวก Ragnarok Online GGT Class 4 | RO Refine Simulator',
@@ -339,7 +339,7 @@ export const TRANSLATIONS = {
     sim_avg_attempts: 'Attempts',
     sim_avg_success: 'Successes',
     sim_avg_fail: 'Fails',
-    sim_avg_lost: 'Items broken',
+    sim_avg_lost: 'Items lost',
     sim_avg_stone: 'Stones used',
     sim_avg_bsb: 'BSB used',
     sim_unit_times: 'times',
@@ -361,7 +361,7 @@ export const TRANSLATIONS = {
     sim_col_success: 'Won',
     sim_col_fail: 'Fail',
     sim_col_stone: 'Stones',
-    sim_col_lost: 'Broken',
+    sim_col_lost: 'Lost',
 
     // SEO (document title / meta — synced at runtime per language)
     seo_title: 'Ragnarok Online GGT Class 4 Refine Simulator | RO Refine Simulator',
