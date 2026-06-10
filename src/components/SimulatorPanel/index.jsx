@@ -57,11 +57,19 @@ const StatChip = ({ label, value }) => (
   </div>
 );
 
-const AvgCard = ({ label, value, unit, accent }) => (
-  <div className={`rounded-xl border px-3 py-3 text-center ${accent}`}>
+// การ์ดสรุป 1 metric: ค่าเฉลี่ยตัวใหญ่ + Min/Max แถวเล็กในการ์ดเดียว (ไม่แยก 3 แถวซ้ำซ้อน)
+const AvgCard = ({ label, value, unit, minValue, maxValue, accent }) => (
+  <div className={`rounded-xl border px-2 py-3 text-center ${accent}`}>
     <div className="text-xs font-semibold text-slate-400">{label}</div>
     <div className="text-xl font-bold">{value}</div>
     <div className="text-[0.65rem] text-slate-500">{unit}</div>
+    <div className="mt-1.5 flex items-center justify-center gap-1 border-t border-slate-700/40 pt-1.5 text-[0.65rem] leading-none">
+      <span className="text-slate-500">Min</span>
+      <b className="text-slate-300">{minValue}</b>
+      <span className="text-slate-600">·</span>
+      <span className="text-slate-500">Max</span>
+      <b className="text-slate-300">{maxValue}</b>
+    </div>
   </div>
 );
 
@@ -294,7 +302,7 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable }) => {
                   </p>
                 )}
 
-                {/* สรุปต่อรอบ — Mean / Min / Max แถวละ 6 การ์ดเหมือนกัน */}
+                {/* สรุปต่อรอบ — การ์ดเดียวต่อ metric: เฉลี่ยตัวใหญ่ + Min/Max ในตัว */}
                 {(() => {
                   const METRIC_CARDS = [
                     { key: 'attempts', label: 'sim_avg_attempts', unit: 'sim_unit_times', accent: 'border-slate-700/60 bg-[#0f1117] text-amber-300' },
@@ -304,27 +312,26 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable }) => {
                     { key: 'oresTotal', label: 'sim_avg_stone', unit: 'sim_unit_pcs', accent: 'border-sky-700/40 bg-sky-950/20 text-sky-300' },
                     { key: 'bsbUsed', label: 'sim_avg_bsb', unit: 'sim_unit_pcs', accent: 'border-amber-700/40 bg-amber-950/20 text-amber-300' },
                   ];
-                  const rows = [
-                    { title: `${t('sim_summary')} (${results.runs.length} ${t('sim_rounds_unit')})`, field: 'avg', digits: 1 },
-                    { title: t('sim_min_summary'), field: 'min', digits: 0 },
-                    { title: t('sim_max_summary'), field: 'max', digits: 0 },
-                  ];
-                  return rows.map((row) => (
-                    <div key={row.field}>
-                      <div className="mb-2 text-xs font-semibold text-slate-400">{row.title}</div>
-                      <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+                  return (
+                    <div>
+                      <div className="mb-2 text-xs font-semibold text-slate-400">
+                        {t('sim_summary')} ({results.runs.length} {t('sim_rounds_unit')})
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
                         {METRIC_CARDS.map((c) => (
                           <AvgCard
                             key={c.key}
                             label={t(c.label)}
-                            value={fmt(results.metrics[c.key][row.field], row.digits)}
+                            value={fmt(results.metrics[c.key].avg)}
                             unit={t(c.unit)}
+                            minValue={fmt(results.metrics[c.key].min, 0)}
+                            maxValue={fmt(results.metrics[c.key].max, 0)}
                             accent={c.accent}
                           />
                         ))}
                       </div>
                     </div>
-                  ));
+                  );
                 })()}
 
                 {/* แร่เฉลี่ยแยกชนิด */}
