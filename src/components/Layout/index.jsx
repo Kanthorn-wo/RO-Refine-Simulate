@@ -588,9 +588,11 @@ const Container = () => {
 
   return (
     <>
-    {/* แถบ Event Rate Up — sticky บนสุด โชว์เฉพาะตอนเปิด Event ที่ตาราง */}
+    {/* แถบ Event Rate Up — fixed ลอยบนสุดเต็มจอ โชว์เฉพาะตอนเปิด Event ที่ตาราง */}
     {isEventRate && <EventRateBanner />}
     <div className="w-full max-w-4xl mx-auto flex flex-col gap-5">
+      {/* spacer กันเนื้อหาโดนแถบ Event (fixed) บัง — สูงเท่าแถบหักด้วย padding ของหน้า */}
+      {isEventRate && <div aria-hidden="true" className="h-8 sm:h-10" />}
       {/* Hero Banner */}
       <HeroBanner />
 

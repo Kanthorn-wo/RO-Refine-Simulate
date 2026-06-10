@@ -41,7 +41,7 @@ const RateUpIcon = ({ className }) => (
 const EventRateBanner = () => {
   const { t } = useLang();
   return (
-    <div className="event-fire-bar event-fire-enter sticky top-0 z-40 w-full overflow-hidden shadow-lg shadow-orange-950/60">
+    <div className="event-fire-bar event-fire-enter fixed inset-x-0 top-0 z-40 w-full overflow-hidden shadow-lg shadow-orange-950/60">
       {/* glow กลางแถบ กระพริบแบบไฟ */}
       <div className="event-fire-glow pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(253,224,71,0.3),transparent_70%)]" />
       {/* ลูกไฟลอยขึ้น */}
