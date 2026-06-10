@@ -83,9 +83,18 @@ body {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-4px); }
 }
-/* pill ตอนย่อ: พื้นไฟไหล + เด้งขึ้นลงตลอดเวลา (รวมไว้ใน animation เดียว ไม่งั้น class ทับกัน) */
+/* transition ตอนย่อ: pill หดย่อ+จางเข้ามาจากแนวแถบเดิม */
+@keyframes pill-in {
+  from { transform: translateY(-18px) scale(0.45); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+/* pill ตอนย่อ: เข้าฉากด้วย pill-in ก่อน แล้วค่อยเด้ง — delay bob ให้พ้นช่วง pill-in
+   เพราะทั้งคู่ animate transform ถ้าเล่นพร้อมกันตัวหลังในลิสต์จะทับตัวแรก */
 .event-fire-pill {
   background: linear-gradient(90deg, #7f1d1d, #ea580c, #fbbf24, #ef4444, #b45309, #7f1d1d);
   background-size: 300% 100%;
-  animation: fire-shift 5s ease-in-out infinite, pill-bob 1.8s ease-in-out infinite;
+  animation:
+    pill-in 0.35s ease-out,
+    fire-shift 5s ease-in-out infinite,
+    pill-bob 1.8s ease-in-out 0.35s infinite;
 }
