@@ -15,10 +15,12 @@
 
 export const CHANGELOG = [
   {
-    version: '1.7.1',
+    version: '1.8.0',
     date: '2026-06-10',
     items: [
       { type: 'feature', text: 'เพิ่มโหมดจำลองหาค่าเฉลี่ย (Beta) — เลือกช่วงระดับ ชนิดหิน BSB และจำนวนรอบ แล้วดูค่าเฉลี่ย/ต่ำสุด/สูงสุดของ ตี/ติด/ล้ม/ไอเทมหาย/หิน/BSB พร้อมกราฟแบบชี้ดูค่าได้ เส้นโอกาสสะสม และคำแนะนำว่าควรเตรียมของเท่าไหร่ (กดเปิดที่แถบม่วงเหนือสถิติ Session)', textEn: 'New Average Simulator (Beta) — pick a level range, stone, BSB and rounds, then see avg/min/max of attempts/successes/fails/items lost/stones/BSB with an interactive chart, cumulative-chance line and advice on how much to stock up (open via the purple bar above Session Stats)' },
+      { type: 'feature', text: 'เปิดโหมด Event Rate Up แล้วมีแถบไฟลุกลอยบนสุดของจอบอกสถานะตลอดเวลา — ย่อเป็นปุ่มเล็กมุมขวาบนได้', textEn: 'Turning on Event Rate Up now shows a fiery banner pinned to the top of the screen — collapsible into a small pill at the top right' },
+      { type: 'improve', text: 'ปรับดีไซน์ปุ่มและสวิตช์ทั่วเว็บ (เปลี่ยนภาษา, เลือกไอเทม, Event, สกุลเงิน, ล้าง Session) ให้เห็นชัดขึ้นว่ากดได้', textEn: 'Redesigned buttons and switches across the site (language, item mode, Event, currency, Clear Session) so they clearly look clickable' },
       { type: 'feature', text: 'เพิ่มหน้าเว็บภาษาอังกฤษที่ ro-refine.com/en/ — สลับภาษาแล้วลิงก์จะเปลี่ยนตามให้อัตโนมัติ', textEn: 'English version now available at ro-refine.com/en/ — switching language updates the link automatically' },
       { type: 'fix', text: 'แก้การนับ BSB ให้ตรงตามเกม — BSB ถูกใช้ทุกครั้งที่ตี (ตีติดก็เสีย) มีผลทั้งโหมดปกติและโหมดจำลอง', textEn: 'Fixed BSB counting to match the game — BSB is consumed on every attempt (success included), in both normal and simulator modes' },
       { type: 'fix', text: 'แก้เปอร์เซ็นต์สำเร็จบนแถบด้านบนไม่ตรงกับ Rate ที่ปุ่มตีบวก', textEn: 'Fixed success % on the top banner not matching the Rate on the refine button' },
