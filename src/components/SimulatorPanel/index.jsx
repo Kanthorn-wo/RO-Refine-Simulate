@@ -1,8 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, Suspense, lazy } from 'react';
 import { useLang } from '../../contexts/LangContext';
 import { STONE_META, getEffectiveStone } from '../../utils/stones';
 import { ORE_IMAGES, ORE_COLORS } from '../../constants/ores';
-import { simulateRound, summarize, buildHistogram, MAX_ATTEMPTS_PER_ROUND } from '../../utils/simulate';
+import { simulateRound, summarize, MAX_ATTEMPTS_PER_ROUND } from '../../utils/simulate';
+
+// lazy load กราฟ (recharts) — โหลดเฉพาะตอนมีผลจำลองให้แสดง main bundle ไม่บวม
+const DistChart = lazy(() => import('./DistChart'));
 
 // สีหลักของแต่ละชนิดหิน (ปุ่มเลือก)
 const STONE_BTN_ACTIVE = {
@@ -14,41 +17,19 @@ const STONE_BTN_ACTIVE = {
 const ROUND_PRESETS = [100, 300, 500, 1000];
 const CHUNK_SIZE = 50;
 
-// Histogram SVG: แท่งการกระจาย + แถบ Mean±1SD + เส้น Mean
-const Histogram = ({ values, stats }) => {
-  const binCount = Math.min(24, Math.max(8, Math.ceil(Math.sqrt(values.length))));
-  const bins = buildHistogram(values, binCount);
-  if (!bins.length) return null;
-  const W = 600, H = 170, PB = 20, PT = 8, PX = 6;
-  const lo = bins[0].x0;
-  const hi = bins[bins.length - 1].x1;
-  const maxCount = Math.max(...bins.map((b) => b.count));
-  const x = (v) => PX + ((v - lo) / (hi - lo || 1)) * (W - PX * 2);
-  const barY = (c) => PT + (1 - c / maxCount) * (H - PT - PB);
-  const bandX0 = x(Math.max(lo, stats.mean - stats.sd));
-  const bandX1 = x(Math.min(hi, stats.mean + stats.sd));
-  const meanX = x(stats.mean);
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label="histogram">
-      {/* แถบ Mean ± 1SD */}
-      <rect x={bandX0} y={PT} width={Math.max(0, bandX1 - bandX0)} height={H - PT - PB} fill="rgb(56 189 248 / 0.12)" />
-      {bins.map((b, i) => {
-        const bx = x(b.x0);
-        const bw = Math.max(1, x(b.x1) - bx - 1.5);
-        return (
-          <rect key={i} x={bx} y={barY(b.count)} width={bw} height={H - PB - barY(b.count)}
-            rx="2" fill="rgb(251 191 36 / 0.55)" stroke="rgb(251 191 36 / 0.8)" strokeWidth="0.5" />
-        );
-      })}
-      {/* เส้น Mean */}
-      <line x1={meanX} y1={PT} x2={meanX} y2={H - PB} stroke="#fbbf24" strokeWidth="1.5" strokeDasharray="4 3" />
-      {/* แกน X: ต่ำสุด / mean / สูงสุด */}
-      <text x={PX} y={H - 6} fontSize="10" fill="#64748b">{Math.round(lo)}</text>
-      <text x={meanX} y={H - 6} fontSize="10" fill="#fbbf24" textAnchor="middle">{stats.mean.toFixed(1)}</text>
-      <text x={W - PX} y={H - 6} fontSize="10" fill="#64748b" textAnchor="end">{Math.round(hi)}</text>
-    </svg>
-  );
-};
+// metric สรุปต่อรอบ — ใช้ทั้งการ์ดสรุปและปุ่มสลับกราฟ
+const METRIC_CARDS = [
+  { key: 'attempts', label: 'sim_avg_attempts', unit: 'sim_unit_times', accent: 'border-slate-700/60 bg-[#0f1117] text-amber-300' },
+  { key: 'successes', label: 'sim_avg_success', unit: 'sim_unit_times', accent: 'border-emerald-700/40 bg-emerald-950/20 text-emerald-400' },
+  { key: 'fails', label: 'sim_avg_fail', unit: 'sim_unit_times', accent: 'border-rose-700/40 bg-rose-950/20 text-rose-400' },
+  { key: 'itemsLost', label: 'sim_avg_lost', unit: 'sim_unit_items', accent: 'border-rose-700/40 bg-rose-950/20 text-rose-300' },
+  { key: 'oresTotal', label: 'sim_avg_stone', unit: 'sim_unit_pcs', accent: 'border-sky-700/40 bg-sky-950/20 text-sky-300' },
+  { key: 'bsbUsed', label: 'sim_avg_bsb', unit: 'sim_unit_pcs', accent: 'border-amber-700/40 bg-amber-950/20 text-amber-300' },
+];
+
+// metric ที่ให้สลับดูบนกราฟ (ติด/ล้ม derive จากตีอยู่แล้ว เลยไม่ใส่)
+const CHART_METRIC_KEYS = ['attempts', 'oresTotal', 'bsbUsed', 'itemsLost'];
+
 
 const StatChip = ({ label, value }) => (
   <div className="rounded-lg border border-slate-700/60 bg-[#0f1117] px-3 py-2 text-center">
@@ -84,6 +65,7 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable }) => {
   const [running, setRunning] = useState(false);
   const [progress, setProgress] = useState(0);
   const [results, setResults] = useState(null);
+  const [chartMetric, setChartMetric] = useState('attempts');
   const cancelRef = useRef(false);
 
   const clampedRounds = Math.max(10, Math.min(1000, rounds || 0));
@@ -303,36 +285,24 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable }) => {
                 )}
 
                 {/* สรุปต่อรอบ — การ์ดเดียวต่อ metric: เฉลี่ยตัวใหญ่ + Min/Max ในตัว */}
-                {(() => {
-                  const METRIC_CARDS = [
-                    { key: 'attempts', label: 'sim_avg_attempts', unit: 'sim_unit_times', accent: 'border-slate-700/60 bg-[#0f1117] text-amber-300' },
-                    { key: 'successes', label: 'sim_avg_success', unit: 'sim_unit_times', accent: 'border-emerald-700/40 bg-emerald-950/20 text-emerald-400' },
-                    { key: 'fails', label: 'sim_avg_fail', unit: 'sim_unit_times', accent: 'border-rose-700/40 bg-rose-950/20 text-rose-400' },
-                    { key: 'itemsLost', label: 'sim_avg_lost', unit: 'sim_unit_items', accent: 'border-rose-700/40 bg-rose-950/20 text-rose-300' },
-                    { key: 'oresTotal', label: 'sim_avg_stone', unit: 'sim_unit_pcs', accent: 'border-sky-700/40 bg-sky-950/20 text-sky-300' },
-                    { key: 'bsbUsed', label: 'sim_avg_bsb', unit: 'sim_unit_pcs', accent: 'border-amber-700/40 bg-amber-950/20 text-amber-300' },
-                  ];
-                  return (
-                    <div>
-                      <div className="mb-2 text-xs font-semibold text-slate-400">
-                        {t('sim_summary')} ({results.runs.length} {t('sim_rounds_unit')})
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
-                        {METRIC_CARDS.map((c) => (
-                          <AvgCard
-                            key={c.key}
-                            label={t(c.label)}
-                            value={fmt(results.metrics[c.key].avg)}
-                            unit={t(c.unit)}
-                            minValue={fmt(results.metrics[c.key].min, 0)}
-                            maxValue={fmt(results.metrics[c.key].max, 0)}
-                            accent={c.accent}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })()}
+                <div>
+                  <div className="mb-2 text-xs font-semibold text-slate-400">
+                    {t('sim_summary')} ({results.runs.length} {t('sim_rounds_unit')})
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+                    {METRIC_CARDS.map((c) => (
+                      <AvgCard
+                        key={c.key}
+                        label={t(c.label)}
+                        value={fmt(results.metrics[c.key].avg)}
+                        unit={t(c.unit)}
+                        minValue={fmt(results.metrics[c.key].min, 0)}
+                        maxValue={fmt(results.metrics[c.key].max, 0)}
+                        accent={c.accent}
+                      />
+                    ))}
+                  </div>
+                </div>
 
                 {/* แร่เฉลี่ยแยกชนิด */}
                 {Object.keys(results.oreAvg).length > 0 && (
@@ -352,21 +322,63 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable }) => {
                   </div>
                 )}
 
-                {/* สถิติ + Histogram */}
-                <div>
-                  <div className="mb-2 text-xs font-semibold text-slate-400">{t('sim_dist_title')}</div>
-                  <div className="mb-2 grid grid-cols-3 gap-2 sm:grid-cols-5">
-                    <StatChip label={t('sim_stat_mean')} value={fmt(results.stats.mean)} />
-                    <StatChip label={t('sim_stat_sd')} value={fmt(results.stats.sd)} />
-                    <StatChip label={t('sim_stat_median')} value={fmt(results.stats.median, 0)} />
-                    <StatChip label="P90" value={fmt(results.stats.p90, 0)} />
-                    <StatChip label={t('sim_stat_minmax')} value={`${results.stats.min}–${results.stats.max}`} />
-                  </div>
-                  <div className="rounded-xl border border-slate-700/60 bg-[#0f1117] p-3">
-                    <Histogram values={results.attempts} stats={results.stats} />
-                    <div className="mt-1 text-center text-[0.65rem] text-slate-500">{t('sim_dist_note')}</div>
-                  </div>
-                </div>
+                {/* สถิติ + Histogram + CDF — สลับ metric ได้ */}
+                {(() => {
+                  // โชว์เฉพาะ metric ที่มีค่าจริง (เช่น ไม่เปิด BSB ก็ไม่ต้องมีปุ่ม BSB)
+                  const available = CHART_METRIC_KEYS.filter(
+                    (k) => k === 'attempts' || results.metrics[k].max > 0
+                  );
+                  const metricKey = available.includes(chartMetric) ? chartMetric : 'attempts';
+                  const card = METRIC_CARDS.find((c) => c.key === metricKey);
+                  const chartValues = results.runs.map((r) => r[metricKey]);
+                  const chartStats = summarize(chartValues);
+                  return (
+                    <div>
+                      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                        <span className="text-xs font-semibold text-slate-400">{t('sim_dist_title')}</span>
+                        <div className="flex gap-1">
+                          {available.map((k) => {
+                            const c = METRIC_CARDS.find((m) => m.key === k);
+                            return (
+                              <button
+                                key={k}
+                                type="button"
+                                onClick={() => setChartMetric(k)}
+                                className={`rounded-lg border px-2 py-1 text-[0.68rem] font-bold transition-colors ${
+                                  metricKey === k ? 'border-violet-400 bg-violet-500/20 text-violet-200' : 'border-slate-600 text-slate-400 hover:border-slate-400'
+                                }`}
+                              >
+                                {t(c.label)}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      <div className="mb-2 grid grid-cols-3 gap-2 sm:grid-cols-5">
+                        <StatChip label={t('sim_stat_mean')} value={fmt(chartStats.mean)} />
+                        <StatChip label={t('sim_stat_sd')} value={fmt(chartStats.sd)} />
+                        <StatChip label={t('sim_stat_median')} value={fmt(chartStats.median, 0)} />
+                        <StatChip label="P90" value={fmt(chartStats.p90, 0)} />
+                        <StatChip label={t('sim_stat_minmax')} value={`${chartStats.min}–${chartStats.max}`} />
+                      </div>
+                      <div className="rounded-xl border border-slate-700/60 bg-[#0f1117] p-2">
+                        <Suspense fallback={<div className="flex h-[230px] items-center justify-center text-xs text-slate-500">{t('loading_text')}</div>}>
+                          <DistChart values={chartValues} stats={chartStats} />
+                        </Suspense>
+                        <div className="mt-1 text-center text-[0.65rem] text-slate-500">{t('sim_dist_note')}</div>
+                      </div>
+                      {/* ประโยคสรุปอ่านง่ายใต้กราฟ */}
+                      <p className="mt-2 rounded-lg border border-sky-500/20 bg-sky-500/5 px-3 py-2 text-center text-[0.72rem] text-sky-200">
+                        {t('sim_budget_note', {
+                          label: t(card.label),
+                          p90: fmt(chartStats.p90, 0),
+                          median: fmt(chartStats.median, 0),
+                          unit: t(card.unit),
+                        })}
+                      </p>
+                    </div>
+                  );
+                })()}
 
                 {/* ตารางรายรอบ */}
                 <div>
