@@ -25,104 +25,55 @@ export const CHANGELOG = [
     version: '1.8.1',
     date: '2026-06-10',
     items: [
-      { type: 'fix', text: 'แก้เปอร์เซ็นต์สำเร็จบนแถบด้านบนไม่ตรงกับ Rate ที่ปุ่มตีบวก — ตอนนี้แสดงโอกาสของการตีครั้งถัดไปตรงกันแล้ว', textEn: 'Fixed success % on the top banner not matching the Rate on the refine button — both now show the next attempt\'s rate' },
-    ],
-  },
-  {
-    version: '1.8.0',
-    date: '2026-06-10',
-    items: [
       { type: 'feature', text: 'เพิ่มหน้าเว็บภาษาอังกฤษที่ ro-refine.com/en/ — สลับภาษาแล้วลิงก์จะเปลี่ยนตามให้อัตโนมัติ', textEn: 'English version now available at ro-refine.com/en/ — switching language updates the link automatically' },
-    ],
-  },
-  {
-    version: '1.7.0',
-    date: '2026-06-10',
-    items: [
       { type: 'improve', text: 'ชื่อหน้าเว็บบนแท็บเบราว์เซอร์เปลี่ยนตามภาษาที่เลือก', textEn: 'Browser tab title now follows the selected language' },
+      { type: 'fix', text: 'แก้เปอร์เซ็นต์สำเร็จบนแถบด้านบนไม่ตรงกับ Rate ที่ปุ่มตีบวก — ตอนนี้แสดงโอกาสของการตีครั้งถัดไปตรงกันแล้ว', textEn: 'Fixed success % on the top banner not matching the Rate on the refine button — both now show the next attempt\'s rate' },
     ],
   },
   {
     version: '1.6.2',
     date: '2026-06-09',
     items: [
-      { type: 'improve', text: 'ปรับปรุง Accessibility — สวิตช์และ dropdown เลือกประเภทไอเท็มรองรับ screen reader ได้ดีขึ้น', textEn: 'Improved accessibility — toggles and item-type dropdown now have proper labels for screen readers' },
-    ],
-  },
-  {
-    version: '1.6.1',
-    date: '2026-06-09',
-    items: [
-      { type: 'improve', text: 'ปรับปรุงให้หน้าเว็บโหลดเร็วขึ้น — รูปภาพและภาพเคลื่อนไหวเบาลงมาก', textEn: 'Faster page load — images and animations are now much lighter' },
-    ],
-  },
-  {
-    version: '1.6.0',
-    date: '2026-06-09',
-    items: [
       { type: 'feature', text: 'รองรับ 2 ภาษา (ไทย/อังกฤษ) — กดปุ่มธงเพื่อสลับภาษาได้ทันที', textEn: 'Bilingual support (Thai/English) — press the flag button to switch instantly' },
+      { type: 'improve', text: 'ปรับปรุงให้หน้าเว็บโหลดเร็วขึ้น — รูปภาพและภาพเคลื่อนไหวเบาลงมาก', textEn: 'Faster page load — images and animations are now much lighter' },
+      { type: 'improve', text: 'ปรับปรุง Accessibility — สวิตช์และ dropdown เลือกประเภทไอเท็มรองรับ screen reader ได้ดีขึ้น', textEn: 'Improved accessibility — toggles and item-type dropdown now have proper labels for screen readers' },
     ],
   },
   {
     version: '1.5.1',
     date: '2026-06-05',
     items: [
-      { type: 'improve', text: 'ระบบ Auto: ป้ายสวิตช์ BSB แต่ละช่วงแสดงช่วงระดับจริงที่จะใส่ BSB (เช่น +7→+10)', textEn: 'Auto: BSB toggle now shows the actual level range where BSB applies (e.g. +7→+10)' },
-    ],
-  },
-  {
-    version: '1.5.0',
-    date: '2026-06-05',
-    items: [
       { type: 'feature', text: 'ระบบ Auto: ปุ่มเลือกหินแต่ละช่วงแสดงรูปแร่ + ชื่อแร่จริง และซ่อนหินที่ใช้ไม่ได้ในช่วงนั้น', textEn: 'Auto: Stone buttons show ore icon + name, and hide stones unavailable for that range' },
       { type: 'feature', text: 'ระบบ Auto: แบ่งช่วงตีบวกย่อยได้ด้วยปุ่ม "แบ่ง" และระบบกั้นจุดเปลี่ยนแร่ +10 ให้อัตโนมัติ', textEn: 'Auto: Split a range into two with the "Split" button; ore-change wall at +10 is auto-enforced' },
       { type: 'feature', text: 'ระบบ Auto: ตั้งค่า BSB เปิด/ปิดได้ทีละช่วง (เริ่ม/เลิก/ใส่ใหม่ได้ ภายใต้กฎ +7→+14)', textEn: 'Auto: Toggle BSB per range independently (start/stop/resume within +7→+14)' },
       { type: 'improve', text: 'ระบบ Auto: แสดงช่วงแบบเลเวลก่อนตี (เช่น +0 ถึง +3) ให้ช่วงต่อกันพอดี อ่านง่ายขึ้น', textEn: 'Auto: Ranges now display as pre-refine level (e.g. +0 to +3) for cleaner readability' },
+      { type: 'improve', text: 'ระบบ Auto: ป้ายสวิตช์ BSB แต่ละช่วงแสดงช่วงระดับจริงที่จะใส่ BSB (เช่น +7→+10)', textEn: 'Auto: BSB toggle now shows the actual level range where BSB applies (e.g. +7→+10)' },
     ],
   },
   {
     version: '1.4.1',
     date: '2026-06-05',
     items: [
-      { type: 'fix', text: 'แก้ตำแหน่งปุ่มตอนเลือกระดับเริ่มต้นของระบบ Auto ให้แสดงไอเทมที่ตีบวกแล้วถูกต้อง (เคสเดียวกับเลือกระดับตีบวกปกติ)', textEn: 'Fixed button position when selecting Auto start level to correctly show the already-refined item' },
-    ],
-  },
-  {
-    version: '1.4.0',
-    date: '2026-06-05',
-    items: [
       { type: 'feature', text: 'เพิ่มหน้าต่างประวัติการอัปเดต (Patch Notes) ดูสิ่งที่แก้ไขแต่ละเวอร์ชันได้', textEn: 'Added Patch Notes window — view what changed in each version' },
-      { type: 'fix', text: 'แก้ตำแหน่งปุ่มและภาพตอนเลือกระดับตีบวกเริ่มต้น ให้แสดงไอเทมที่ตีบวกแล้วถูกต้อง', textEn: 'Fixed button and item display when selecting a starting refine level' },
+      { type: 'fix', text: 'แก้ตำแหน่งปุ่มและภาพตอนเลือกระดับตีบวกเริ่มต้น ให้แสดงไอเทมที่ตีบวกแล้วถูกต้อง (ทั้งโหมดปกติและโหมด Auto)', textEn: 'Fixed button and item display when selecting a starting refine level (both normal and Auto modes)' },
     ],
   },
   {
     version: '1.3.1',
     date: '2026-06-05',
     items: [
-      { type: 'fix', text: 'แก้การค้นหาโล่ (Shield) ที่แสดงระดับเกราะผิด ตอนนี้แสดงเป็นเกราะเลเวล 2 ถูกต้อง', textEn: 'Fixed Shield search showing wrong armor level; now correctly identified as Armor Lv.2' },
-    ],
-  },
-  {
-    version: '1.3.0',
-    date: '2026-06-05',
-    items: [
       { type: 'improve', text: 'ปรับปรุงให้เว็บโหลดเร็วขึ้น', textEn: 'Improved page load speed' },
+      { type: 'fix', text: 'แก้การค้นหาโล่ (Shield) ที่แสดงระดับเกราะผิด ตอนนี้แสดงเป็นเกราะเลเวล 2 ถูกต้อง', textEn: 'Fixed Shield search showing wrong armor level; now correctly identified as Armor Lv.2' },
     ],
   },
   {
     version: '1.2.0',
     date: '2026-06-04',
     items: [
+      { type: 'feature', text: 'เพิ่มแบนเนอร์หัวเว็บ', textEn: 'Added hero banner at top of page' },
       { type: 'feature', text: 'เพิ่มปุ่ม "แจ้งปัญหา" ลอยมุมขวาล่าง', textEn: 'Added floating "Report Issue" button at bottom-right' },
       { type: 'improve', text: 'เพิ่มข้อความ "ไอเทมแตกสลาย" ตอนตีบวกล้มเหลวแล้วไอเทมหาย', textEn: 'Added "Item Destroyed" message when refine fails and item is lost' },
       { type: 'fix', text: 'แก้ตำแหน่งส่วนท้าย (footer) ให้อยู่ด้านล่างสุดถูกต้อง', textEn: 'Fixed footer position to stay at the bottom' },
-    ],
-  },
-  {
-    version: '1.0.1',
-    date: '2026-06-04',
-    items: [
-      { type: 'feature', text: 'เพิ่มแบนเนอร์หัวเว็บ', textEn: 'Added hero banner at top of page' },
     ],
   },
   {
