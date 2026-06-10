@@ -25,8 +25,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### ระบบ 2 ภาษา (i18n)
 - `src/i18n/translations.js` — `TRANSLATIONS` object มีทั้ง `th` และ `en` key สำหรับทุก string ใน UI
 - `src/contexts/LangContext.jsx` — `LangProvider`, `useLang()` → `{ lang, setLang, t(key, params?) }` โดย `t()` รองรับ placeholder `{key}` เช่น `t('hd_before_warn', { n: 7 })`
-  - persist ภาษาใน localStorage (`ro_refine_lang`) — ถ้ายังไม่เคยเลือก ใช้ `navigator.language` ตัดสิน (ขึ้นต้น `th` → ไทย, อื่น ๆ → อังกฤษ)
-  - มี `useEffect` sync `document.title`, `<html lang>`, meta description / og / twitter ตามภาษา (key `seo_title`, `seo_description`, `seo_og_description` ใน translations) — static `index.html` ยังเป็นไทยเสมอ (crawler ที่ไม่รัน JS เห็นไทย)
+  - **ภาษาถูกกำหนดจาก URL เป็นหลัก**: path ขึ้นต้น `/en` → อังกฤษ, อื่น ๆ → ค่าใน localStorage (`ro_refine_lang`) default ไทย — **ไม่มี** auto-detect จาก `navigator.language`
+  - มี `useEffect` sync `document.title`, `<html lang>`, meta description / og / twitter / canonical / og:url ตามภาษา + `history.replaceState` ให้ URL ตรงภาษา (`/` ↔ `/en/`)
+  - **Multi-page build**: `en/index.html` เป็น entry ที่สอง (rollup input ใน `vite.config.js`) meta อังกฤษทั้งชุด + hreflang ทั้งสองหน้า → Google เลือกหน้าให้ตรงภาษาผู้ค้นเอง (sitemap มี `/en/` ด้วย)
   - ทุก component ที่แสดง text ใช้ `useLang()` แทนการ hardcode ภาษาไทย
 - ปุ่มสลับภาษา (🇹🇭 TH / 🇬🇧 EN) แสดงต่ำกว่า HeroBanner ใน Layout
 
@@ -170,7 +171,7 @@ Deploy หลักใช้ **Vercel** (auto build จาก push master, root 
 - `MINOR` (+0.1.0) — ฟีเจอร์ใหม่, เพิ่ม component
 - `MAJOR` (+1.0.0) — เปลี่ยน architecture, redesign ใหญ่
 
-version ปัจจุบัน: **1.7.0**
+version ปัจจุบัน: **1.8.0**
 
 ## Patch Notes (changelog)
 

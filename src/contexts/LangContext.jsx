@@ -5,12 +5,9 @@ const LangContext = createContext(null);
 
 export const LangProvider = ({ children }) => {
   const [lang, setLangState] = useState(() => {
-    try {
-      const saved = localStorage.getItem('ro_refine_lang');
-      if (saved) return saved;
-      // First visit: auto-detect from browser language (th → Thai, others → English)
-      return (navigator.language || 'th').toLowerCase().startsWith('th') ? 'th' : 'en';
-    } catch { return 'th'; }
+    // URL decides language: /en/* → English, otherwise saved preference (default Thai)
+    if (window.location.pathname.startsWith('/en')) return 'en';
+    try { return localStorage.getItem('ro_refine_lang') || 'th'; } catch { return 'th'; }
   });
 
   const setLang = (l) => {
@@ -34,6 +31,16 @@ export const LangProvider = ({ children }) => {
     setMeta('meta[property="og:locale"]', lang === 'en' ? 'en_US' : 'th_TH');
     setMeta('meta[name="twitter:title"]', tr.seo_title);
     setMeta('meta[name="twitter:description"]', tr.seo_og_description);
+
+    // Keep URL + canonical + og:url in sync with the language (th → /, en → /en/)
+    const url = lang === 'en' ? 'https://ro-refine.com/en/' : 'https://ro-refine.com/';
+    const canonicalEl = document.querySelector('link[rel="canonical"]');
+    if (canonicalEl) canonicalEl.setAttribute('href', url);
+    setMeta('meta[property="og:url"]', url);
+    const pathname = lang === 'en' ? '/en/' : '/';
+    if (window.location.pathname !== pathname) {
+      window.history.replaceState(null, '', pathname);
+    }
   }, [lang]);
 
   const t = (key, params) => {
