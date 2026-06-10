@@ -633,12 +633,16 @@ const Container = () => {
           <h2 id="rate-table-heading" className="m-0 text-base font-bold text-amber-300">
             {t('rate_table_title')} — {isEventRate ? t('event_rate_up') : t('no_event')} · {useEnriched ? 'Enriched' : useCash ? 'HD' : t('stone_normal_label')}
           </h2>
-          <div role="group" aria-label="Rate mode" className="inline-flex overflow-hidden rounded-lg border border-slate-600">
+          {/* สวิตช์โหมดเรท — ทำให้เห็นชัดว่ากดได้: ราง inset + ปุ่ม active นูน + hover เด้ง */}
+          <div role="group" aria-label="Rate mode" className="inline-flex gap-1 rounded-xl border border-slate-600/80 bg-slate-950/70 p-1 shadow-inner shadow-black/50">
             <button
               type="button"
               onClick={() => setIsEventRate(false)}
-              className={`px-3 py-1.5 text-sm transition-colors ${
-                !isEventRate ? 'bg-amber-400 font-bold text-slate-900' : 'bg-transparent text-slate-400 hover:text-slate-200'
+              aria-pressed={!isEventRate}
+              className={`cursor-pointer rounded-lg px-3 py-1.5 text-sm font-semibold transition-all duration-150 ${
+                !isEventRate
+                  ? 'bg-slate-200 text-slate-900 shadow-md shadow-black/40'
+                  : 'text-slate-400 hover:-translate-y-px hover:bg-slate-700/70 hover:text-slate-100 active:translate-y-0 active:scale-95'
               }`}
             >
               {t('no_event')}
@@ -646,10 +650,16 @@ const Container = () => {
             <button
               type="button"
               onClick={() => setIsEventRate(true)}
-              className={`border-l border-slate-600 px-3 py-1.5 text-sm transition-colors ${
-                isEventRate ? 'bg-amber-400 font-bold text-slate-900' : 'bg-transparent text-slate-400 hover:text-slate-200'
+              aria-pressed={isEventRate}
+              className={`flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold transition-all duration-150 ${
+                isEventRate
+                  ? 'event-fire-bar text-white shadow-md shadow-orange-900/60 ring-1 ring-amber-300/70'
+                  : 'text-amber-300 ring-1 ring-amber-400/40 hover:-translate-y-px hover:bg-amber-500/15 hover:text-amber-200 hover:ring-amber-300/70 active:translate-y-0 active:scale-95'
               }`}
             >
+              <svg viewBox="0 0 24 24" fill="currentColor" className={`h-3.5 w-3.5 ${isEventRate ? 'animate-pulse' : ''}`} aria-hidden="true">
+                <path d="M12 2c.6 3.2-.6 4.9-2.1 6.4C8.3 10 7 11.6 7 14a5 5 0 0 0 10 0c0-1.2-.4-2.3-1-3.2-.9 1-2 1.4-2 1.4.8-2.6.3-5.5-2-8.2z" />
+              </svg>
               {t('event_rate_up')}
             </button>
           </div>
