@@ -117,9 +117,13 @@ const PatchNotesModal = ({ openTrigger = 0 }) => {
               )}
               <div className="mb-2 flex items-center gap-2">
                 <span className="text-sm font-semibold text-slate-200">{formatDate(release.date, lang)}</span>
-                {release.version && (
+                {release.version ? (
                   <span className="rounded-md border border-slate-600/60 bg-slate-700/30 px-1.5 py-0.5 text-[0.65rem] font-bold text-slate-300">
                     v{release.version}
+                  </span>
+                ) : (
+                  <span className="rounded-md border border-fuchsia-400/40 bg-fuchsia-500/15 px-1.5 py-0.5 text-[0.65rem] font-bold tracking-wider text-fuchsia-300">
+                    Beta
                   </span>
                 )}
               </div>
