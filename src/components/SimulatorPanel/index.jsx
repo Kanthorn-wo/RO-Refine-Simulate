@@ -114,8 +114,8 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable }) => {
         };
         setResults({
           runs: all,
-          // เก็บ config ที่ใช้รันจริง — กัน state ปัจจุบันถูกเปลี่ยนหลังรันแล้วข้อความใต้กราฟเพี้ยน
-          cfgUsed: { startLevel, targetLevel },
+          // เก็บ config ที่ใช้รันจริง — กัน state ปัจจุบันถูกเปลี่ยนหลังรันแล้วข้อความ/ป้ายเพี้ยน
+          cfgUsed: { startLevel, targetLevel, isEventRate },
           stats: summarize(attempts),
           attempts,
           metrics: {
@@ -165,6 +165,19 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable }) => {
             <p className="text-[0.7rem] leading-relaxed text-slate-500">
               {t('sim_beta_remark')} — {t('sim_desc')}
             </p>
+
+            {/* สถานะเรทที่ใช้จำลอง — อิงสวิตช์ Event ของหน้าหลัก */}
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <span className="font-semibold text-slate-400">{t('sim_rate_mode')}:</span>
+              <span className={`rounded-full border px-2 py-0.5 text-[0.68rem] font-bold ${
+                isEventRate
+                  ? 'border-amber-400/50 bg-amber-400/15 text-amber-300'
+                  : 'border-slate-600 bg-slate-700/30 text-slate-300'
+              }`}>
+                {isEventRate ? t('event_rate_up') : t('no_event')}
+              </span>
+              <span className="text-[0.65rem] text-slate-500">{t('sim_rate_hint')}</span>
+            </div>
 
             {/* Config */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -288,8 +301,15 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable }) => {
 
                 {/* สรุปต่อรอบ — การ์ดเดียวต่อ metric: เฉลี่ยตัวใหญ่ + Min/Max ในตัว */}
                 <div>
-                  <div className="mb-2 text-xs font-semibold text-slate-400">
-                    {t('sim_summary')} ({results.runs.length} {t('sim_rounds_unit')})
+                  <div className="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-400">
+                    <span>{t('sim_summary')} ({results.runs.length} {t('sim_rounds_unit')})</span>
+                    <span className={`rounded-full border px-2 py-0.5 text-[0.65rem] font-bold ${
+                      results.cfgUsed.isEventRate
+                        ? 'border-amber-400/50 bg-amber-400/15 text-amber-300'
+                        : 'border-slate-600 bg-slate-700/30 text-slate-300'
+                    }`}>
+                      {results.cfgUsed.isEventRate ? t('event_rate_up') : t('no_event')}
+                    </span>
                   </div>
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
                     {METRIC_CARDS.map((c) => (
