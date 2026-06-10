@@ -132,6 +132,9 @@ export const TRANSLATIONS = {
     change_type_fix: 'แก้บั๊ก',
     change_type_improve: 'ปรับปรุง',
 
+    // Event banner
+    event_banner_sub: 'อัตราสำเร็จตีบวกเพิ่มขึ้น — ตีช่วงนี้คุ้มสุด!',
+
     // Language toggle
     lang_toggle_label: 'เปลี่ยนภาษา',
 
@@ -318,6 +321,9 @@ export const TRANSLATIONS = {
     change_type_feature: 'New',
     change_type_fix: 'Fix',
     change_type_improve: 'Improve',
+
+    // Event banner
+    event_banner_sub: 'Refine success rates are boosted — best time to refine!',
 
     // Language toggle
     lang_toggle_label: 'Language',

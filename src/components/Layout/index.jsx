@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import HeroBanner from '../HeroBanner';
+import EventRateBanner from '../EventRateBanner';
 import { APP_VERSION } from '../../version';
 import souneEffect01 from 'assets/sounds/bs_refine_1.wav';
 import souneEffect02 from 'assets/sounds/bs_refine_2.wav';
@@ -587,6 +588,8 @@ const Container = () => {
 
   return (
     <>
+    {/* แถบ Event Rate Up — sticky บนสุด โชว์เฉพาะตอนเปิด Event ที่ตาราง */}
+    {isEventRate && <EventRateBanner />}
     <div className="w-full max-w-4xl mx-auto flex flex-col gap-5">
       {/* Hero Banner */}
       <HeroBanner />
