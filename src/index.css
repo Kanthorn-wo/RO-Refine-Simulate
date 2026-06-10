@@ -79,3 +79,13 @@ body {
   transform-box: fill-box;
   transform-origin: center;
 }
+@keyframes pill-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+/* pill ตอนย่อ: พื้นไฟไหล + เด้งขึ้นลงตลอดเวลา (รวมไว้ใน animation เดียว ไม่งั้น class ทับกัน) */
+.event-fire-pill {
+  background: linear-gradient(90deg, #7f1d1d, #ea580c, #fbbf24, #ef4444, #b45309, #7f1d1d);
+  background-size: 300% 100%;
+  animation: fire-shift 5s ease-in-out infinite, pill-bob 1.8s ease-in-out infinite;
+}

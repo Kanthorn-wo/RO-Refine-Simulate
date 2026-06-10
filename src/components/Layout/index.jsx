@@ -72,6 +72,7 @@ const Container = () => {
   const [useBSB, setUseBSB] = useState(false);
   const [itemType, setItemType] = useState('armor1');
   const [isEventRate, setIsEventRate] = useState(false);
+  const [eventBarCollapsed, setEventBarCollapsed] = useState(false);
   const bsbTable = isEventRate ? BSB_REQUIRED_EVENT : BSB_REQUIRED_NORMAL;
   const intervalRef = useRef(null);
   const skipSuccessIntroRef = useRef(false);
@@ -588,11 +589,16 @@ const Container = () => {
 
   return (
     <>
-    {/* แถบ Event Rate Up — fixed ลอยบนสุดเต็มจอ โชว์เฉพาะตอนเปิด Event ที่ตาราง */}
-    {isEventRate && <EventRateBanner />}
+    {/* แถบ Event Rate Up — fixed ลอยบนสุดเต็มจอ โชว์เฉพาะตอนเปิด Event ที่ตาราง (ย่อเป็น pill ได้) */}
+    {isEventRate && (
+      <EventRateBanner
+        collapsed={eventBarCollapsed}
+        onToggle={() => setEventBarCollapsed((c) => !c)}
+      />
+    )}
     <div className="w-full max-w-4xl mx-auto flex flex-col gap-5">
-      {/* spacer กันเนื้อหาโดนแถบ Event (fixed) บัง — สูงเท่าแถบหักด้วย padding ของหน้า */}
-      {isEventRate && <div aria-hidden="true" className="h-8 sm:h-10" />}
+      {/* spacer กันเนื้อหาโดนแถบ Event (fixed) บัง — เฉพาะตอนกางเต็มแถบ */}
+      {isEventRate && !eventBarCollapsed && <div aria-hidden="true" className="h-8 sm:h-10" />}
       {/* Hero Banner */}
       <HeroBanner />
 
