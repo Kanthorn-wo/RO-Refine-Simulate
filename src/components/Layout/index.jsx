@@ -550,7 +550,8 @@ const Container = () => {
   const hdMinLevel = getStoneMinLevel('hd', itemType);
   const stoneBlocksRefine = useCash && stack.length < hdMinLevel;
   const currentRate = getRate(isEventRate, useCash, useEnriched, itemType, currentLevel - 1);
-  const bannerRate = getRate(isEventRate, useCash, useEnriched, itemType, Math.max(0, stack.length - 1));
+  // Banner shows the same next-attempt rate as the refine button (keep them in sync)
+  const bannerRate = currentRate;
 
   useEffect(() => {
     ALL_FRAMES.forEach((src) => {

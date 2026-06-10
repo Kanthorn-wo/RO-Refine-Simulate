@@ -12,6 +12,13 @@
 
 export const CHANGELOG = [
   {
+    version: '1.8.1',
+    date: '2026-06-10',
+    items: [
+      { type: 'fix', text: 'แก้เปอร์เซ็นต์สำเร็จบนแถบด้านบนไม่ตรงกับ Rate ที่ปุ่มตีบวก — ตอนนี้แสดงโอกาสของการตีครั้งถัดไปตรงกันแล้ว', textEn: 'Fixed success % on the top banner not matching the Rate on the refine button — both now show the next attempt\'s rate' },
+    ],
+  },
+  {
     version: '1.8.0',
     date: '2026-06-10',
     items: [
