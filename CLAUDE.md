@@ -38,6 +38,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `src/constants/ores.js` — `ITEM_TYPE_LABELS`, `ORE_BY_TYPE`, `SPECIAL_ORE`, `ORE_COLORS`, `ORE_IMAGES`, `getOreName`, `getStoneOre`, `STONE_REFERENCE`
 - `src/constants/frames.js` — `frameCount`, `getFrameSrc`, `getAllFrameSrcs` + เฟรม precompute (`WAITING_FRAMES`/`PROCESSING_FRAMES`/`SUCCESS_FRAMES`/`FAIL_FRAMES`/`ALL_FRAMES`) คำนวณครั้งเดียวตอน module load
 - `src/components/Toggle/index.jsx` — `Toggle` switch reusable
+- `src/components/Reveal/index.jsx` — scroll reveal wrapper (IntersectionObserver, เล่นครั้งเดียว, เคารพ `prefers-reduced-motion`) ห่อ section หลักใน Layout (ตาราง rate, แถวการ์ด+ตีบวก, Simulator, สถิติ, log, สรุปไอเทม) — **ตอน shown จะถอด class transform ออก** กัน transform ค้างสร้าง containing block ให้ `position:fixed` ของลูกหลานเพี้ยน อย่าห่อ element ที่มี fixed ข้างใน (modal อยู่นอก Reveal แล้ว)
 - `src/utils/simulate.js` — engine จำลอง Monte Carlo (pure): `simulateRound` mirror กติกา fail จาก `handleRefine` ทุกสาขา (**แก้ handleRefine ต้องแก้ที่นี่ด้วย**), `summarize` (mean/sd/median/p90/min/max), `buildHistogram`, `MAX_ATTEMPTS_PER_ROUND` (เพดาน 50000/รอบ กัน loop ไม่จบ) — model: ไอเทมแตก = เริ่มไอเทมใหม่ที่ startLevel นับต่อในรอบเดิม
 
 ### `src/components/Layout/index.jsx` (ไฟล์หลัก)

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import HeroBanner from '../HeroBanner';
 import EventRateBanner from '../EventRateBanner';
+import Reveal from '../Reveal';
 import { APP_VERSION } from '../../version';
 import souneEffect01 from 'assets/sounds/bs_refine_1.wav';
 import souneEffect02 from 'assets/sounds/bs_refine_2.wav';
@@ -638,6 +639,7 @@ const Container = () => {
       </div>
 
       {/* ตารางอัตราสำเร็จ */}
+      <Reveal>
       <section aria-labelledby="rate-table-heading">
       <div className="rounded-2xl border border-slate-700/60 bg-[#181a20]/90 p-4 shadow-lg shadow-black/30">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -706,8 +708,10 @@ const Container = () => {
         </div>
       </div>
       </section>
+      </Reveal>
 
       {/* แถวเดสก์ท็อป: กล่อง option (ซ้าย) + กล่องตีบวก (ขวา) */}
+      <Reveal>
       <div className="flex flex-col gap-5 lg:flex-row lg:items-stretch">
       {/* การ์ดควบคุม */}
       <div className="rounded-2xl border border-slate-700/60 bg-[#181a20]/90 p-5 shadow-lg shadow-black/30 lg:flex-1">
@@ -1375,11 +1379,15 @@ const Container = () => {
         {/* ── จบ animation frame ── */}
       </div>
       </div>
+      </Reveal>
 
       {/* Simulator หาค่าเฉลี่ย (Monte Carlo) — ซ่อนใน panel slide เหนือสถิติ Session */}
-      <SimulatorPanel itemType={itemType} isEventRate={isEventRate} bsbTable={bsbTable} />
+      <Reveal>
+        <SimulatorPanel itemType={itemType} isEventRate={isEventRate} bsbTable={bsbTable} />
+      </Reveal>
 
       {/* สรุปจำนวนครั้งที่ตี */}
+      <Reveal className="flex flex-col gap-5">
       {(() => {
         const totalAttempts = log.length;
         const successCount = log.filter((l) => l.isSuccess).length;
@@ -1421,8 +1429,10 @@ const Container = () => {
           </>
         );
       })()}
+      </Reveal>
 
       {/* Stack log */}
+      <Reveal>
       <div>
         <div
           className="max-h-[280px] min-h-[160px] w-full overflow-y-auto rounded-xl border border-slate-700/60 bg-[#0f1117] p-4 text-left text-sm [overflow-wrap:anywhere]"
@@ -1560,8 +1570,10 @@ const Container = () => {
           </ul>
         </div>
       </div>
+      </Reveal>
 
       {/* สรุปการใช้ไอเทมทั้งหมด */}
+      <Reveal>
       {(() => {
         const num = (v) => Number(v) || 0;
         const curOf = (key) => rowCurrency[key] || currency;
@@ -1667,6 +1679,7 @@ const Container = () => {
           </div>
         );
       })()}
+      </Reveal>
 
       {/* Footer */}
       <footer className="mt-2 mb-2 text-center text-xs text-slate-500">
