@@ -14,6 +14,13 @@
 
 export const CHANGELOG = [
   {
+    version: '1.7.1',
+    date: '2026-06-10',
+    items: [
+      { type: 'improve', text: 'โหมดจำลอง: ปรับคำอธิบายผลให้เข้าใจง่ายขึ้น และใช้คำว่า "ไอเทมหาย" ให้ตรงกันทั้งเว็บ', textEn: 'Simulator: clearer result wording, and "Items lost" now matches the term used across the site' },
+    ],
+  },
+  {
     version: '1.7.0',
     date: '2026-06-10',
     items: [
