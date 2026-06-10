@@ -12,6 +12,13 @@
 
 export const CHANGELOG = [
   {
+    version: '1.9.1',
+    date: '2026-06-10',
+    items: [
+      { type: 'improve', text: 'โหมดจำลองหาค่าเฉลี่ย: พิมพ์จำนวนรอบเองได้ (10–1000) นอกเหนือจากปุ่ม preset', textEn: 'Average Simulator: you can now type a custom number of rounds (10–1000) besides the presets' },
+    ],
+  },
+  {
     version: '1.9.0',
     date: '2026-06-10',
     items: [

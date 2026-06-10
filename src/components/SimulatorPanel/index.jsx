@@ -237,7 +237,7 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable }) => {
               )}
               <div className="ml-auto flex items-end gap-2">
                 <label className="block">
-                  <span className="mb-1 block text-xs font-semibold text-slate-400">{t('sim_rounds_label')}</span>
+                  <span className="mb-1 block text-xs font-semibold text-slate-400">{t('sim_rounds_label')} (10–1000)</span>
                   <div className="flex gap-1">
                     {ROUND_PRESETS.map((p) => (
                       <button
@@ -252,6 +252,18 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable }) => {
                         {p}
                       </button>
                     ))}
+                    <input
+                      type="number"
+                      min="10"
+                      max="1000"
+                      value={rounds}
+                      disabled={running}
+                      onChange={(e) => { setRounds(Number(e.target.value)); setResults(null); }}
+                      onBlur={() => setRounds(clampedRounds)}
+                      placeholder={t('sim_rounds_custom')}
+                      aria-label={t('sim_rounds_label')}
+                      className="w-20 rounded-lg border border-slate-600 bg-[#0f1117] px-2 py-1.5 text-center text-xs font-bold text-slate-200 [appearance:textfield] focus:border-violet-400 focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                    />
                   </div>
                 </label>
                 <button

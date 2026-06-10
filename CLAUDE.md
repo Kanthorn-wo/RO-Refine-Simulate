@@ -173,7 +173,7 @@ Deploy หลักใช้ **Vercel** (auto build จาก push master, root 
 - `MINOR` (+0.1.0) — ฟีเจอร์ใหม่, เพิ่ม component
 - `MAJOR` (+1.0.0) — เปลี่ยน architecture, redesign ใหญ่
 
-version ปัจจุบัน: **1.9.0**
+version ปัจจุบัน: **1.9.1**
 
 ## Patch Notes (changelog)
 
