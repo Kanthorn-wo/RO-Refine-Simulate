@@ -159,7 +159,7 @@ export const TRANSLATIONS = {
     sim_avg_bsb: 'BSB ที่ใช้',
     sim_unit_times: 'ครั้ง',
     sim_unit_pcs: 'ชิ้น',
-    sim_unit_items: 'ชิ้น',
+    sim_unit_items: 'ตัว',
     sim_ore_avg_title: 'แร่เฉลี่ยต่อรอบ (แยกชนิด)',
     sim_dist_title: 'การกระจายผลต่อรอบ',
     sim_dist_note: 'แท่ง = จำนวนรอบ · เส้นฟ้า = โอกาสสะสม (จบภายใน ≤ X) · เส้นประเหลือง = ค่าเฉลี่ย',
