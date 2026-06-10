@@ -12,6 +12,13 @@
 
 export const CHANGELOG = [
   {
+    version: '1.9.2',
+    date: '2026-06-10',
+    items: [
+      { type: 'improve', text: 'โหมดจำลองหาค่าเฉลี่ย: เพิ่มแถวค่าต่ำสุด (Min) และค่าสูงสุด (Max) ของทุกค่า (ตี/ติด/ล้ม/แตก/หิน/BSB) ใต้แถวค่าเฉลี่ย', textEn: 'Average Simulator: added Min and Max rows for every stat (attempts/successes/fails/broken/stones/BSB) below the average row' },
+    ],
+  },
+  {
     version: '1.9.1',
     date: '2026-06-10',
     items: [
