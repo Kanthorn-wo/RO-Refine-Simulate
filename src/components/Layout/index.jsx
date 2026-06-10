@@ -609,12 +609,15 @@ const Container = () => {
 
       {/* Language toggle */}
       <div className="flex justify-end -mt-2">
-        <div role="group" aria-label={t('lang_toggle_label')} className="inline-flex overflow-hidden rounded-lg border border-slate-600">
+        <div role="group" aria-label={t('lang_toggle_label')} className="inline-flex gap-1 rounded-xl border border-slate-600/80 bg-slate-950/70 p-1 shadow-inner shadow-black/50">
           <button
             type="button"
             onClick={() => setLang('th')}
-            className={`px-3 py-1.5 text-sm transition-colors ${
-              lang === 'th' ? 'bg-amber-400 font-bold text-slate-900' : 'bg-transparent text-slate-400 hover:text-slate-200'
+            aria-pressed={lang === 'th'}
+            className={`cursor-pointer rounded-lg px-3 py-1.5 text-sm font-semibold transition-all duration-150 ${
+              lang === 'th'
+                ? 'bg-amber-400 font-bold text-slate-900 shadow-md shadow-black/40'
+                : 'text-slate-400 hover:-translate-y-px hover:bg-slate-700/70 hover:text-slate-100 active:translate-y-0 active:scale-95'
             }`}
           >
             🇹🇭 TH
@@ -622,8 +625,11 @@ const Container = () => {
           <button
             type="button"
             onClick={() => setLang('en')}
-            className={`border-l border-slate-600 px-3 py-1.5 text-sm transition-colors ${
-              lang === 'en' ? 'bg-amber-400 font-bold text-slate-900' : 'bg-transparent text-slate-400 hover:text-slate-200'
+            aria-pressed={lang === 'en'}
+            className={`cursor-pointer rounded-lg px-3 py-1.5 text-sm font-semibold transition-all duration-150 ${
+              lang === 'en'
+                ? 'bg-amber-400 font-bold text-slate-900 shadow-md shadow-black/40'
+                : 'text-slate-400 hover:-translate-y-px hover:bg-slate-700/70 hover:text-slate-100 active:translate-y-0 active:scale-95'
             }`}
           >
             🇬🇧 EN
@@ -708,12 +714,15 @@ const Container = () => {
         {/* ประเภทไอเท็ม */}
         <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
           <label htmlFor="item-type" className="text-sm font-semibold text-slate-300">{t('item_type_label')}</label>
-          <div role="group" aria-label="Item selection mode" className="inline-flex overflow-hidden rounded-lg border border-slate-600">
+          <div role="group" aria-label="Item selection mode" className="inline-flex gap-1 rounded-xl border border-slate-600/80 bg-slate-950/70 p-1 shadow-inner shadow-black/50">
             <button
               type="button"
               onClick={() => setInputMode('dropdown')}
-              className={`px-3 py-1 text-xs transition-colors ${
-                inputMode === 'dropdown' ? 'bg-amber-400 font-bold text-slate-900' : 'bg-transparent text-slate-400 hover:text-slate-200'
+              aria-pressed={inputMode === 'dropdown'}
+              className={`cursor-pointer rounded-lg px-3 py-1 text-xs font-semibold transition-all duration-150 ${
+                inputMode === 'dropdown'
+                  ? 'bg-amber-400 font-bold text-slate-900 shadow-md shadow-black/40'
+                  : 'text-slate-400 hover:-translate-y-px hover:bg-slate-700/70 hover:text-slate-100 active:translate-y-0 active:scale-95'
               }`}
             >
               {t('select_manual')}
@@ -721,8 +730,11 @@ const Container = () => {
             <button
               type="button"
               onClick={() => setInputMode('id')}
-              className={`border-l border-slate-600 px-3 py-1 text-xs transition-colors ${
-                inputMode === 'id' ? 'bg-amber-400 font-bold text-slate-900' : 'bg-transparent text-slate-400 hover:text-slate-200'
+              aria-pressed={inputMode === 'id'}
+              className={`cursor-pointer rounded-lg px-3 py-1 text-xs font-semibold transition-all duration-150 ${
+                inputMode === 'id'
+                  ? 'bg-amber-400 font-bold text-slate-900 shadow-md shadow-black/40'
+                  : 'text-slate-400 hover:-translate-y-px hover:bg-slate-700/70 hover:text-slate-100 active:translate-y-0 active:scale-95'
               }`}
             >
               {t('search_by_id')}
@@ -1381,8 +1393,11 @@ const Container = () => {
               type="button"
               onClick={handleClearSession}
               disabled={autoRunning || totalAttempts === 0}
-              className="rounded-lg border border-slate-600 px-3 py-1 text-xs font-semibold text-slate-300 transition-colors hover:border-rose-400/60 hover:text-rose-300 disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-rose-500/50 bg-rose-500/10 px-3 py-1 text-xs font-semibold text-rose-300 shadow-sm shadow-black/30 transition-all duration-150 hover:-translate-y-px hover:border-rose-400 hover:bg-rose-500/25 hover:text-rose-200 active:translate-y-0 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:border-rose-500/50 disabled:hover:bg-rose-500/10"
             >
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5" aria-hidden="true">
+                <path d="M2.5 4h11M6.5 4V2.5h3V4M4 4l.7 9a1.5 1.5 0 0 0 1.5 1.4h3.6A1.5 1.5 0 0 0 11.3 13l.7-9M6.5 7v4.5M9.5 7v4.5" />
+              </svg>
               {t('clear_session')}
             </button>
           </div>
@@ -1570,12 +1585,15 @@ const Container = () => {
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <b className="text-lg font-bold text-amber-300">{t('usage_title')}</b>
               <div className="flex flex-col items-end gap-1">
-                <div role="group" aria-label="Currency" className="inline-flex overflow-hidden rounded-lg border border-slate-600">
+                <div role="group" aria-label="Currency" className="inline-flex gap-1 rounded-xl border border-slate-600/80 bg-slate-950/70 p-1 shadow-inner shadow-black/50">
                   <button
                     type="button"
                     onClick={() => { setCurrency('zenny'); setRowCurrency({}); }}
-                    className={`px-3 py-1.5 text-sm transition-colors ${
-                      currency === 'zenny' ? 'bg-amber-400 font-bold text-slate-900' : 'bg-transparent text-slate-400 hover:text-slate-200'
+                    aria-pressed={currency === 'zenny'}
+                    className={`cursor-pointer rounded-lg px-3 py-1.5 text-sm font-semibold transition-all duration-150 ${
+                      currency === 'zenny'
+                        ? 'bg-amber-400 font-bold text-slate-900 shadow-md shadow-black/40'
+                        : 'text-slate-400 hover:-translate-y-px hover:bg-slate-700/70 hover:text-slate-100 active:translate-y-0 active:scale-95'
                     }`}
                   >
                     Zenny
@@ -1583,8 +1601,11 @@ const Container = () => {
                   <button
                     type="button"
                     onClick={() => { setCurrency('baht'); setRowCurrency({}); }}
-                    className={`border-l border-slate-600 px-3 py-1.5 text-sm transition-colors ${
-                      currency === 'baht' ? 'bg-amber-400 font-bold text-slate-900' : 'bg-transparent text-slate-400 hover:text-slate-200'
+                    aria-pressed={currency === 'baht'}
+                    className={`cursor-pointer rounded-lg px-3 py-1.5 text-sm font-semibold transition-all duration-150 ${
+                      currency === 'baht'
+                        ? 'bg-amber-400 font-bold text-slate-900 shadow-md shadow-black/40'
+                        : 'text-slate-400 hover:-translate-y-px hover:bg-slate-700/70 hover:text-slate-100 active:translate-y-0 active:scale-95'
                     }`}
                   >
                     ฿ {lang === 'th' ? 'บาท' : 'Baht'}
@@ -1622,8 +1643,12 @@ const Container = () => {
                     type="button"
                     onClick={() => setRowCurrency((p) => ({ ...p, [r.key]: rc === 'zenny' ? 'baht' : 'zenny' }))}
                     title={t('row_currency_title')}
-                    className="min-w-[52px] rounded-md border border-slate-600 px-1.5 py-1 text-xs font-bold text-slate-300 transition-colors hover:border-amber-400/70 hover:text-amber-300"
+                    className="inline-flex min-w-[58px] cursor-pointer items-center justify-center gap-1 rounded-lg border border-slate-500/80 bg-slate-800/80 px-1.5 py-1 text-xs font-bold text-slate-200 shadow-sm shadow-black/40 transition-all duration-150 hover:-translate-y-px hover:border-amber-400/70 hover:bg-slate-700 hover:text-amber-300 active:translate-y-0 active:scale-95"
                   >
+                    {/* ลูกศรสลับ บอกว่ากดเปลี่ยนหน่วยได้ */}
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3 opacity-70" aria-hidden="true">
+                      <path d="M2 5h10M9.5 2.5 12 5 9.5 7.5M14 11H4M6.5 8.5 4 11l2.5 2.5" />
+                    </svg>
                     {unitOf(rc)}
                   </button>
                   <span className="text-slate-500">=</span>
