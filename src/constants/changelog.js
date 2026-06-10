@@ -12,6 +12,14 @@
 
 export const CHANGELOG = [
   {
+    version: '1.7.0',
+    date: '2026-06-10',
+    items: [
+      { type: 'feature', text: 'เปิดเว็บครั้งแรกจะเลือกภาษาให้อัตโนมัติตามภาษาเครื่อง (ไทย/อังกฤษ) — ยังสลับเองได้เหมือนเดิม', textEn: 'First visit now auto-selects language from your device (Thai/English) — you can still switch manually' },
+      { type: 'improve', text: 'ชื่อหน้าเว็บบนแท็บเบราว์เซอร์เปลี่ยนตามภาษาที่เลือก', textEn: 'Browser tab title now follows the selected language' },
+    ],
+  },
+  {
     version: '1.6.2',
     date: '2026-06-09',
     items: [

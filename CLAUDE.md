@@ -25,7 +25,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### ระบบ 2 ภาษา (i18n)
 - `src/i18n/translations.js` — `TRANSLATIONS` object มีทั้ง `th` และ `en` key สำหรับทุก string ใน UI
 - `src/contexts/LangContext.jsx` — `LangProvider`, `useLang()` → `{ lang, setLang, t(key, params?) }` โดย `t()` รองรับ placeholder `{key}` เช่น `t('hd_before_warn', { n: 7 })`
-  - persist ภาษาใน localStorage (`ro_refine_lang`)
+  - persist ภาษาใน localStorage (`ro_refine_lang`) — ถ้ายังไม่เคยเลือก ใช้ `navigator.language` ตัดสิน (ขึ้นต้น `th` → ไทย, อื่น ๆ → อังกฤษ)
+  - มี `useEffect` sync `document.title`, `<html lang>`, meta description / og / twitter ตามภาษา (key `seo_title`, `seo_description`, `seo_og_description` ใน translations) — static `index.html` ยังเป็นไทยเสมอ (crawler ที่ไม่รัน JS เห็นไทย)
   - ทุก component ที่แสดง text ใช้ `useLang()` แทนการ hardcode ภาษาไทย
 - ปุ่มสลับภาษา (🇹🇭 TH / 🇬🇧 EN) แสดงต่ำกว่า HeroBanner ใน Layout
 
@@ -169,7 +170,7 @@ Deploy หลักใช้ **Vercel** (auto build จาก push master, root 
 - `MINOR` (+0.1.0) — ฟีเจอร์ใหม่, เพิ่ม component
 - `MAJOR` (+1.0.0) — เปลี่ยน architecture, redesign ใหญ่
 
-version ปัจจุบัน: **1.6.2**
+version ปัจจุบัน: **1.7.0**
 
 ## Patch Notes (changelog)
 
