@@ -17,28 +17,8 @@ export const CHANGELOG = [
     version: '1.9.3',
     date: '2026-06-10',
     items: [
+      { type: 'feature', text: 'เพิ่มโหมดจำลองหาค่าเฉลี่ย (Beta) — เลือกช่วงระดับ ชนิดหิน BSB และจำนวนรอบ (preset หรือพิมพ์เอง 10–1000) แล้วดูค่าเฉลี่ย/ต่ำสุด/สูงสุดของ ตีทั้งหมด/ตีติด/ล้มเหลว/ไอเทมแตก/หิน/BSB พร้อมกราฟการกระจายและค่าเบี่ยงเบนมาตรฐาน (กดเปิดได้ที่แถบม่วงเหนือสถิติ Session)', textEn: 'New Average Simulator (Beta) — pick a level range, stone, BSB and number of rounds (presets or custom 10–1000) to see average/min/max of attempts/successes/fails/broken items/stones/BSB with a distribution chart and standard deviation (open via the purple bar above Session Stats)' },
       { type: 'fix', text: 'แก้การนับ BSB ให้ตรงตามเกม — BSB ถูกใช้ทุกครั้งที่ตี (ตีติดก็เสีย) มีผลทั้งโหมดปกติและโหมดจำลอง พร้อมแสดงจำนวนที่ใช้ใน log ทุกครั้ง', textEn: 'Fixed BSB counting to match the game — BSB is consumed on every attempt (success included), in both normal and simulator modes, with the amount shown in the log' },
-    ],
-  },
-  {
-    version: '1.9.2',
-    date: '2026-06-10',
-    items: [
-      { type: 'improve', text: 'โหมดจำลองหาค่าเฉลี่ย: เพิ่มแถวค่าต่ำสุด (Min) และค่าสูงสุด (Max) ของทุกค่า (ตี/ติด/ล้ม/แตก/หิน/BSB) ใต้แถวค่าเฉลี่ย', textEn: 'Average Simulator: added Min and Max rows for every stat (attempts/successes/fails/broken/stones/BSB) below the average row' },
-    ],
-  },
-  {
-    version: '1.9.1',
-    date: '2026-06-10',
-    items: [
-      { type: 'improve', text: 'โหมดจำลองหาค่าเฉลี่ย: พิมพ์จำนวนรอบเองได้ (10–1000) นอกเหนือจากปุ่ม preset', textEn: 'Average Simulator: you can now type a custom number of rounds (10–1000) besides the presets' },
-    ],
-  },
-  {
-    version: '1.9.0',
-    date: '2026-06-10',
-    items: [
-      { type: 'feature', text: 'เพิ่มโหมดจำลองหาค่าเฉลี่ย (Beta) — เลือกช่วงระดับ ชนิดหิน BSB และจำนวนรอบ แล้วดูค่าเฉลี่ยตีติด/ล้ม/ไอเทมแตก/หิน/BSB พร้อมกราฟการกระจายและค่าเบี่ยงเบนมาตรฐาน (กดเปิดได้ที่แถบม่วงเหนือสถิติ Session)', textEn: 'New Average Simulator (Beta) — pick a level range, stone, BSB and number of rounds to see average successes/fails/broken items/stones/BSB with a distribution chart and standard deviation (open via the purple bar above Session Stats)' },
     ],
   },
   {
