@@ -29,7 +29,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - มี `useEffect` sync `document.title`, `<html lang>`, meta description / og / twitter / canonical / og:url ตามภาษา + `history.replaceState` ให้ URL ตรงภาษา (`/` ↔ `/en/`)
   - **Multi-page build**: `en/index.html` เป็น entry ที่สอง (rollup input ใน `vite.config.js`) meta อังกฤษทั้งชุด + hreflang ทั้งสองหน้า → Google เลือกหน้าให้ตรงภาษาผู้ค้นเอง (sitemap มี `/en/` ด้วย)
   - ทุก component ที่แสดง text ใช้ `useLang()` แทนการ hardcode ภาษาไทย
-- ปุ่มสลับภาษา (🇹🇭 TH / 🇬🇧 EN) แสดงต่ำกว่า HeroBanner ใน Layout
+- ปุ่มสลับภาษา (🇹🇭 TH / 🇬🇧 EN) ซ้อนมุมขวาบนของ HeroBanner (absolute + backdrop-blur ใน Layout)
 
 ### Pure helpers / data ที่แยกออกจาก `index.jsx` แล้ว
 ตรรกะ stateful ทั้งหมดยังอยู่ใน `Container` (`index.jsx`) แต่ค่าคงที่/ฟังก์ชัน pure ถูกแยกเป็นโมดูลย่อย (import กลับเข้า index.jsx):

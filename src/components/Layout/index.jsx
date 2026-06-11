@@ -605,20 +605,22 @@ const Container = () => {
           className={`transition-all duration-500 ease-in-out ${eventBarCollapsed ? 'h-0 -mb-5' : 'h-8 sm:h-10'}`}
         />
       )}
-      {/* Hero Banner */}
-      <HeroBanner />
-
-      {/* Language toggle */}
-      <div className="flex justify-end -mt-2">
-        <div role="group" aria-label={t('lang_toggle_label')} className="inline-flex gap-1 rounded-xl border border-slate-600/80 bg-slate-950/70 p-1 shadow-inner shadow-black/50">
+      {/* Hero Banner + ปุ่มเปลี่ยนภาษา ซ้อนมุมขวาบน (ตำแหน่งมาตรฐานของ language switch) */}
+      <div className="relative">
+        <HeroBanner />
+        <div
+          role="group"
+          aria-label={t('lang_toggle_label')}
+          className="absolute right-2 top-2 inline-flex gap-1 rounded-xl border border-white/15 bg-slate-950/70 p-1 shadow-lg shadow-black/40 backdrop-blur-sm sm:right-3 sm:top-3"
+        >
           <button
             type="button"
             onClick={() => setLang('th')}
             aria-pressed={lang === 'th'}
-            className={`cursor-pointer rounded-lg px-3 py-1.5 text-sm font-semibold transition-all duration-150 ${
+            className={`cursor-pointer rounded-lg px-2.5 py-1 text-xs font-semibold transition-all duration-150 sm:px-3 sm:py-1.5 sm:text-sm ${
               lang === 'th'
                 ? 'bg-amber-400 font-bold text-slate-900 shadow-md shadow-black/40'
-                : 'text-slate-400 hover:-translate-y-px hover:bg-slate-700/70 hover:text-slate-100 active:translate-y-0 active:scale-95'
+                : 'text-slate-300 hover:-translate-y-px hover:bg-slate-700/70 hover:text-white active:translate-y-0 active:scale-95'
             }`}
           >
             🇹🇭 TH
@@ -627,10 +629,10 @@ const Container = () => {
             type="button"
             onClick={() => setLang('en')}
             aria-pressed={lang === 'en'}
-            className={`cursor-pointer rounded-lg px-3 py-1.5 text-sm font-semibold transition-all duration-150 ${
+            className={`cursor-pointer rounded-lg px-2.5 py-1 text-xs font-semibold transition-all duration-150 sm:px-3 sm:py-1.5 sm:text-sm ${
               lang === 'en'
                 ? 'bg-amber-400 font-bold text-slate-900 shadow-md shadow-black/40'
-                : 'text-slate-400 hover:-translate-y-px hover:bg-slate-700/70 hover:text-slate-100 active:translate-y-0 active:scale-95'
+                : 'text-slate-300 hover:-translate-y-px hover:bg-slate-700/70 hover:text-white active:translate-y-0 active:scale-95'
             }`}
           >
             🇬🇧 EN
