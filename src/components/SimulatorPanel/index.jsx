@@ -248,10 +248,11 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable }) => {
                   {t('sim_use_bsb')}
                 </label>
               )}
-              <div className="ml-auto flex items-end gap-2">
-                <label className="block">
+              {/* mobile: เต็มความกว้าง ปุ่มรันอยู่บรรทัดของตัวเอง (กันโดนบีบ/โดน FAB ทับ) — ≥sm ค่อยชิดขวาแถวเดียว */}
+              <div className="flex w-full flex-wrap items-end gap-2 sm:ml-auto sm:w-auto">
+                <label className="block w-full sm:w-auto">
                   <span className="mb-1 block text-xs font-semibold text-slate-400">{t('sim_rounds_label')} (10–1000)</span>
-                  <div className="flex gap-1">
+                  <div className="flex flex-wrap gap-1">
                     {ROUND_PRESETS.map((p) => (
                       <button
                         key={p}
@@ -275,7 +276,7 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable }) => {
                       onBlur={() => setRounds(clampedRounds)}
                       placeholder={t('sim_rounds_custom')}
                       aria-label={t('sim_rounds_label')}
-                      className="w-20 rounded-lg border border-slate-600 bg-[#0f1117] px-2 py-1.5 text-center text-xs font-bold text-slate-200 [appearance:textfield] focus:border-violet-400 focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      className="w-20 min-w-0 flex-1 rounded-lg border border-slate-600 bg-[#0f1117] px-2 py-1.5 text-center text-xs font-bold text-slate-200 [appearance:textfield] focus:border-violet-400 focus:outline-none sm:flex-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                     />
                   </div>
                 </label>
@@ -283,7 +284,7 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable }) => {
                   type="button"
                   onClick={runSimulation}
                   disabled={running}
-                  className="rounded-lg border border-violet-400/60 bg-gradient-to-r from-violet-500/30 to-fuchsia-500/30 px-4 py-1.5 text-sm font-bold text-violet-100 transition-colors hover:from-violet-500/50 hover:to-fuchsia-500/50 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="w-full whitespace-nowrap rounded-lg border border-violet-400/60 bg-gradient-to-r from-violet-500/30 to-fuchsia-500/30 px-4 py-2 text-sm font-bold text-violet-100 transition-colors hover:from-violet-500/50 hover:to-fuchsia-500/50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:py-1.5"
                 >
                   {running ? t('sim_running', { done: progress, total: clampedRounds }) : t('sim_run')}
                 </button>

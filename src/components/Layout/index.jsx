@@ -1631,7 +1631,8 @@ const Container = () => {
           <div className="rounded-2xl border border-slate-700/60 bg-[#181a20]/90 p-4">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <b className="text-lg font-bold text-amber-300">{t('usage_title')}</b>
-              <div className="flex flex-col items-end gap-1">
+              {/* mobile (ตอน wrap ลงมาอยู่ชิดซ้าย) ให้ align ซ้ายตาม — ≥sm ค่อยชิดขวา */}
+              <div className="flex flex-col items-start gap-1 sm:items-end">
                 <div role="group" aria-label="Currency" className="inline-flex gap-1 rounded-xl border border-slate-600/80 bg-slate-950/70 p-1 shadow-inner shadow-black/50">
                   <button
                     type="button"
