@@ -8,6 +8,17 @@ export const ITEM_TYPE_LABELS = {
   weapon5: 'Weapon Lv.5',
 };
 
+// ชื่อย่อสำหรับหัวตารางบนจอเล็ก (ชื่อเต็มโดน truncate จนอ่านไม่ออก)
+export const ITEM_TYPE_SHORT = {
+  armor1: 'A1',
+  armor2: 'A2',
+  weapon1: 'W1',
+  weapon2: 'W2',
+  weapon3: 'W3',
+  weapon4: 'W4',
+  weapon5: 'W5',
+};
+
 // แร่ที่ใช้ตีบวกตามประเภทไอเท็ม (ประเภททั่วไป): low = +1-10, high = +11-20
 // แยกตามชนิดหิน: normal = หินปกติ (ล้มหาย), cash = HD (ล้มลดระดับ), enriched = Enriched (Cash ล้มหาย+โอกาสสูง, ใช้ +1-10 เท่านั้น)
 export const ORE_BY_TYPE = {

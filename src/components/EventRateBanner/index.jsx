@@ -77,7 +77,7 @@ const EventRateBanner = ({ collapsed, onToggle }) => {
 
       {/* ชั้นเนื้อหาเต็ม */}
       <div className={`absolute inset-0 z-[1] transition-opacity duration-300 ${collapsed ? 'pointer-events-none opacity-0' : 'opacity-100'}`}>
-        <div className="mx-auto flex h-full w-full max-w-4xl items-center justify-center gap-2.5 px-4 sm:gap-4">
+        <div className="mx-auto flex h-full w-full max-w-5xl items-center justify-center gap-2.5 px-4 sm:gap-4">
           <RateUpIcon className="h-9 w-9 drop-shadow-[0_0_8px_rgba(253,224,71,0.85)] sm:h-13 sm:w-13" />
           <div className="text-center">
             <div className="text-base font-extrabold uppercase tracking-[0.2em] text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)] sm:text-2xl">

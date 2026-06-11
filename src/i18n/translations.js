@@ -6,6 +6,8 @@ export const TRANSLATIONS = {
     event_rate_up: 'Event Rate Up',
     level_col: 'ระดับ',
     stone_normal_label: 'หินปกติ',
+    rate_show_all: 'ดูตารางเต็ม (+11 ~ +20)',
+    rate_show_less: 'ย่อตาราง (แสดงถึง +10)',
 
     // Item type selector
     item_type_label: 'ประเภทไอเท็ม',
@@ -81,6 +83,8 @@ export const TRANSLATIONS = {
     fail_count: 'แตก/ล้มเหลว',
     times_unit: 'ครั้ง',
     stack_log_title: 'Stack log',
+    log_empty_hint: 'ยังไม่มีประวัติการตี — กดปุ่ม "อัพเกรด" ในหน้าต่างตีบวกเพื่อเริ่ม',
+    usage_empty_hint: 'ยังไม่มีการใช้ไอเทม — ตีบวกแล้วระบบจะนับแร่/BSB ที่ใช้ให้อัตโนมัติ',
 
     // Log badges
     badge_success: 'สำเร็จ',
@@ -198,6 +202,8 @@ export const TRANSLATIONS = {
     event_rate_up: 'Event Rate Up',
     level_col: 'Lvl',
     stone_normal_label: 'Normal',
+    rate_show_all: 'Show full table (+11 ~ +20)',
+    rate_show_less: 'Collapse (up to +10)',
 
     // Item type selector
     item_type_label: 'Item Type',
@@ -273,6 +279,8 @@ export const TRANSLATIONS = {
     fail_count: 'Fail',
     times_unit: 'times',
     stack_log_title: 'Stack log',
+    log_empty_hint: 'No refine history yet — press "Upgrade" in the refine window to start',
+    usage_empty_hint: 'No items used yet — ores/BSB will be counted automatically once you refine',
 
     // Log badges
     badge_success: 'Success',

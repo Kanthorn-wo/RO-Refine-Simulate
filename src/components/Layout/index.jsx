@@ -14,7 +14,7 @@ import Toggle from '../Toggle';
 import SimulatorPanel from '../SimulatorPanel';
 import { getRate } from '../../constants/refineRates';
 import { STONE_META, getStoneMinLevel, getEffectiveStone, getPlannedStone, toggleHasMeaning } from '../../utils/stones';
-import { ITEM_TYPE_LABELS, ORE_COLORS, ORE_IMAGES, getOreName, getStoneOre, STONE_REFERENCE } from '../../constants/ores';
+import { ITEM_TYPE_LABELS, ITEM_TYPE_SHORT, ORE_COLORS, ORE_IMAGES, getOreName, getStoneOre, STONE_REFERENCE } from '../../constants/ores';
 import { frameCount, WAITING_FRAMES, PROCESSING_FRAMES, SUCCESS_FRAMES, FAIL_FRAMES, ALL_FRAMES } from '../../constants/frames';
 import { useLang } from '../../contexts/LangContext';
 
@@ -74,6 +74,8 @@ const Container = () => {
   const [itemType, setItemType] = useState('armor1');
   const [isEventRate, setIsEventRate] = useState(false);
   const [eventBarCollapsed, setEventBarCollapsed] = useState(false);
+  // ตาราง rate ย่อเหลือ +1~+10 เป็นค่าเริ่มต้น — กันตารางยาวดันหน้าต่างตีบวกตกใต้ fold
+  const [showFullRateTable, setShowFullRateTable] = useState(false);
   const bsbTable = isEventRate ? BSB_REQUIRED_EVENT : BSB_REQUIRED_NORMAL;
   const intervalRef = useRef(null);
   const skipSuccessIntroRef = useRef(false);
@@ -597,7 +599,8 @@ const Container = () => {
         onToggle={() => setEventBarCollapsed((c) => !c)}
       />
     )}
-    <div className="w-full max-w-4xl mx-auto flex flex-col gap-5">
+    {/* pb กันเนื้อหาท้ายหน้าโดน FAB (FloatingMenu) บังบน mobile */}
+    <div className="w-full max-w-5xl mx-auto flex flex-col gap-5 pb-16 sm:pb-4">
       {/* spacer กันเนื้อหาโดนแถบ Event (fixed) บัง — ยุบ/ขยายนุ่ม ๆ ตามสถานะแถบ (-mb-5 หักล้าง gap ตอนยุบ) */}
       {isEventRate && (
         <div
@@ -685,19 +688,28 @@ const Container = () => {
               <tr className="bg-[#23272f]">
                 <th className="min-w-[60px] border border-slate-800 p-1.5 text-amber-400">{t('level_col')}</th>
                 {Object.entries(ITEM_TYPE_LABELS).map(([key, label]) => (
-                  <th key={key} className="min-w-[90px] truncate border border-slate-800 p-1.5 text-amber-400">{label}</th>
+                  <th
+                    key={key}
+                    className={`border border-slate-800 p-1.5 sm:min-w-[90px] ${
+                      key === itemType ? 'bg-amber-400/15 text-amber-300' : 'text-amber-400'
+                    }`}
+                  >
+                    {/* จอเล็กใช้ชื่อย่อ — ชื่อเต็มโดน truncate จนแยกคอลัมน์ไม่ออก */}
+                    <span className="sm:hidden">{ITEM_TYPE_SHORT[key]}</span>
+                    <span className="hidden truncate sm:inline">{label}</span>
+                  </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {[...Array(20)].map((_, i) => (
+              {[...Array(showFullRateTable ? 20 : 10)].map((_, i) => (
                 <tr key={i} className={i % 2 === 0 ? 'bg-[#23272f]' : 'bg-[#181a20]'}>
                   <td className="border border-slate-800 p-1.5 text-center font-bold text-amber-300">+{i + 1}</td>
                   {Object.keys(ITEM_TYPE_LABELS).map(type => (
                     <td
                       key={type}
                       className={`truncate border border-slate-800 p-1.5 text-center ${
-                        type === itemType ? 'font-bold text-white' : 'text-slate-400'
+                        type === itemType ? 'bg-amber-400/10 font-bold text-white' : 'text-slate-400'
                       }`}
                     >
                       {getRate(isEventRate, useCash, useEnriched, type, i)}%
@@ -708,6 +720,17 @@ const Container = () => {
             </tbody>
           </table>
         </div>
+        {/* ปุ่มขยาย/ย่อตาราง — default โชว์ +1~+10 พอ ให้หน้าต่างตีบวกอยู่ใกล้ fold */}
+        <button
+          type="button"
+          onClick={() => setShowFullRateTable((v) => !v)}
+          className="mt-2 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-slate-600/80 bg-slate-950/50 py-1.5 text-xs font-semibold text-slate-300 transition-all duration-150 hover:border-amber-400/60 hover:text-amber-300 active:scale-[0.99]"
+        >
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`h-3.5 w-3.5 transition-transform duration-300 ${showFullRateTable ? 'rotate-180' : ''}`} aria-hidden="true">
+            <path d="M3 6l5 5 5-5" />
+          </svg>
+          {showFullRateTable ? t('rate_show_less') : t('rate_show_all')}
+        </button>
       </div>
       </section>
       </Reveal>
@@ -1443,6 +1466,15 @@ const Container = () => {
           }}
         >
           <div className="mb-2 text-xs font-semibold text-slate-500">{t('stack_log_title')}</div>
+          {/* empty state — บอกว่าต้องทำอะไรต่อ แทนกล่องว่างเปล่า */}
+          {log.length === 0 && (
+            <div className="flex h-[100px] flex-col items-center justify-center gap-1 text-center text-xs text-slate-600">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6 opacity-60" aria-hidden="true">
+                <path d="M14 4l6 6-9 9H5v-6l9-9zM12 6l6 6" />
+              </svg>
+              {t('log_empty_hint')}
+            </div>
+          )}
           <ul className="space-y-0">
             {log.map((item, idx) => {
               // Level arrow: prefer structured data, fallback to msg parsing
@@ -1584,10 +1616,11 @@ const Container = () => {
         const oreRows = Object.entries(oreUsed)
           .filter(([, qty]) => qty > 0)
           .map(([name, qty]) => ({ key: `ore:${name}`, label: name, unit: t('ore_unit'), qty, oreColor: ORE_COLORS[name] || 'bg-slate-400', icon: ORE_IMAGES[name] || null }));
+        // ซ่อนแถวที่ qty = 0 (รวม BSB) — โชว์เฉพาะของที่ใช้จริง
         const rows = [
           { key: 'bsb', label: 'Black Smith Blessing', unit: t('bsb_unit'), qty: bsbUsedTotal, icon: bsbImg },
           ...oreRows,
-        ];
+        ].filter((r) => r.qty > 0);
         const totals = rows.reduce((acc, r) => {
           acc[curOf(r.key)] += r.qty * num(prices[r.key]);
           return acc;
@@ -1628,6 +1661,11 @@ const Container = () => {
                 <span className="text-[0.65rem] text-slate-500">{t('set_all_hint')}</span>
               </div>
             </div>
+            {rows.length === 0 && (
+              <div className="flex h-[72px] items-center justify-center text-center text-xs text-slate-600">
+                {t('usage_empty_hint')}
+              </div>
+            )}
             <ul className="space-y-2">
               {rows.map((r) => {
                 const rc = curOf(r.key);
