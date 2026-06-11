@@ -46,6 +46,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 #### ตารางอัตราสำเร็จ
 - ตารางที่ใช้จริงคือ `RATE_TABLES` ใน `src/constants/refineRates.js` แยกตามประเภทไอเท็ม (`armor1`, `armor2`, `weapon1`–`weapon5`) **ไม่ใช่** ค่าใน `src/constants/refineConfig.js` (import เข้ามาแต่ไม่ได้ใช้ในการคำนวณจริง) ถ้าจะแก้สูตรอัตราต้องแก้ที่ `RATE_TABLES`
+- **UI ตาราง:** default ย่อแสดง +1~+10 (state `showFullRateTable` + ปุ่มขยาย/ย่อใต้ตาราง — กันตารางดันหน้าต่างตีบวกตกใต้ fold), หัวคอลัมน์จอเล็กใช้ชื่อย่อจาก `ITEM_TYPE_SHORT` (ores.js), คอลัมน์ของ `itemType` ที่เลือกถูก highlight ทั้ง th/td
 
 #### กติกาผลล้มเหลว (อยู่ใน `handleRefine`)
 - **`weapon5` และ `armor2`** เป็นเคสพิเศษ แยกเป็น 2 ช่วง:
@@ -148,6 +149,8 @@ Deploy หลักใช้ **Vercel** (auto build จาก push master, root 
 - เมื่อ `autoRefine` เปิดและ `autoStart` เปลี่ยน → stack จะ sync ทันทีผ่าน `handleAutoStartChange` ซึ่งทำงานเป็น event handler ไม่ใช่ useEffect (ทำให้ไม่มี stale closure)
 - `getPlannedStone` รับ `stack.length + 1` เสมอ (destination level) — อย่าส่ง `stack.length` เพราะจะ offset ผิด
 - Log/stats (`log`, `oreUsed`, `bsbUsedTotal`) สะสมข้าม session จนกว่าจะกด "ล้าง Session" (`handleClearSession`) — ตั้งใจให้เป็น global session counter
+- Empty states: Stack log ว่างมี hint (`log_empty_hint`), สรุปการใช้ไอเทมกรองแถว `qty = 0` ออก (รวม BSB) และโชว์ `usage_empty_hint` เมื่อไม่มีแถวเลย
+- Layout กว้าง `max-w-5xl` + `pb-16 sm:pb-4` (กัน FloatingMenu บังเนื้อหาท้ายหน้าบน mobile) — แถบ Event ใช้ `max-w-5xl` ด้านในให้ตรงกัน
 - `toggleHasMeaning(..., autoUseBSB, ruleBsb, bsbTable)` (ใน `stones.js`) — ตรวจ 3 เงื่อนไข: stone หายได้ + rate < 100% + BSB ของช่วงนั้น (`ruleBsb`) ไม่คุ้มครบช่วง (รับ `rule.bsb` ไม่ใช่ start/end แล้ว) ถ้าจะแก้เงื่อนไข toggle ต้องแก้ที่ฟังก์ชันนี้
 
 #### Log item structure
