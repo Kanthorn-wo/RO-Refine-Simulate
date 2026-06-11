@@ -73,6 +73,13 @@ const Container = () => {
   const [useEnriched, setUseEnriched] = useState(false);
   const [isItemLost, setIsItemLost] = useState(false);
   const [log, setLog] = useState([]);
+  // auto-scroll log ลงล่างเฉพาะตอนมี entry ใหม่ — ห้ามใช้ inline ref callback
+  // (จะถูกเรียกทุก re-render แล้วดึง scroll กลับล่างตลอด ทำให้เลื่อนขึ้นอ่านไม่ได้)
+  const logScrollRef = useRef(null);
+  useEffect(() => {
+    const el = logScrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [log.length]);
   const [useBSB, setUseBSB] = useState(false);
   const [itemType, setItemType] = useState('armor1');
   const [isEventRate, setIsEventRate] = useState(false);
@@ -1464,9 +1471,7 @@ const Container = () => {
       <div>
         <div
           className="max-h-[280px] min-h-[160px] w-full overflow-y-auto rounded-xl border border-slate-700/60 bg-[#0f1117] p-4 text-left text-sm [overflow-wrap:anywhere]"
-          ref={el => {
-            if (el) el.scrollTop = el.scrollHeight;
-          }}
+          ref={logScrollRef}
         >
           <div className="mb-2 text-xs font-semibold text-slate-500">{t('stack_log_title')}</div>
           {/* empty state — บอกว่าต้องทำอะไรต่อ แทนกล่องว่างเปล่า */}
