@@ -29,17 +29,20 @@ export const ORE_BY_TYPE = {
   weapon4: { normal: { low: 'Oridecon',     high: 'Bradium' }, cash: { low: 'HD Oridecon', high: 'HD Bradium' }, enriched: { low: 'Enriched Oridecon' } },
 };
 
-// แร่พิเศษของ Weapon Lv.5 / Armor Lv.2 — แยก 2 ช่วง × 3 ชนิดหิน
-// low (+0~9): normal(-3), enriched(-1), hd=ไม่มี
-// high (+10+): normal(-3), enriched=ไม่มี, hd=แตก
+// แร่พิเศษของ Weapon Lv.5 / Armor Lv.2 — แยก 3 ช่วง × 3 ชนิดหิน
+// low  (level 0~9,  ตี +1~+10):  normal(-3), enriched(-1), hd=ไม่มี
+// high (level 10~14, ตี +11~+15): normal=แตก, enriched=ไม่มี, hd=แตก (HD Etherdeocon/HD Ethernium — เรทสูงขึ้นแต่ล้มแล้วของแตก)
+// top  (level 15+,  ตี +16~+20): normal=แตก, enriched=ไม่มี, hd=แตก (HD Etel Bradium/HD Etel Carnium)
 export const SPECIAL_ORE = {
   weapon5: {
     low:  { normal: 'Etherdeocon',    enriched: 'Enriched Etherdeocon', hd: null },
-    high: { normal: 'Etel Bradium',   enriched: null,                   hd: 'HD Etel Bradium' },
+    high: { normal: 'Etel Bradium',   enriched: null,                   hd: 'HD Etherdeocon' },
+    top:  { normal: 'Etel Bradium',   enriched: null,                   hd: 'HD Etel Bradium' },
   },
   armor2: {
     low:  { normal: 'Ethernium',      enriched: 'Enriched Ethernium',   hd: null },
-    high: { normal: 'Etel Carnium',   enriched: null,                   hd: 'HD Etel Carnium' },
+    high: { normal: 'Etel Carnium',   enriched: null,                   hd: 'HD Ethernium' },
+    top:  { normal: 'Etel Carnium',   enriched: null,                   hd: 'HD Etel Carnium' },
   },
 };
 
@@ -59,8 +62,10 @@ export const ORE_COLORS = {
   'Enriched Elunium': 'bg-indigo-200',
   Etherdeocon: 'bg-amber-400',
   'Enriched Etherdeocon': 'bg-amber-300',
+  'HD Etherdeocon': 'bg-violet-300',
   Ethernium: 'bg-teal-300',
   'Enriched Ethernium': 'bg-teal-200',
+  'HD Ethernium': 'bg-purple-300',
   'Etel Bradium': 'bg-red-400',
   'HD Etel Bradium': 'bg-red-300',
   'Etel Carnium': 'bg-emerald-300',
@@ -83,8 +88,10 @@ export const ORE_IMAGES = {
   'Enriched Elunium': '/images/ores/enriched-elunium.png',
   Etherdeocon: '/images/ores/etherdeocon.png',
   'Enriched Etherdeocon': '/images/ores/enriched-etherdeocon.png',
+  'HD Etherdeocon': '/images/ores/hd-etherdeocon.png',
   Ethernium: '/images/ores/ethernium.png',
   'Enriched Ethernium': '/images/ores/enriched-ethernium.png',
+  'HD Ethernium': '/images/ores/hd-ethernium.png',
   'Etel Bradium': '/images/ores/etel-bradium.png',
   'HD Etel Bradium': '/images/ores/hd-etel-bradium.png',
   'Etel Carnium': '/images/ores/etel-carnium.png',
@@ -96,7 +103,7 @@ export const ORE_IMAGES = {
 export const getOreName = (itemType, level, useCash, useEnriched) => {
   const special = SPECIAL_ORE[itemType];
   if (special) {
-    const set = level < 10 ? special.low : special.high;
+    const set = level < 10 ? special.low : level < 15 ? special.high : special.top;
     if (useEnriched && set.enriched) return set.enriched;
     if (useCash && set.hd) return set.hd;
     return set.normal; // fallback: normal ถ้าหินที่เลือกไม่มีในช่วงนี้
@@ -113,10 +120,10 @@ export const getOreName = (itemType, level, useCash, useEnriched) => {
 export const getStoneOre = (itemType, level, stone) => {
   const special = SPECIAL_ORE[itemType];
   if (special) {
-    const set = level < 10 ? special.low : special.high;
+    const set = level < 10 ? special.low : level < 15 ? special.high : special.top;
     if (stone === 'normal') return set.normal;
     if (stone === 'enriched') return special.low.enriched;
-    if (stone === 'hd') return special.high.hd;
+    if (stone === 'hd') return (level < 15 ? special.high : special.top).hd;
   }
   const m = ORE_BY_TYPE[itemType];
   if (!m) return null;
@@ -141,7 +148,8 @@ export const STONE_REFERENCE = [
   { ore: 'Etherdeocon',          for: 'Weapon Lv.5',   range: '+1~+10',  fail: 'ลดระดับ −3', note: '',        img: '/images/ores/etherdeocon.png' },
   { ore: 'Enriched Etherdeocon', for: 'Weapon Lv.5',   range: '+1~+10',  fail: 'ลดระดับ −1', note: '+โอกาส', img: '/images/ores/enriched-etherdeocon.png' },
   { ore: 'Etel Bradium',         for: 'Weapon Lv.5',   range: '+11~+20', fail: 'ไอเทมหาย',  note: '',        img: '/images/ores/etel-bradium.png' },
-  { ore: 'HD Etel Bradium',      for: 'Weapon Lv.5',   range: '+11~+20', fail: 'ไอเทมหาย',  note: '',        img: '/images/ores/hd-etel-bradium.png' },
+  { ore: 'HD Etherdeocon',       for: 'Weapon Lv.5',   range: '+11~+15', fail: 'ไอเทมหาย',  note: '+โอกาส', img: '/images/ores/hd-etherdeocon.png' },
+  { ore: 'HD Etel Bradium',      for: 'Weapon Lv.5',   range: '+16~+20', fail: 'ไอเทมหาย',  note: '+โอกาส', img: '/images/ores/hd-etel-bradium.png' },
   { section: 'Armor Lv.1' },
   { ore: 'Elunium',              for: 'Armor Lv.1',    range: '+1~+10',  fail: 'ไอเทมหาย',  note: '',        img: '/images/ores/elunium.png' },
   { ore: 'Enriched Elunium',     for: 'Armor Lv.1',    range: '+1~+10',  fail: 'ไอเทมหาย',  note: '+โอกาส', img: '/images/ores/enriched-elunium.png' },
@@ -152,5 +160,6 @@ export const STONE_REFERENCE = [
   { ore: 'Ethernium',            for: 'Armor Lv.2',    range: '+1~+10',  fail: 'ลดระดับ −3', note: '',        img: '/images/ores/ethernium.png' },
   { ore: 'Enriched Ethernium',   for: 'Armor Lv.2',    range: '+1~+10',  fail: 'ลดระดับ −1', note: '+โอกาส', img: '/images/ores/enriched-ethernium.png' },
   { ore: 'Etel Carnium',         for: 'Armor Lv.2',    range: '+11~+20', fail: 'ไอเทมหาย',  note: '',        img: '/images/ores/etel-carnium.png' },
-  { ore: 'HD Etel Carnium',      for: 'Armor Lv.2',    range: '+11~+20', fail: 'ไอเทมหาย',  note: '',        img: '/images/ores/hd-etel-carnium.png' },
+  { ore: 'HD Ethernium',         for: 'Armor Lv.2',    range: '+11~+15', fail: 'ไอเทมหาย',  note: '+โอกาส', img: '/images/ores/hd-ethernium.png' },
+  { ore: 'HD Etel Carnium',      for: 'Armor Lv.2',    range: '+16~+20', fail: 'ไอเทมหาย',  note: '+โอกาส', img: '/images/ores/hd-etel-carnium.png' },
 ];

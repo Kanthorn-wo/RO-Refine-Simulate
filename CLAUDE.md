@@ -51,7 +51,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 #### กติกาผลล้มเหลว (อยู่ใน `handleRefine`)
 - **`weapon5` และ `armor2`** เป็นเคสพิเศษ แยกเป็น 2 ช่วง:
   - Low range (+0~+9): หินธรรมดาล้ม = −3 ระดับ, Enriched ล้ม = −1 ระดับ — clamp ที่ 0 ไม่หาย, HD ไม่มีในช่วงนี้
-  - High range (+10+): ทุกหินล้มเหลว = ไอเทมหาย (รวม HD Etel ด้วย)
+  - High range (+10+): ทุกหินล้มเหลว = ไอเทมหาย (รวม HD ทุกตัว) — **ชื่อแร่ HD แยก 2 ตอน** (กติกาเหมือนกัน ต่างแค่ชื่อ/รูป): level 10–14 = HD Etherdeocon / HD Ethernium, level ≥ 15 = HD Etel Bradium / HD Etel Carnium (`SPECIAL_ORE` มี 3 ชุด `low`/`high`/`top`, boundary ใน `getOreName`/`getStoneOre`: `< 10` / `< 15`)
 - **ประเภทอื่น (armor1, weapon1–4):** HD ล้ม = −1 ระดับ, หินธรรมดา/Enriched ล้ม = ไอเทมหายทันที
 - BSB ป้องกันผลล้มเหลว (ทั้ง item หายและลดระดับ) ถ้าเปิด toggle และอยู่ในช่วง +7→+14 (`stack.length >= 7 && stack.length <= 14`)
 
