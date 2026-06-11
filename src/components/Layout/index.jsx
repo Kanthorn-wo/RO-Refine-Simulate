@@ -23,8 +23,11 @@ import { useLang } from '../../contexts/LangContext';
 const DIVINE_PRIDE_API_KEY = '7a8b539b5e6171b362a6ef264e43dffc';
 
 // ── ระบบช่วงหิน Auto: กำแพงที่จุดเปลี่ยนแร่ ───────────────────────────────
-const STONE_WALLS = [11];
-const isWallFrom = (from) => STONE_WALLS.includes(from);
+// กำแพงจุดเปลี่ยนแร่ (destination level): ทุก item เปลี่ยน low→high ที่ +11
+// weapon5/armor2 มีจุดที่สองที่ +16 (HD เปลี่ยน HD Etherdeocon/HD Ethernium → HD Etel)
+const stoneWallsFor = (itemType) =>
+  itemType === 'weapon5' || itemType === 'armor2' ? [11, 16] : [11];
+const isWallFrom = (from, itemType) => stoneWallsFor(itemType).includes(from);
 
 const stoneValidInRoom = (itemType, from, stone) => {
   if (stone === 'enriched') return from <= 10;
@@ -47,7 +50,7 @@ const normalizeStoneRules = (rules, start, target, itemType, nextIdRef) => {
     if (r.from >= minFrom && r.from <= cap && !byFrom.has(r.from)) byFrom.set(r.from, r);
   }
   const froms = new Set([minFrom, ...byFrom.keys()]);
-  for (const w of STONE_WALLS) if (minFrom < w && w <= cap) froms.add(w);
+  for (const w of stoneWallsFor(itemType)) if (minFrom < w && w <= cap) froms.add(w);
   return [...froms].sort((a, b) => a - b).map((from) => {
     const existing = byFrom.get(from);
     let stone = existing ? existing.stone : bestStoneForRoom(itemType, from);
@@ -418,7 +421,7 @@ const Container = () => {
 
   const updateRuleFrom = (id, newFrom) => setAutoStoneRules(rs => {
     const idx = rs.findIndex(r => r.id === id);
-    if (idx <= 0 || isWallFrom(rs[idx].from)) return rs;
+    if (idx <= 0 || isWallFrom(rs[idx].from, itemType)) return rs;
     const next = rs.map(r => ({ ...r }));
     next[idx].from = Math.max(newFrom, next[idx - 1].from + 1);
     return normalizeStoneRules(next, autoStart, autoTarget, itemType, nextRuleId);
@@ -439,7 +442,7 @@ const Container = () => {
   });
   const removeStoneRule = (id) => setAutoStoneRules(rs => {
     const idx = rs.findIndex(r => r.id === id);
-    if (idx <= 0 || isWallFrom(rs[idx].from)) return rs;
+    if (idx <= 0 || isWallFrom(rs[idx].from, itemType)) return rs;
     return normalizeStoneRules(rs.filter(r => r.id !== id), autoStart, autoTarget, itemType, nextRuleId);
   });
 
@@ -1033,7 +1036,7 @@ const Container = () => {
                   const next = autoStoneRules[i + 1];
                   const toLevel = next ? next.from - 1 : autoTarget;
                   const minFrom = i === 0 ? Math.max(1, autoStart + 1) : autoStoneRules[i - 1].from + 1;
-                  const isWall = i > 0 && isWallFrom(rule.from);
+                  const isWall = i > 0 && isWallFrom(rule.from, itemType);
                   return (
                     <div key={rule.id} className="rounded-lg border border-slate-700 bg-[#0f1117] p-2">
                       <div className="flex items-center gap-2">
