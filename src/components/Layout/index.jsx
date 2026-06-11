@@ -611,7 +611,7 @@ const Container = () => {
         <div
           role="group"
           aria-label={t('lang_toggle_label')}
-          className="absolute right-2 top-2 inline-flex gap-1 rounded-xl border border-white/15 bg-slate-950/70 p-1 shadow-lg shadow-black/40 backdrop-blur-sm sm:right-3 sm:top-3"
+          className="absolute right-2 top-2 inline-flex gap-1 rounded-xl border border-amber-400/70 bg-slate-950/85 p-1 shadow-lg shadow-black/60 ring-2 ring-black/70 backdrop-blur-sm sm:right-3 sm:top-3"
         >
           <button
             type="button"
