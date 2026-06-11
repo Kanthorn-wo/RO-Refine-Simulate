@@ -15,6 +15,14 @@
 
 export const CHANGELOG = [
   {
+    version: '1.8.1',
+    date: '2026-06-11',
+    items: [
+      { type: 'improve', text: 'เลื่อนหน้าแล้วแต่ละส่วนของเว็บค่อย ๆ ลอยขึ้นมาอย่างนุ่มนวล (ปิดอัตโนมัติถ้าตั้งค่าลดการเคลื่อนไหวในเครื่อง)', textEn: 'Sections now gently float in as you scroll down (disabled automatically if your device prefers reduced motion)' },
+      { type: 'improve', text: 'ย้ายปุ่มเปลี่ยนภาษาไปมุมขวาบนของแบนเนอร์ หาเจอง่ายและไม่คั่นเนื้อหา', textEn: 'Language switch moved to the top-right of the banner — easier to find and no longer breaks the layout' },
+    ],
+  },
+  {
     version: '1.8.0',
     date: '2026-06-10',
     items: [
