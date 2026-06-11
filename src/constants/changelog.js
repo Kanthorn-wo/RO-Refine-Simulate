@@ -15,10 +15,11 @@
 
 export const CHANGELOG = [
   {
-    version: '1.8.2',
+    version: '1.8.3',
     date: '2026-06-11',
     items: [
       { type: 'fix', text: 'แก้หิน HD ของ Weapon Lv.5 / Armor Lv.2 ให้ตรงตามเกม — +11~+15 ใช้ HD Etherdeocon / HD Ethernium และ +16~+20 ใช้ HD Etel Bradium / HD Etel Carnium (แสดงรูปและชื่อถูกต้องทั้งช่องเลือกหิน, log, ตารางหิน และโหมดจำลอง)', textEn: 'Fixed Weapon Lv.5 / Armor Lv.2 HD stones to match the game — +11~+15 uses HD Etherdeocon / HD Ethernium, +16~+20 uses HD Etel Bradium / HD Etel Carnium (correct icon and name in stone slots, log, stone table and simulator)' },
+      { type: 'fix', text: 'แก้ Stack log เลื่อนขึ้นไปอ่านย้อนหลังแล้วเด้งกลับลงล่างเอง — ตอนนี้เลื่อนค้างไว้ได้ จะเลื่อนลงให้เฉพาะตอนมีรายการใหม่', textEn: 'Fixed Stack log snapping back to the bottom while scrolling up — it now stays put and only scrolls down when a new entry arrives' },
       { type: 'improve', text: 'ตารางอัตราสำเร็จย่อแสดง +1~+10 เป็นค่าเริ่มต้น (กดดูเต็มได้) พร้อมไฮไลต์คอลัมน์ไอเทมที่เลือก และใช้ชื่อย่อ A1/W1 บนมือถือให้อ่านง่าย', textEn: 'Rate table now shows +1~+10 by default (expandable), highlights your selected item column, and uses short names (A1/W1) on mobile' },
       { type: 'improve', text: 'จัดหน้าจอมือถือใหม่หลายจุด (โหมดจำลอง, สกุลเงิน) และเพิ่มข้อความแนะนำเมื่อยังไม่มีประวัติการตี', textEn: 'Mobile layout polish (simulator, currency) and helpful hints when there is no refine history yet' },
       { type: 'improve', text: 'เลื่อนหน้าแล้วแต่ละส่วนของเว็บค่อย ๆ ลอยขึ้นมาอย่างนุ่มนวล และย้ายปุ่มเปลี่ยนภาษาไปมุมขวาบนของแบนเนอร์', textEn: 'Sections gently float in as you scroll, and the language switch moved to the top-right of the banner' },
