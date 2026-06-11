@@ -3,6 +3,7 @@ import { useLang } from '../../contexts/LangContext';
 import { STONE_META, getEffectiveStone } from '../../utils/stones';
 import { ORE_IMAGES, ORE_COLORS } from '../../constants/ores';
 import { simulateRound, summarize, MAX_ATTEMPTS_PER_ROUND } from '../../utils/simulate';
+import { trackEvent } from '../../utils/analytics';
 
 // lazy load กราฟ (recharts) — โหลดเฉพาะตอนมีผลจำลองให้แสดง main bundle ไม่บวม
 const DistChart = lazy(() => import('./DistChart'));
@@ -85,6 +86,15 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable }) => {
 
   const runSimulation = () => {
     if (running) return;
+    trackEvent('sim_run', {
+      item_type: itemType,
+      start: startLevel,
+      target: targetLevel,
+      stone,
+      rounds: clampedRounds,
+      bsb: useBSB && bsbRelevant ? 1 : 0,
+      event_rate: isEventRate ? 1 : 0,
+    });
     cancelRef.current = false;
     setRunning(true);
     setProgress(0);
@@ -142,7 +152,10 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable }) => {
       {/* Header — กดเพื่อ slide เปิด/ปิด */}
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => setOpen((o) => {
+          if (!o) trackEvent('sim_open');
+          return !o;
+        })}
         className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left transition-colors hover:bg-violet-500/10"
         aria-expanded={open}
       >

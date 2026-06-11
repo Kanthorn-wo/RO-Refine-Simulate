@@ -17,6 +17,7 @@ import { STONE_META, getStoneMinLevel, getEffectiveStone, getPlannedStone, toggl
 import { ITEM_TYPE_LABELS, ITEM_TYPE_SHORT, ORE_COLORS, ORE_IMAGES, getOreName, getStoneOre, STONE_REFERENCE } from '../../constants/ores';
 import { frameCount, WAITING_FRAMES, PROCESSING_FRAMES, SUCCESS_FRAMES, FAIL_FRAMES, ALL_FRAMES } from '../../constants/frames';
 import { useLang } from '../../contexts/LangContext';
+import { trackEvent } from '../../utils/analytics';
 
 // API ของ divine-pride สำหรับค้นไอเทมจาก ID
 // หมายเหตุ: เว็บเป็น static site คีย์นี้จะถูก build ติดไปกับ JS และเป็นสาธารณะ
@@ -199,6 +200,16 @@ const Container = () => {
 
   const handleRefine = () => {
     if (isPlaying) return;
+    // track เฉพาะกดตีเอง (auto นับครั้งเดียวตอน auto_start ไม่งั้น event ท่วม)
+    if (!autoRunning) {
+      trackEvent('refine_attempt', {
+        item_type: itemType,
+        level: stack.length,
+        stone: useEnriched ? 'enriched' : useCash ? 'hd' : 'normal',
+        bsb: useBSB ? 1 : 0,
+        event_rate: isEventRate ? 1 : 0,
+      });
+    }
     setIsPlaying(true);
     setMode('process');
     setIndex(0);
@@ -385,6 +396,13 @@ const Container = () => {
   const handleStartAuto = () => {
     if (autoRunning || isPlaying) return;
     if (autoStart >= autoTarget) return;
+    trackEvent('auto_start', {
+      item_type: itemType,
+      start: autoStart,
+      target: autoTarget,
+      use_bsb: autoUseBSB ? 1 : 0,
+      event_rate: isEventRate ? 1 : 0,
+    });
     const now = new Date().toLocaleTimeString();
     setStack(Array.from({ length: autoStart }, () => ({ time: now })));
     setMode('wait');
