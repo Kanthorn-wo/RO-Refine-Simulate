@@ -15,6 +15,13 @@
 
 export const CHANGELOG = [
   {
+    version: '1.9.1',
+    date: '2026-06-16',
+    items: [
+      { type: 'feature', text: 'เพิ่มแถบจัดการคุกกี้ด้านล่างจอ — เลือกยอมรับหรือปฏิเสธคุกกี้วิเคราะห์ได้เอง พร้อมนโยบายคุกกี้ให้อ่าน (เว็บจะไม่เก็บข้อมูลการใช้งานจนกว่าจะกดยอมรับ)', textEn: 'Added a cookie consent bar at the bottom — accept or reject analytics cookies yourself, with a cookie policy to read (the site collects no usage data until you accept)' },
+    ],
+  },
+  {
     version: '1.8.3',
     date: '2026-06-11',
     items: [

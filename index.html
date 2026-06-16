@@ -18,6 +18,18 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
+      // Consent Mode v2 — analytics ถูกปิดไว้จนกว่าผู้ใช้กดยอมรับใน cookie bar
+      gtag('consent', 'default', {
+        analytics_storage: 'denied',
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+      });
+      try {
+        if (localStorage.getItem('ro_refine_cookie_consent') === 'accepted') {
+          gtag('consent', 'update', { analytics_storage: 'granted' });
+        }
+      } catch (e) { /* ignore */ }
       gtag('config', 'G-52LVZ4FK1T');
     </script>
 

@@ -1,12 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLang } from '../../contexts/LangContext';
 
 const REPORT_FORM_URL =
   'https://docs.google.com/forms/d/e/1FAIpQLSegZdTgvGgHiekYN-JiMeVtwvSvCbfvzLagkJa8ZSzQZpWFzw/viewform';
 
-const FloatingMenu = ({ onOpenPatchNotes }) => {
+const FloatingMenu = ({ onOpenPatchNotes, suppressed = false }) => {
   const [open, setOpen] = useState(false);
   const { t } = useLang();
+
+  // ซ่อน FAB (และปิด speed dial) ระหว่างที่ cookie bar โชว์ กันทับกัน
+  useEffect(() => {
+    if (suppressed) setOpen(false);
+  }, [suppressed]);
 
   const actions = [
     {
@@ -42,7 +47,11 @@ const FloatingMenu = ({ onOpenPatchNotes }) => {
     <>
       {open && <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />}
 
-      <div className="fixed bottom-4 right-4 z-40 flex flex-col items-end gap-3">
+      <div
+        className={`fixed bottom-4 right-4 z-40 flex flex-col items-end gap-3 transition-all duration-300 ${
+          suppressed ? 'pointer-events-none translate-y-6 opacity-0' : ''
+        }`}
+      >
         {actions.map((a, i) => {
           const Tag = a.href ? 'a' : 'button';
           return (

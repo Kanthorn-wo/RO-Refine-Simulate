@@ -110,14 +110,43 @@ function KpiCard({ icon, label, value, delta, spark, sparkKey, color = ACCENT })
   )
 }
 
-function Panel({ title, subtitle, children, className = '' }) {
+function Panel({ title, subtitle, action, children, className = '' }) {
   return (
     <div className={`rounded-2xl border border-white/5 bg-white/[0.03] p-5 backdrop-blur-sm ${className}`}>
-      <div className="mb-4">
-        <h2 className="text-sm font-semibold text-slate-100">{title}</h2>
-        {subtitle && <p className="text-xs text-slate-500">{subtitle}</p>}
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-semibold text-slate-100">{title}</h2>
+          {subtitle && <p className="text-xs text-slate-500">{subtitle}</p>}
+        </div>
+        {action}
       </div>
       {children}
+    </div>
+  )
+}
+
+const TREND_OPTIONS = [
+  { id: 'today', label: 'วันนี้' },
+  { id: '7', label: '7 วัน' },
+  { id: '30', label: '30 วัน' },
+  { id: '90', label: '90 วัน' },
+]
+
+// ปุ่มเลือกช่วงเวลาแบบ segmented (กราฟแนวโน้ม)
+function RangeToggle({ value, onChange }) {
+  return (
+    <div className="inline-flex rounded-lg border border-white/10 bg-white/[0.03] p-0.5">
+      {TREND_OPTIONS.map((o) => (
+        <button
+          key={o.id}
+          onClick={() => onChange(o.id)}
+          className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+            value === o.id ? 'bg-indigo-500/25 text-indigo-200' : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          {o.label}
+        </button>
+      ))}
     </div>
   )
 }
@@ -185,6 +214,7 @@ export default function DashboardView({ session }) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [trendRange, setTrendRange] = useState('30') // 'today' | '7' | '30' | '90'
 
   useEffect(() => {
     let cancelled = false
@@ -213,8 +243,20 @@ export default function DashboardView({ session }) {
   const totals = data?.totals || {}
   const deltas = data?.deltas || {}
   const ts = data?.timeseries || []
+  const sparkData = ts.slice(-30) // sparkline ใน KPI = 30 วัน (ตรงกับตัวเลข KPI)
+  // กราฟแนวโน้ม: 'today' = รายชั่วโมง (แกน hour), อื่น ๆ = รายวันตัด N วันท้าย (แกน date)
+  const isHourly = trendRange === 'today'
+  const trendData = isHourly ? (data?.hourly || []) : ts.slice(-Number(trendRange))
+  const trendXKey = isHourly ? 'hour' : 'date'
+  const trendSubtitle = isHourly ? 'ผู้ใช้และเซสชันวันนี้ (รายชั่วโมง)' : `ผู้ใช้และเซสชันใน ${trendRange} วันล่าสุด`
   const devices = data?.devices || []
   const deviceTotal = devices.reduce((s, d) => s + (d.users || 0), 0)
+  const audience = data?.audience || {}
+  const audienceData = [
+    { type: 'กลับมาซ้ำ', users: audience.returningUsers || 0 },
+    { type: 'ผู้ใช้ใหม่', users: audience.newUsers || 0 },
+  ]
+  const audienceTotal = (audience.newUsers || 0) + (audience.returningUsers || 0)
 
   return (
     <div className="min-h-screen w-full bg-slate-950 text-slate-100">
@@ -262,16 +304,20 @@ export default function DashboardView({ session }) {
           <div className="space-y-6">
             {/* KPI cards */}
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-              <KpiCard icon={Icon.users} label="ผู้ใช้" value={fmt(totals.activeUsers)} delta={deltas.activeUsers} spark={ts} sparkKey="activeUsers" color="#818cf8" />
-              <KpiCard icon={Icon.session} label="เซสชัน" value={fmt(totals.sessions)} delta={deltas.sessions} spark={ts} sparkKey="sessions" color="#34d399" />
-              <KpiCard icon={Icon.eye} label="เพจวิว" value={fmt(totals.screenPageViews)} delta={deltas.screenPageViews} spark={ts} sparkKey="screenPageViews" color="#fbbf24" />
+              <KpiCard icon={Icon.users} label="ผู้ใช้" value={fmt(totals.activeUsers)} delta={deltas.activeUsers} spark={sparkData} sparkKey="activeUsers" color="#818cf8" />
+              <KpiCard icon={Icon.session} label="เซสชัน" value={fmt(totals.sessions)} delta={deltas.sessions} spark={sparkData} sparkKey="sessions" color="#34d399" />
+              <KpiCard icon={Icon.eye} label="เพจวิว" value={fmt(totals.screenPageViews)} delta={deltas.screenPageViews} spark={sparkData} sparkKey="screenPageViews" color="#fbbf24" />
               <KpiCard icon={Icon.clock} label="เวลาเฉลี่ย/เซสชัน" value={fmtDuration(totals.averageSessionDuration)} delta={deltas.averageSessionDuration} color="#f472b6" />
             </div>
 
             {/* Main trend chart */}
-            <Panel title="แนวโน้มรายวัน" subtitle="ผู้ใช้และเซสชันใน 30 วันล่าสุด">
+            <Panel
+              title="แนวโน้ม"
+              subtitle={trendSubtitle}
+              action={<RangeToggle value={trendRange} onChange={setTrendRange} />}
+            >
               <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={ts} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
+                <AreaChart data={trendData} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
                   <defs>
                     <linearGradient id="gUsers" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor={ACCENT} stopOpacity={0.45} />
@@ -283,7 +329,7 @@ export default function DashboardView({ session }) {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} minTickGap={24} />
+                  <XAxis dataKey={trendXKey} tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} minTickGap={24} />
                   <YAxis tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} width={44} />
                   <Tooltip content={<ChartTooltip />} />
                   <Area type="monotone" dataKey="activeUsers" name="ผู้ใช้" stroke={ACCENT} strokeWidth={2.5} fill="url(#gUsers)" />
@@ -342,12 +388,60 @@ export default function DashboardView({ session }) {
               </Panel>
             </div>
 
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-              <Panel title="หน้าที่เข้าชมมากสุด" subtitle="ตามจำนวนเพจวิว">
-                <Leaderboard items={data.topPages} valueKey="views" labelKey="path" />
+            {/* New vs returning + channels */}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+              <Panel title="ผู้ใช้ใหม่ vs กลับมาซ้ำ" subtitle="สัดส่วน 30 วัน">
+                <div className="relative">
+                  <ResponsiveContainer width="100%" height={180}>
+                    <PieChart>
+                      <Pie data={audienceData} dataKey="users" nameKey="type" cx="50%" cy="50%" innerRadius={55} outerRadius={80} paddingAngle={3} stroke="none">
+                        <Cell fill="#34d399" />
+                        <Cell fill="#818cf8" />
+                      </Pie>
+                      <Tooltip content={<ChartTooltip />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-xl font-bold text-white">
+                      {audienceTotal ? Math.round(((audience.returningUsers || 0) / audienceTotal) * 100) : 0}%
+                    </span>
+                    <span className="text-[11px] text-slate-500">กลับมาซ้ำ</span>
+                  </div>
+                </div>
+                <div className="mt-3 space-y-1.5 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+                    <span className="text-slate-400">กลับมาซ้ำ</span>
+                    <span className="ml-auto font-medium text-slate-200">{fmt(audience.returningUsers)}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 rounded-full bg-indigo-400" />
+                    <span className="text-slate-400">ผู้ใช้ใหม่</span>
+                    <span className="ml-auto font-medium text-slate-200">{fmt(audience.newUsers)}</span>
+                  </div>
+                  <div className="mt-2 flex items-center justify-between border-t border-white/5 pt-2">
+                    <span className="text-slate-400">เฉลี่ยกลับมา/คนเก่า</span>
+                    <span className="font-semibold text-indigo-300">{audience.returningAvgVisits || 0} ครั้ง</span>
+                  </div>
+                </div>
               </Panel>
+              <Panel title="ช่องทางที่มา" subtitle="ผู้ใช้มาจากแหล่งใด" className="lg:col-span-2">
+                <Leaderboard items={data.channels} valueKey="users" labelKey="channel" />
+              </Panel>
+            </div>
+
+            {/* Top pages */}
+            <Panel title="หน้าที่เข้าชมมากสุด" subtitle="ตามจำนวนเพจวิว">
+              <Leaderboard items={data.topPages} valueKey="views" labelKey="path" />
+            </Panel>
+
+            {/* Geography */}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <Panel title="ประเทศ" subtitle="ตามจำนวนผู้ใช้">
                 <Leaderboard items={data.countries} valueKey="users" labelKey="country" />
+              </Panel>
+              <Panel title="เมือง" subtitle="ตามจำนวนผู้ใช้">
+                <Leaderboard items={data.cities} valueKey="users" labelKey="city" />
               </Panel>
             </div>
           </div>
