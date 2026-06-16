@@ -22,3 +22,12 @@ createRoot(document.getElementById('root')).render(
     </Routes>
   </BrowserRouter>
 )
+
+// PWA service worker (รองรับติดตั้งลงจอ + offline) — เฉพาะ production
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {
+      /* ignore — SW ไม่ใช่ของจำเป็นต่อการทำงานหลัก */
+    })
+  })
+}

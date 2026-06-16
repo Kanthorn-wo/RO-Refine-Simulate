@@ -1,0 +1,17 @@
+{
+  "name": "RO Refine Simulator — จำลองตีบวก Ragnarok",
+  "short_name": "RO Refine",
+  "description": "เว็บจำลองระบบตีบวก (refine) ของ Ragnarok Online คำนวณอัตราสำเร็จ วางแผนหิน HD/Enriched/BSB และโหมด Auto",
+  "lang": "th",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#181a20",
+  "theme_color": "#181a20",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

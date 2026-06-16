@@ -151,27 +151,49 @@ function RangeToggle({ value, onChange }) {
   )
 }
 
-function Leaderboard({ items, valueKey, labelKey }) {
+function Leaderboard({ items, valueKey, labelKey, hintMap }) {
   if (!items?.length) return <p className="text-sm text-slate-500">ไม่มีข้อมูล</p>
   const max = Math.max(...items.map((i) => i[valueKey] || 0), 1)
   return (
     <div className="space-y-2.5">
-      {items.map((it, i) => (
-        <div key={i} className="relative">
-          <div
-            className="absolute inset-y-0 left-0 rounded-lg bg-indigo-500/10"
-            style={{ width: `${((it[valueKey] || 0) / max) * 100}%` }}
-          />
-          <div className="relative flex items-center justify-between gap-3 px-2.5 py-1.5">
-            <span className="truncate text-sm text-slate-300" title={it[labelKey]}>
-              {it[labelKey] || '(ไม่ระบุ)'}
-            </span>
-            <span className="shrink-0 text-sm font-semibold text-slate-100">{fmt(it[valueKey])}</span>
+      {items.map((it, i) => {
+        const label = it[labelKey]
+        const hint = hintMap?.[label]
+        return (
+          <div key={i} className="relative">
+            <div
+              className="absolute inset-y-0 left-0 rounded-lg bg-indigo-500/10"
+              style={{ width: `${((it[valueKey] || 0) / max) * 100}%` }}
+            />
+            <div className="relative flex items-center justify-between gap-3 px-2.5 py-1.5">
+              <span className="min-w-0">
+                <span className="block truncate text-sm text-slate-300" title={label}>
+                  {label || '(ไม่ระบุ)'}
+                </span>
+                {hint && <span className="block truncate text-[11px] text-slate-500" title={hint}>{hint}</span>}
+              </span>
+              <span className="shrink-0 text-sm font-semibold text-slate-100">{fmt(it[valueKey])}</span>
+            </div>
           </div>
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
+}
+
+// คำอธิบายช่องทางที่มา (GA ส่งชื่อมาเป็นอังกฤษ)
+const CHANNEL_HINTS = {
+  Direct: 'พิมพ์ URL เอง / บุ๊กมาร์ก / เปิดจากแอปที่ไม่ส่งที่มา',
+  'Organic Search': 'ค้นหาเจอใน Google/Bing (ไม่ใช่โฆษณา)',
+  'Organic Social': 'คลิกลิงก์จากโซเชียล เช่น Facebook/X/TikTok',
+  'Organic Video': 'มาจากวิดีโอ เช่น YouTube',
+  Referral: 'คลิกลิงก์จากเว็บอื่นที่ไม่ใช่โซเชียล',
+  Email: 'คลิกลิงก์จากอีเมล',
+  'Paid Search': 'โฆษณาบนหน้าค้นหา (เสียเงิน)',
+  'Paid Social': 'โฆษณาบนโซเชียล (เสียเงิน)',
+  Display: 'โฆษณาแบนเนอร์ตามเว็บต่าง ๆ',
+  'Cross-network': 'แคมเปญโฆษณาข้ามหลายแพลตฟอร์มของ Google',
+  Unassigned: 'GA จัดกลุ่มไม่ได้ (ข้อมูลที่มาไม่พอ)',
 }
 
 function ChartTooltip({ active, payload, label }) {
@@ -426,7 +448,7 @@ export default function DashboardView({ session }) {
                 </div>
               </Panel>
               <Panel title="ช่องทางที่มา" subtitle="ผู้ใช้มาจากแหล่งใด" className="lg:col-span-2">
-                <Leaderboard items={data.channels} valueKey="users" labelKey="channel" />
+                <Leaderboard items={data.channels} valueKey="users" labelKey="channel" hintMap={CHANNEL_HINTS} />
               </Panel>
             </div>
 

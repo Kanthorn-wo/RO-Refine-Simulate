@@ -15,10 +15,12 @@
 
 export const CHANGELOG = [
   {
-    version: '1.9.1',
+    version: '1.10.0',
     date: '2026-06-16',
     items: [
+      { type: 'feature', text: 'ติดตั้งเว็บเป็นแอปลงหน้าจอมือถือ/คอมได้ (PWA) เปิดเร็วขึ้นและใช้งานพื้นฐานได้แม้เน็ตไม่ดี', textEn: 'Install the site as an app on your phone/desktop (PWA) — faster launch and basic offline use' },
       { type: 'feature', text: 'เพิ่มแถบจัดการคุกกี้ด้านล่างจอ — เลือกยอมรับหรือปฏิเสธคุกกี้วิเคราะห์ได้เอง พร้อมนโยบายคุกกี้ให้อ่าน (เว็บจะไม่เก็บข้อมูลการใช้งานจนกว่าจะกดยอมรับ)', textEn: 'Added a cookie consent bar at the bottom — accept or reject analytics cookies yourself, with a cookie policy to read (the site collects no usage data until you accept)' },
+      { type: 'improve', text: 'ปรับปรุงความปลอดภัยของเว็บไซต์', textEn: 'Improved website security' },
     ],
   },
   {
