@@ -30,4 +30,11 @@ export default [
       ],
     },
   },
+  {
+    // Node context: Vercel serverless functions + config files (process, fetch ฯลฯ)
+    files: ['api/**/*.js', '*.config.js'],
+    languageOptions: {
+      globals: { ...globals.node, fetch: 'readonly' },
+    },
+  },
 ]
