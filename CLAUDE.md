@@ -199,7 +199,7 @@ Deploy หลักใช้ **Vercel** (auto build จาก push master, root 
   - `MINOR` (+0.1.0) — มีฟีเจอร์ใหม่อย่างน้อย 1 อย่าง
   - `MAJOR` (+1.0.0) — เปลี่ยน architecture, redesign ใหญ่
 
-version ปัจจุบัน: **1.10.0** (มีการ renumber CHANGELOG ทั้งชุดเมื่อ 2026-06-10 — เลขเดิม 1.9.3 กลายเป็น 1.6.0)
+version ปัจจุบัน: **1.10.1** (มีการ renumber CHANGELOG ทั้งชุดเมื่อ 2026-06-10 — เลขเดิม 1.9.3 กลายเป็น 1.6.0)
 
 ## Patch Notes (changelog)
 
