@@ -83,17 +83,17 @@ export default function CookieConsent({ onVisibilityChange }) {
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 flex justify-center p-3 sm:p-4">
-      <div className="w-full max-w-3xl overflow-hidden rounded-2xl border border-white/10 bg-slate-900/90 shadow-2xl shadow-black/40 backdrop-blur-xl">
+      <div className="w-full max-w-3xl overflow-hidden rounded-2xl border border-line-soft bg-card/95 shadow-2xl shadow-black/40 backdrop-blur-xl">
         <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:p-5">
           <div className="flex items-start gap-3">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-400/15 text-2xl">🍪</span>
             <div>
-              <p className="text-sm font-semibold text-slate-100">{t.title}</p>
-              <p className="mt-0.5 text-xs leading-relaxed text-slate-400">{t.desc}</p>
+              <p className="text-sm font-semibold text-body">{t.title}</p>
+              <p className="mt-0.5 text-xs leading-relaxed text-dim">{t.desc}</p>
               <button
                 type="button"
                 onClick={() => setShowPolicy((v) => !v)}
-                className="mt-1 text-xs font-medium text-indigo-400 underline-offset-2 hover:text-indigo-300 hover:underline"
+                className="mt-1 text-xs font-medium text-indigo-400 underline-offset-2 hover:text-brand2 hover:underline"
               >
                 {showPolicy ? t.hide : t.readMore}
               </button>
@@ -104,7 +104,7 @@ export default function CookieConsent({ onVisibilityChange }) {
             <button
               type="button"
               onClick={() => decide(false)}
-              className="flex-1 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-white/10 sm:flex-none"
+              className="flex-1 rounded-xl border border-line-soft bg-sunken px-4 py-2 text-sm font-medium text-body transition-colors hover:bg-line-soft sm:flex-none"
             >
               {t.reject}
             </button>
@@ -119,13 +119,13 @@ export default function CookieConsent({ onVisibilityChange }) {
         </div>
 
         {showPolicy && (
-          <div className="max-h-64 overflow-y-auto border-t border-white/10 bg-black/20 px-5 py-4">
-            <h2 className="mb-2 text-sm font-semibold text-slate-100">{t.policyTitle}</h2>
+          <div className="max-h-64 overflow-y-auto border-t border-line-soft bg-sunken/60 px-5 py-4">
+            <h2 className="mb-2 text-sm font-semibold text-body">{t.policyTitle}</h2>
             <div className="space-y-3">
               {t.sections.map(([h, p], i) => (
                 <div key={i}>
-                  <p className="text-xs font-semibold text-slate-300">{h}</p>
-                  <p className="mt-0.5 whitespace-pre-line text-xs leading-relaxed text-slate-400">{p}</p>
+                  <p className="text-xs font-semibold text-body">{h}</p>
+                  <p className="mt-0.5 whitespace-pre-line text-xs leading-relaxed text-dim">{p}</p>
                 </div>
               ))}
             </div>

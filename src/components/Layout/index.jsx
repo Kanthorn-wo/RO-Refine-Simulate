@@ -601,7 +601,7 @@ const Container = () => {
         key={src}
         src={src}
         alt={`${label}-frame-${i}`}
-        className="absolute top-0 left-0 z-[1] h-auto w-full rounded-xl border-2 border-slate-700 bg-[#181a20] object-cover"
+        className="absolute top-0 left-0 z-[1] h-auto w-full rounded-xl border-2 border-line-soft bg-card object-cover"
         style={{ display: index === i ? 'block' : 'none' }}
       />
     ));
@@ -642,7 +642,7 @@ const Container = () => {
         <div
           role="group"
           aria-label={t('lang_toggle_label')}
-          className="absolute right-2 top-2 inline-flex gap-1 rounded-xl border border-amber-400/70 bg-slate-950/85 p-1 shadow-lg shadow-black/60 ring-2 ring-black/70 backdrop-blur-sm sm:right-3 sm:top-3"
+          className="absolute right-2 top-2 inline-flex gap-1 rounded-xl border border-amber-400/70 bg-app/85 p-1 shadow-lg shadow-black/60 ring-2 ring-black/70 backdrop-blur-sm sm:right-3 sm:top-3"
         >
           <button
             type="button"
@@ -651,7 +651,7 @@ const Container = () => {
             className={`cursor-pointer rounded-lg px-2.5 py-1 text-xs font-semibold transition-all duration-150 sm:px-3 sm:py-1.5 sm:text-sm ${
               lang === 'th'
                 ? 'bg-amber-400 font-bold text-slate-900 shadow-md shadow-black/40'
-                : 'text-slate-300 hover:-translate-y-px hover:bg-slate-700/70 hover:text-white active:translate-y-0 active:scale-95'
+                : 'text-body hover:-translate-y-px hover:bg-line-soft/70 hover:text-body active:translate-y-0 active:scale-95'
             }`}
           >
             🇹🇭 TH
@@ -663,7 +663,7 @@ const Container = () => {
             className={`cursor-pointer rounded-lg px-2.5 py-1 text-xs font-semibold transition-all duration-150 sm:px-3 sm:py-1.5 sm:text-sm ${
               lang === 'en'
                 ? 'bg-amber-400 font-bold text-slate-900 shadow-md shadow-black/40'
-                : 'text-slate-300 hover:-translate-y-px hover:bg-slate-700/70 hover:text-white active:translate-y-0 active:scale-95'
+                : 'text-body hover:-translate-y-px hover:bg-line-soft/70 hover:text-body active:translate-y-0 active:scale-95'
             }`}
           >
             🇬🇧 EN
@@ -674,13 +674,13 @@ const Container = () => {
       {/* ตารางอัตราสำเร็จ */}
       <Reveal>
       <section aria-labelledby="rate-table-heading">
-      <div className="rounded-2xl border border-slate-700/60 bg-[#181a20]/90 p-4 shadow-lg shadow-black/30">
+      <div className="rounded-2xl border border-line-soft/60 bg-card/90 p-4 shadow-lg shadow-black/30">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 id="rate-table-heading" className="m-0 text-base font-bold text-amber-300">
+          <h2 id="rate-table-heading" className="m-0 text-base font-bold text-warn">
             {t('rate_table_title')} — {isEventRate ? t('event_rate_up') : t('no_event')} · {useEnriched ? 'Enriched' : useCash ? 'HD' : t('stone_normal_label')}
           </h2>
           {/* สวิตช์โหมดเรท — ทำให้เห็นชัดว่ากดได้: ราง inset + ปุ่ม active นูน + hover เด้ง */}
-          <div role="group" aria-label="Rate mode" className="inline-flex gap-1 rounded-xl border border-slate-600/80 bg-slate-950/70 p-1 shadow-inner shadow-black/50">
+          <div role="group" aria-label="Rate mode" className="inline-flex gap-1 rounded-xl border border-line/80 bg-app/70 p-1 shadow-inner shadow-black/50">
             <button
               type="button"
               onClick={() => setIsEventRate(false)}
@@ -688,7 +688,7 @@ const Container = () => {
               className={`cursor-pointer rounded-lg px-3 py-1.5 text-sm font-semibold transition-all duration-150 ${
                 !isEventRate
                   ? 'bg-slate-200 text-slate-900 shadow-md shadow-black/40'
-                  : 'text-slate-400 hover:-translate-y-px hover:bg-slate-700/70 hover:text-slate-100 active:translate-y-0 active:scale-95'
+                  : 'text-dim hover:-translate-y-px hover:bg-line-soft/70 hover:text-body active:translate-y-0 active:scale-95'
               }`}
             >
               {t('no_event')}
@@ -700,7 +700,7 @@ const Container = () => {
               className={`flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold transition-all duration-150 ${
                 isEventRate
                   ? 'event-fire-bar text-white shadow-md shadow-orange-900/60 ring-1 ring-amber-300/70'
-                  : 'text-amber-300 ring-1 ring-amber-400/40 hover:-translate-y-px hover:bg-amber-500/15 hover:text-amber-200 hover:ring-amber-300/70 active:translate-y-0 active:scale-95'
+                  : 'text-warn ring-1 ring-amber-400/40 hover:-translate-y-px hover:bg-amber-500/15 hover:text-warn hover:ring-amber-300/70 active:translate-y-0 active:scale-95'
               }`}
             >
               <svg viewBox="0 0 24 24" fill="currentColor" className={`h-3.5 w-3.5 ${isEventRate ? 'animate-pulse' : ''}`} aria-hidden="true">
@@ -713,13 +713,13 @@ const Container = () => {
         <div className="w-full overflow-x-auto">
           <table className="w-full min-w-[520px] table-fixed border-collapse text-sm">
             <thead>
-              <tr className="bg-[#23272f]">
-                <th className="min-w-[60px] border border-slate-800 p-1.5 text-amber-400">{t('level_col')}</th>
+              <tr className="bg-sunken">
+                <th className="min-w-[60px] border border-line-soft p-1.5 text-amber-400">{t('level_col')}</th>
                 {Object.entries(ITEM_TYPE_LABELS).map(([key, label]) => (
                   <th
                     key={key}
-                    className={`border border-slate-800 p-1.5 sm:min-w-[90px] ${
-                      key === itemType ? 'bg-amber-400/15 text-amber-300' : 'text-amber-400'
+                    className={`border border-line-soft p-1.5 sm:min-w-[90px] ${
+                      key === itemType ? 'bg-amber-400/15 text-warn' : 'text-amber-400'
                     }`}
                   >
                     {/* จอเล็กใช้ชื่อย่อ — ชื่อเต็มโดน truncate จนแยกคอลัมน์ไม่ออก */}
@@ -731,13 +731,13 @@ const Container = () => {
             </thead>
             <tbody>
               {[...Array(showFullRateTable ? 20 : 10)].map((_, i) => (
-                <tr key={i} className={i % 2 === 0 ? 'bg-[#23272f]' : 'bg-[#181a20]'}>
-                  <td className="border border-slate-800 p-1.5 text-center font-bold text-amber-300">+{i + 1}</td>
+                <tr key={i} className={i % 2 === 0 ? 'bg-sunken' : 'bg-card'}>
+                  <td className="border border-line-soft p-1.5 text-center font-bold text-warn">+{i + 1}</td>
                   {Object.keys(ITEM_TYPE_LABELS).map(type => (
                     <td
                       key={type}
-                      className={`truncate border border-slate-800 p-1.5 text-center ${
-                        type === itemType ? 'bg-amber-400/10 font-bold text-white' : 'text-slate-400'
+                      className={`truncate border border-line-soft p-1.5 text-center ${
+                        type === itemType ? 'bg-amber-400/10 font-bold text-body' : 'text-dim'
                       }`}
                     >
                       {getRate(isEventRate, useCash, useEnriched, type, i)}%
@@ -752,7 +752,7 @@ const Container = () => {
         <button
           type="button"
           onClick={() => setShowFullRateTable((v) => !v)}
-          className="mt-2 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-slate-600/80 bg-slate-950/50 py-1.5 text-xs font-semibold text-slate-300 transition-all duration-150 hover:border-amber-400/60 hover:text-amber-300 active:scale-[0.99]"
+          className="mt-2 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-line/80 bg-app/50 py-1.5 text-xs font-semibold text-body transition-all duration-150 hover:border-amber-400/60 hover:text-warn active:scale-[0.99]"
         >
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`h-3.5 w-3.5 transition-transform duration-300 ${showFullRateTable ? 'rotate-180' : ''}`} aria-hidden="true">
             <path d="M3 6l5 5 5-5" />
@@ -767,11 +767,11 @@ const Container = () => {
       <Reveal>
       <div className="flex flex-col gap-5 lg:flex-row lg:items-stretch">
       {/* การ์ดควบคุม */}
-      <div className="rounded-2xl border border-slate-700/60 bg-[#181a20]/90 p-5 shadow-lg shadow-black/30 lg:flex-1">
+      <div className="rounded-2xl border border-line-soft/60 bg-card/90 p-5 shadow-lg shadow-black/30 lg:flex-1">
         {/* ประเภทไอเท็ม */}
         <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-          <label htmlFor="item-type" className="text-sm font-semibold text-slate-300">{t('item_type_label')}</label>
-          <div role="group" aria-label="Item selection mode" className="inline-flex gap-1 rounded-xl border border-slate-600/80 bg-slate-950/70 p-1 shadow-inner shadow-black/50">
+          <label htmlFor="item-type" className="text-sm font-semibold text-body">{t('item_type_label')}</label>
+          <div role="group" aria-label="Item selection mode" className="inline-flex gap-1 rounded-xl border border-line/80 bg-app/70 p-1 shadow-inner shadow-black/50">
             <button
               type="button"
               onClick={() => setInputMode('dropdown')}
@@ -779,7 +779,7 @@ const Container = () => {
               className={`cursor-pointer rounded-lg px-3 py-1 text-xs font-semibold transition-all duration-150 ${
                 inputMode === 'dropdown'
                   ? 'bg-amber-400 font-bold text-slate-900 shadow-md shadow-black/40'
-                  : 'text-slate-400 hover:-translate-y-px hover:bg-slate-700/70 hover:text-slate-100 active:translate-y-0 active:scale-95'
+                  : 'text-dim hover:-translate-y-px hover:bg-line-soft/70 hover:text-body active:translate-y-0 active:scale-95'
               }`}
             >
               {t('select_manual')}
@@ -791,7 +791,7 @@ const Container = () => {
               className={`cursor-pointer rounded-lg px-3 py-1 text-xs font-semibold transition-all duration-150 ${
                 inputMode === 'id'
                   ? 'bg-amber-400 font-bold text-slate-900 shadow-md shadow-black/40'
-                  : 'text-slate-400 hover:-translate-y-px hover:bg-slate-700/70 hover:text-slate-100 active:translate-y-0 active:scale-95'
+                  : 'text-dim hover:-translate-y-px hover:bg-line-soft/70 hover:text-body active:translate-y-0 active:scale-95'
               }`}
             >
               {t('search_by_id')}
@@ -805,13 +805,13 @@ const Container = () => {
               id="item-type"
               value={itemType}
               onChange={e => selectItemType(e.target.value)}
-              className="w-full cursor-pointer appearance-none rounded-xl border border-slate-600 bg-[#0f1117] px-4 py-2.5 pr-10 font-bold text-amber-300 outline-none transition-colors hover:border-amber-400/70 focus-visible:border-amber-400 focus-visible:ring-2 focus-visible:ring-amber-300/40"
+              className="w-full cursor-pointer appearance-none rounded-xl border border-line bg-sunken px-4 py-2.5 pr-10 font-bold text-warn outline-none transition-colors hover:border-amber-400/70 focus-visible:border-amber-400 focus-visible:ring-2 focus-visible:ring-amber-300/40"
             >
               {Object.entries(ITEM_TYPE_LABELS).map(([key, label]) => (
-                <option key={key} value={key} className="bg-[#0f1117] text-amber-300">{label}</option>
+                <option key={key} value={key} className="bg-sunken text-warn">{label}</option>
               ))}
             </select>
-            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-amber-300">▾</span>
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-warn">▾</span>
           </div>
         ) : (
           <div>
@@ -823,25 +823,25 @@ const Container = () => {
                 onChange={e => setItemIdInput(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') handleFetchItem(); }}
                 placeholder={t('item_id_placeholder')}
-                className="w-full rounded-xl border border-slate-600 bg-[#0f1117] px-4 py-2.5 text-white outline-none transition-colors hover:border-amber-400/70 focus-visible:border-amber-400 focus-visible:ring-2 focus-visible:ring-amber-300/40"
+                className="w-full rounded-xl border border-line bg-sunken px-4 py-2.5 text-body outline-none transition-colors hover:border-amber-400/70 focus-visible:border-amber-400 focus-visible:ring-2 focus-visible:ring-amber-300/40"
               />
               <button
                 type="button"
                 onClick={handleFetchItem}
                 disabled={apiLoading || !itemIdInput.trim()}
-                className="shrink-0 rounded-xl bg-amber-400 px-4 py-2.5 font-bold text-slate-900 transition-colors hover:bg-amber-300 disabled:cursor-not-allowed disabled:bg-slate-600 disabled:text-slate-400"
+                className="shrink-0 rounded-xl bg-amber-400 px-4 py-2.5 font-bold text-slate-900 transition-colors hover:bg-amber-300 disabled:cursor-not-allowed disabled:bg-line-soft disabled:text-faint"
               >
                 {apiLoading ? t('searching') : t('search_btn')}
               </button>
             </div>
 
-            <p className="mt-2 text-xs text-slate-400">
+            <p className="mt-2 text-xs text-dim">
               {t('copy_id_hint_pre')}{' '}
               <a
                 href="https://www.divine-pride.net/database/item"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-semibold text-amber-300 underline decoration-dotted underline-offset-2 hover:text-amber-200"
+                className="font-semibold text-warn underline decoration-dotted underline-offset-2 hover:text-warn"
               >
                 divine-pride.net
               </a>
@@ -853,16 +853,16 @@ const Container = () => {
             )}
 
             {apiLoading ? (
-              <div className="mt-3 flex items-center gap-3 overflow-hidden rounded-xl border border-slate-700/60 bg-[#0f1117] px-3 py-2.5">
-                <div className="h-11 w-11 shrink-0 animate-pulse rounded-lg bg-slate-700/60" />
+              <div className="mt-3 flex items-center gap-3 overflow-hidden rounded-xl border border-line-soft/60 bg-sunken px-3 py-2.5">
+                <div className="h-11 w-11 shrink-0 animate-pulse rounded-lg bg-line-soft/60" />
                 <div className="min-w-0 flex-1 space-y-2">
-                  <div className="h-3.5 w-1/2 animate-pulse rounded bg-slate-700/60" />
-                  <div className="h-2.5 w-1/3 animate-pulse rounded bg-slate-700/50" />
+                  <div className="h-3.5 w-1/2 animate-pulse rounded bg-line-soft/60" />
+                  <div className="h-2.5 w-1/3 animate-pulse rounded bg-line-soft/50" />
                 </div>
-                <span className="shrink-0 text-xs text-amber-300">{t('loading_text')}</span>
+                <span className="shrink-0 text-xs text-warn">{t('loading_text')}</span>
               </div>
             ) : apiItem ? (
-              <div className="mt-3 overflow-hidden rounded-xl border border-slate-700/60 bg-[#0f1117]">
+              <div className="mt-3 overflow-hidden rounded-xl border border-line-soft/60 bg-sunken">
                 <button
                   type="button"
                   onClick={() => setShowItemInfo(v => !v)}
@@ -876,15 +876,15 @@ const Container = () => {
                     onError={e => { e.currentTarget.style.visibility = 'hidden'; }}
                   />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate font-bold text-amber-300">{apiItem.name}</span>
-                    <span className="block text-xs text-slate-400">
+                    <span className="block truncate font-bold text-warn">{apiItem.name}</span>
+                    <span className="block text-xs text-dim">
                       ID {apiItem.id} · {ITEM_TYPE_LABELS[apiItem.type]}
                     </span>
                   </span>
-                  <span className="shrink-0 text-amber-300">{showItemInfo ? '▴' : '▾'}</span>
+                  <span className="shrink-0 text-warn">{showItemInfo ? '▴' : '▾'}</span>
                 </button>
                 {showItemInfo && (
-                  <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 border-t border-slate-700/60 px-3 py-3 text-sm">
+                  <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 border-t border-line-soft/60 px-3 py-3 text-sm">
                     {(() => {
                       const isWeapon = apiItem.type.startsWith('weapon');
                       const fields = [
@@ -898,8 +898,8 @@ const Container = () => {
                       ];
                       return fields.map(([label, value]) => (
                         <div key={label} className="flex flex-col">
-                          <dt className="text-xs text-slate-500">{label}</dt>
-                          <dd className="truncate font-medium text-slate-200">{value}</dd>
+                          <dt className="text-xs text-faint">{label}</dt>
+                          <dd className="truncate font-medium text-body">{value}</dd>
                         </div>
                       ));
                     })()}
@@ -912,9 +912,9 @@ const Container = () => {
 
         {/* Dropdown เลือกระดับเริ่มต้น (manual) */}
         <div className={`transition-opacity ${autoRefine ? 'pointer-events-none opacity-40' : ''}`}>
-          <label htmlFor="start-level" className="mt-4 mb-1.5 block text-sm font-semibold text-slate-300">
+          <label htmlFor="start-level" className="mt-4 mb-1.5 block text-sm font-semibold text-body">
             {t('start_level_label')}
-            {autoRefine && <span className="ml-2 text-xs font-normal text-slate-500">{t('auto_tag')}</span>}
+            {autoRefine && <span className="ml-2 text-xs font-normal text-faint">{t('auto_tag')}</span>}
           </label>
           <div className="relative">
             <select
@@ -922,47 +922,47 @@ const Container = () => {
               value={stack.length}
               onChange={(e) => handleStartLevelChange(Number(e.target.value))}
               disabled={autoRefine}
-              className="w-full cursor-pointer appearance-none rounded-xl border border-slate-600 bg-[#0f1117] px-4 py-2.5 pr-10 font-bold text-amber-300 outline-none transition-colors hover:border-amber-400/70 focus-visible:border-amber-400 focus-visible:ring-2 focus-visible:ring-amber-300/40 disabled:cursor-not-allowed"
+              className="w-full cursor-pointer appearance-none rounded-xl border border-line bg-sunken px-4 py-2.5 pr-10 font-bold text-warn outline-none transition-colors hover:border-amber-400/70 focus-visible:border-amber-400 focus-visible:ring-2 focus-visible:ring-amber-300/40 disabled:cursor-not-allowed"
             >
               {Array.from({ length: 20 }, (_, i) => (
-                <option key={i} value={i} className="bg-[#0f1117] text-amber-300">+{i}</option>
+                <option key={i} value={i} className="bg-sunken text-warn">+{i}</option>
               ))}
             </select>
-            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-amber-300">▾</span>
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-warn">▾</span>
           </div>
         </div>
 
         {/* Toggle BSB */}
         <div
           className={`mt-3 flex items-center justify-between rounded-xl border px-4 py-3 transition-colors ${
-            bsbInRange ? 'border-emerald-600/50 bg-emerald-950/30' : 'border-slate-700/60 bg-[#0f1117]'
+            bsbInRange ? 'border-emerald-600/50 bg-sunken' : 'border-line-soft/60 bg-sunken'
           }`}
         >
           <div>
-            <div className="flex items-center gap-2 text-sm font-semibold text-white">
+            <div className="flex items-center gap-2 text-sm font-semibold text-body">
               Black Smith Blessing (BSB)
               {isEventRate && (
-                <span className="rounded-full bg-sky-500/20 px-2 py-0.5 text-[0.7rem] font-bold text-sky-300">Event Rate</span>
+                <span className="rounded-full bg-sky-500/20 px-2 py-0.5 text-[0.7rem] font-bold text-info">Event Rate</span>
               )}
               {autoRunning && autoUseBSB && (
-                <span className="rounded-full bg-indigo-500/20 px-2 py-0.5 text-[0.7rem] font-bold text-indigo-300">Auto</span>
+                <span className="rounded-full bg-indigo-500/20 px-2 py-0.5 text-[0.7rem] font-bold text-brand2">Auto</span>
               )}
               <span className="group relative inline-flex">
-                <span className="flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-slate-500 text-[0.6rem] font-bold text-slate-300">i</span>
-                <div className="pointer-events-none absolute left-0 top-full z-20 mt-1 hidden w-48 rounded-lg border border-slate-600 bg-[#0f1117] p-2 text-xs font-normal shadow-lg group-hover:block">
-                  <div className="mb-1 font-bold text-amber-300">{t('bsb_per_level')} ({isEventRate ? 'Event' : 'Normal'})</div>
+                <span className="flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-line text-[0.6rem] font-bold text-body">i</span>
+                <div className="pointer-events-none absolute left-0 top-full z-20 mt-1 hidden w-48 rounded-lg border border-line bg-sunken p-2 text-xs font-normal shadow-lg group-hover:block">
+                  <div className="mb-1 font-bold text-warn">{t('bsb_per_level')} ({isEventRate ? 'Event' : 'Normal'})</div>
                   <div className="space-y-0.5">
                     {bsbTable.map((qty, lvl) => qty > 0 ? (
                       <div key={lvl} className="flex justify-between">
-                        <span className="text-slate-400">+{lvl} → +{lvl + 1}</span>
-                        <span className="font-semibold text-emerald-300">{qty} {t('bsb_unit')}</span>
+                        <span className="text-dim">+{lvl} → +{lvl + 1}</span>
+                        <span className="font-semibold text-success">{qty} {t('bsb_unit')}</span>
                       </div>
                     ) : null)}
                   </div>
                 </div>
               </span>
             </div>
-            <div className="mt-0.5 text-xs text-slate-400">
+            <div className="mt-0.5 text-xs text-dim">
               {bsbInRange ? t('bsb_active_hint') : t('bsb_range_hint')}
             </div>
           </div>
@@ -978,13 +978,13 @@ const Container = () => {
         {/* Toggle + เป้าหมาย Auto ตีบวก */}
         <div
           className={`mt-3 rounded-xl border px-4 py-3 transition-colors ${
-            autoRefine ? 'border-indigo-500/50 bg-indigo-950/30' : 'border-slate-700/60 bg-[#0f1117]'
+            autoRefine ? 'border-indigo-500/50 bg-sunken' : 'border-line-soft/60 bg-sunken'
           }`}
         >
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm font-semibold text-white">{t('auto_label')}</div>
-              <div className="mt-0.5 text-xs text-slate-400">{t('auto_hint')}</div>
+              <div className="text-sm font-semibold text-body">{t('auto_label')}</div>
+              <div className="mt-0.5 text-xs text-dim">{t('auto_hint')}</div>
             </div>
             <Toggle
               checked={autoRefine}
@@ -1013,7 +1013,7 @@ const Container = () => {
           {autoRefine && (
             <div className="mt-3 grid grid-cols-2 gap-2">
               <div>
-                <label htmlFor="auto-start" className="mb-1 block text-xs font-semibold text-slate-300">
+                <label htmlFor="auto-start" className="mb-1 block text-xs font-semibold text-body">
                   {t('auto_start_label')}
                 </label>
                 <div className="relative">
@@ -1022,17 +1022,17 @@ const Container = () => {
                     value={autoStart}
                     onChange={(e) => handleAutoStartChange(Number(e.target.value))}
                     disabled={autoRunning}
-                    className="w-full cursor-pointer appearance-none rounded-xl border border-slate-600 bg-[#0f1117] px-4 py-2 pr-10 font-bold text-amber-300 outline-none transition-colors hover:border-amber-400/70 focus-visible:border-amber-400 focus-visible:ring-2 focus-visible:ring-amber-300/40 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="w-full cursor-pointer appearance-none rounded-xl border border-line bg-sunken px-4 py-2 pr-10 font-bold text-warn outline-none transition-colors hover:border-amber-400/70 focus-visible:border-amber-400 focus-visible:ring-2 focus-visible:ring-amber-300/40 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {Array.from({ length: 20 }, (_, i) => (
-                      <option key={i} value={i} className="bg-[#0f1117] text-amber-300">+{i}</option>
+                      <option key={i} value={i} className="bg-sunken text-warn">+{i}</option>
                     ))}
                   </select>
-                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-amber-300">▾</span>
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-warn">▾</span>
                 </div>
               </div>
               <div>
-                <label htmlFor="auto-target" className="mb-1 block text-xs font-semibold text-slate-300">
+                <label htmlFor="auto-target" className="mb-1 block text-xs font-semibold text-body">
                   {t('auto_target_label')}
                 </label>
                 <div className="relative">
@@ -1041,21 +1041,21 @@ const Container = () => {
                     value={autoTarget}
                     onChange={(e) => setAutoTarget(Number(e.target.value))}
                     disabled={autoRunning}
-                    className="w-full cursor-pointer appearance-none rounded-xl border border-slate-600 bg-[#0f1117] px-4 py-2 pr-10 font-bold text-indigo-300 outline-none transition-colors hover:border-indigo-400/70 focus-visible:border-indigo-400 focus-visible:ring-2 focus-visible:ring-indigo-300/40 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="w-full cursor-pointer appearance-none rounded-xl border border-line bg-sunken px-4 py-2 pr-10 font-bold text-brand2 outline-none transition-colors hover:border-indigo-400/70 focus-visible:border-indigo-400 focus-visible:ring-2 focus-visible:ring-indigo-300/40 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {Array.from({ length: 20 - autoStart }, (_, i) => autoStart + i + 1).map(v => (
-                      <option key={v} value={v} className="bg-[#0f1117] text-indigo-300">+{v}</option>
+                      <option key={v} value={v} className="bg-sunken text-brand2">+{v}</option>
                     ))}
                   </select>
-                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-indigo-300">▾</span>
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-brand2">▾</span>
                 </div>
               </div>
             </div>
           )}
           {autoRefine && (
-            <div className="mt-3 border-t border-slate-700/60 pt-3">
-              <div className="mb-1 text-sm font-semibold text-white">{t('stone_per_range')}</div>
-              <div className="mb-2 text-xs text-slate-400">{t('stone_per_range_hint')}</div>
+            <div className="mt-3 border-t border-line-soft/60 pt-3">
+              <div className="mb-1 text-sm font-semibold text-body">{t('stone_per_range')}</div>
+              <div className="mb-2 text-xs text-dim">{t('stone_per_range_hint')}</div>
               <div className="space-y-2">
                 {autoStoneRules.map((rule, i) => {
                   const next = autoStoneRules[i + 1];
@@ -1063,26 +1063,26 @@ const Container = () => {
                   const minFrom = i === 0 ? Math.max(1, autoStart + 1) : autoStoneRules[i - 1].from + 1;
                   const isWall = i > 0 && isWallFrom(rule.from, itemType);
                   return (
-                    <div key={rule.id} className="rounded-lg border border-slate-700 bg-[#0f1117] p-2">
+                    <div key={rule.id} className="rounded-lg border border-line-soft bg-sunken p-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-slate-400">{t('range_from')}</span>
+                        <span className="text-xs text-dim">{t('range_from')}</span>
                         <div className="relative">
                           <select
                             value={rule.from}
                             onChange={(e) => updateRuleFrom(rule.id, Number(e.target.value))}
                             disabled={autoRunning || i === 0 || isWall}
-                            className="cursor-pointer appearance-none rounded-lg border border-slate-600 bg-[#181a20] py-1 pl-2 pr-6 text-sm font-bold text-indigo-300 outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                            className="cursor-pointer appearance-none rounded-lg border border-line bg-card py-1 pl-2 pr-6 text-sm font-bold text-brand2 outline-none disabled:cursor-not-allowed disabled:opacity-50"
                           >
                             {Array.from({ length: Math.max(0, (next ? next.from - 1 : autoTarget) - minFrom + 1) }, (_, n) => minFrom + n).map((lvl) => (
-                              <option key={lvl} value={lvl} className="bg-[#0f1117]">+{lvl - 1}</option>
+                              <option key={lvl} value={lvl} className="bg-sunken">+{lvl - 1}</option>
                             ))}
                           </select>
-                          <span className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-xs text-indigo-300">▾</span>
+                          <span className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-xs text-brand2">▾</span>
                         </div>
-                        <span className="text-xs text-slate-500">{t('range_to')}{toLevel}</span>
+                        <span className="text-xs text-faint">{t('range_to')}{toLevel}</span>
                         {isWall && (
                           <span
-                            className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[0.6rem] font-bold text-amber-300"
+                            className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[0.6rem] font-bold text-warn"
                             title={t('ore_wall_title')}
                           >
                             {t('ore_wall_label')}
@@ -1103,7 +1103,7 @@ const Container = () => {
                               onClick={() => splitStoneRule(rule.id)}
                               disabled={autoRunning}
                               title={t('split_title')}
-                              className="rounded border border-slate-600 px-1.5 py-0.5 text-[0.65rem] font-semibold text-indigo-300 transition-colors hover:border-indigo-400/70 disabled:cursor-not-allowed disabled:opacity-40"
+                              className="rounded border border-line px-1.5 py-0.5 text-[0.65rem] font-semibold text-brand2 transition-colors hover:border-indigo-400/70 disabled:cursor-not-allowed disabled:opacity-40"
                             >
                               {t('split_btn')}
                             </button>
@@ -1115,7 +1115,7 @@ const Container = () => {
                               disabled={autoRunning}
                               title={t('remove_range_title')}
                               aria-label={t('remove_range_aria')}
-                              className="rounded p-1 text-rose-300 hover:bg-rose-500/10 disabled:cursor-not-allowed disabled:opacity-40"
+                              className="rounded p-1 text-danger hover:bg-rose-500/10 disabled:cursor-not-allowed disabled:opacity-40"
                             >
                               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 002 2h8a2 2 0 002-2l1-12M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3" />
@@ -1144,7 +1144,7 @@ const Container = () => {
                                 disabled={autoRunning}
                                 title={`${STONE_META[s].label}${ore ? ` (${ore})` : ''} — ${hint}`}
                                 className={`flex min-w-0 flex-1 items-center justify-center gap-1 rounded-md border px-1.5 py-1.5 transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
-                                  rule.stone === s ? STONE_META[s].active : 'border-slate-700 text-slate-300 hover:border-slate-500'
+                                  rule.stone === s ? STONE_META[s].active : 'border-line-soft text-body hover:border-line'
                                 }`}
                               >
                                 {ORE_IMAGES[ore] ? (
@@ -1158,8 +1158,8 @@ const Container = () => {
                           })}
                       </div>
                       {autoUseBSB && rule.from <= 15 && toLevel >= 8 && (
-                        <div className="mt-2 flex items-center justify-between rounded-md border border-emerald-900/50 bg-emerald-950/30 px-2 py-1.5">
-                          <span className="text-[0.7rem] font-semibold text-emerald-300">
+                        <div className="mt-2 flex items-center justify-between rounded-md border border-emerald-900/50 bg-sunken px-2 py-1.5">
+                          <span className="text-[0.7rem] font-semibold text-success">
                             {t('bsb_range_toggle', { from: Math.max(7, rule.from - 1), to: Math.min(15, toLevel) })}
                           </span>
                           <Toggle
@@ -1172,8 +1172,8 @@ const Container = () => {
                         </div>
                       )}
                       {toggleHasMeaning(rule.stone, itemType, rule.from, toLevel, isEventRate, autoUseBSB, rule.bsb, bsbTable) && (
-                        <div className="mt-2 flex items-center justify-between rounded-md border border-rose-900/50 bg-rose-950/30 px-2 py-1.5">
-                          <span className="text-[0.7rem] font-semibold text-rose-300">{t('stop_on_loss')}</span>
+                        <div className="mt-2 flex items-center justify-between rounded-md border border-rose-900/50 bg-sunken px-2 py-1.5">
+                          <span className="text-[0.7rem] font-semibold text-danger">{t('stop_on_loss')}</span>
                           <Toggle
                             checked={rule.stopOnLoss}
                             onChange={(v) => updateRuleStopOnLoss(rule.id, v)}
@@ -1187,15 +1187,15 @@ const Container = () => {
                   );
                 })}
               </div>
-              <p className="mt-2 text-center text-[0.65rem] text-slate-500">{t('split_hint')}</p>
+              <p className="mt-2 text-center text-[0.65rem] text-faint">{t('split_hint')}</p>
             </div>
           )}
           {autoRefine && autoTarget >= 8 && (
-            <div className="mt-3 border-t border-slate-700/60 pt-3">
+            <div className="mt-3 border-t border-line-soft/60 pt-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-sm font-semibold text-white">{t('bsb_auto_label')}</div>
-                  <div className="mt-0.5 text-xs text-slate-400">{t('bsb_auto_hint')}</div>
+                  <div className="text-sm font-semibold text-body">{t('bsb_auto_label')}</div>
+                  <div className="mt-0.5 text-xs text-dim">{t('bsb_auto_hint')}</div>
                 </div>
                 <Toggle
                   checked={autoUseBSB}
@@ -1206,7 +1206,7 @@ const Container = () => {
                 />
               </div>
               {autoUseBSB && (
-                <p className="mt-2 text-[0.65rem] text-emerald-300/80">{t('bsb_auto_scroll_hint')}</p>
+                <p className="mt-2 text-[0.65rem] text-success/80">{t('bsb_auto_scroll_hint')}</p>
               )}
             </div>
           )}
@@ -1214,7 +1214,7 @@ const Container = () => {
       </div>
 
       {/* หน้าต่างตีบวก */}
-      <div className="flex flex-col items-center gap-3 rounded-2xl border border-slate-700/60 bg-[#181a20]/90 p-5 shadow-lg shadow-black/30 lg:flex-1 lg:justify-center">
+      <div className="flex flex-col items-center gap-3 rounded-2xl border border-line-soft/60 bg-card/90 p-5 shadow-lg shadow-black/30 lg:flex-1 lg:justify-center">
 
         {/* Animation frame */}
         <div className="relative w-full overflow-hidden rounded-xl" style={{ maxWidth: 350, aspectRatio: '262 / 301', fontFamily: 'Tahoma, Geneva, sans-serif' }}>
@@ -1248,7 +1248,7 @@ const Container = () => {
 
           {/* badge Auto */}
           {autoRunning && (
-            <span className="absolute z-[4] rounded-full font-bold text-indigo-200"
+            <span className="absolute z-[4] rounded-full font-bold text-indigo-100"
               style={{ top:11, left:38, padding:'2px 8px', fontSize:'0.6rem', background:'rgba(79,70,229,0.85)', border:'1px solid rgba(129,140,248,0.6)' }}>
               Auto
             </span>
@@ -1399,7 +1399,7 @@ const Container = () => {
             style={{ bottom: isTwoBtnAuto ? '4%' : isTwoBtn ? '1%' : isTibok ? '2%' : '4%', left: isTwoBtnAuto ? '50%' : isTwoBtn ? '50%' : isTibok ? '73%' : '50%', transform:'translateX(-50%)', width: (isTwoBtn || isTwoBtnAuto) ? '83%' : '37%' }}>
             {mode === 'fail' && (!autoRunning || isItemLost) && (
               <button onClick={handleBackToWait}
-                className="cursor-pointer rounded font-bold text-amber-200 transition-opacity hover:opacity-80"
+                className="cursor-pointer rounded font-bold text-amber-100 transition-opacity hover:opacity-80"
                 style={{ background:'transparent',color:'#000', padding:'15px 45px', fontSize:'0.75rem' }}>
                 {t('back_btn')}
               </button>
@@ -1449,12 +1449,12 @@ const Container = () => {
         return (
           <>
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400">{t('session_stats')}</span>
+            <span className="text-xs font-semibold text-dim">{t('session_stats')}</span>
             <button
               type="button"
               onClick={handleClearSession}
               disabled={autoRunning || totalAttempts === 0}
-              className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-rose-500/50 bg-rose-500/10 px-3 py-1 text-xs font-semibold text-rose-300 shadow-sm shadow-black/30 transition-all duration-150 hover:-translate-y-px hover:border-rose-400 hover:bg-rose-500/25 hover:text-rose-200 active:translate-y-0 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:border-rose-500/50 disabled:hover:bg-rose-500/10"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-rose-500/50 bg-rose-500/10 px-3 py-1 text-xs font-semibold text-danger shadow-sm shadow-black/30 transition-all duration-150 hover:-translate-y-px hover:border-rose-400 hover:bg-rose-500/25 hover:text-danger active:translate-y-0 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:border-rose-500/50 disabled:hover:bg-rose-500/10"
             >
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5" aria-hidden="true">
                 <path d="M2.5 4h11M6.5 4V2.5h3V4M4 4l.7 9a1.5 1.5 0 0 0 1.5 1.4h3.6A1.5 1.5 0 0 0 11.3 13l.7-9M6.5 7v4.5M9.5 7v4.5" />
@@ -1463,20 +1463,20 @@ const Container = () => {
             </button>
           </div>
           <div className="grid grid-cols-3 gap-3">
-            <div className="rounded-xl border border-slate-700/60 bg-[#181a20]/90 px-4 py-3 text-center">
-              <div className="text-xs font-semibold text-slate-400">{t('total_attempts')}</div>
-              <div className="text-2xl font-bold text-amber-300">{totalAttempts}</div>
-              <div className="text-xs text-slate-500">{t('times_unit')}</div>
+            <div className="rounded-xl border border-line-soft/60 bg-card/90 px-4 py-3 text-center">
+              <div className="text-xs font-semibold text-dim">{t('total_attempts')}</div>
+              <div className="text-2xl font-bold text-warn">{totalAttempts}</div>
+              <div className="text-xs text-faint">{t('times_unit')}</div>
             </div>
-            <div className="rounded-xl border border-emerald-700/40 bg-emerald-950/20 px-4 py-3 text-center">
-              <div className="text-xs font-semibold text-slate-400">{t('success_count')}</div>
+            <div className="rounded-xl border border-emerald-700/40 bg-sunken px-4 py-3 text-center">
+              <div className="text-xs font-semibold text-dim">{t('success_count')}</div>
               <div className="text-2xl font-bold text-emerald-400">{successCount}</div>
-              <div className="text-xs text-slate-500">{successPct.toFixed(1)}%</div>
+              <div className="text-xs text-faint">{successPct.toFixed(1)}%</div>
             </div>
-            <div className="rounded-xl border border-rose-700/40 bg-rose-950/20 px-4 py-3 text-center">
-              <div className="text-xs font-semibold text-slate-400">{t('fail_count')}</div>
+            <div className="rounded-xl border border-rose-700/40 bg-sunken px-4 py-3 text-center">
+              <div className="text-xs font-semibold text-dim">{t('fail_count')}</div>
               <div className="text-2xl font-bold text-rose-400">{failCount}</div>
-              <div className="text-xs text-slate-500">{t('times_unit')}</div>
+              <div className="text-xs text-faint">{t('times_unit')}</div>
             </div>
           </div>
           </>
@@ -1488,13 +1488,13 @@ const Container = () => {
       <Reveal>
       <div>
         <div
-          className="max-h-[280px] min-h-[160px] w-full overflow-y-auto rounded-xl border border-slate-700/60 bg-[#0f1117] p-4 text-left text-sm [overflow-wrap:anywhere]"
+          className="max-h-[280px] min-h-[160px] w-full overflow-y-auto rounded-xl border border-line-soft/60 bg-sunken p-4 text-left text-sm [overflow-wrap:anywhere]"
           ref={logScrollRef}
         >
-          <div className="mb-2 text-xs font-semibold text-slate-500">{t('stack_log_title')}</div>
+          <div className="mb-2 text-xs font-semibold text-faint">{t('stack_log_title')}</div>
           {/* empty state — บอกว่าต้องทำอะไรต่อ แทนกล่องว่างเปล่า */}
           {log.length === 0 && (
-            <div className="flex h-[100px] flex-col items-center justify-center gap-1 text-center text-xs text-slate-600">
+            <div className="flex h-[100px] flex-col items-center justify-center gap-1 text-center text-xs text-faint">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6 opacity-60" aria-hidden="true">
                 <path d="M14 4l6 6-9 9H5v-6l9-9zM12 6l6 6" />
               </svg>
@@ -1518,14 +1518,14 @@ const Container = () => {
               switch (item.resultType) {
                 case 'success':
                   resultBadge = (
-                    <span className="inline-flex items-center rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 text-[0.68rem] font-bold text-emerald-300">
+                    <span className="inline-flex items-center rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 text-[0.68rem] font-bold text-success">
                       {t('badge_success')}
                     </span>
                   );
                   break;
                 case 'bsb_protect':
                   resultBadge = (
-                    <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/15 px-2 py-0.5 text-[0.68rem] font-bold text-amber-300">
+                    <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/15 px-2 py-0.5 text-[0.68rem] font-bold text-warn">
                       <img src="/images/blacksmith_blessing.png" alt="BSB" className="h-3.5 w-3.5 object-contain" />
                       {t('badge_protected')} ×{item.bsbConsumed}
                     </span>
@@ -1533,7 +1533,7 @@ const Container = () => {
                   break;
                 case 'item_lost':
                   resultBadge = (
-                    <span className="inline-flex items-center rounded-full border border-rose-400/50 bg-rose-500/20 px-2 py-0.5 text-[0.68rem] font-bold text-rose-300">
+                    <span className="inline-flex items-center rounded-full border border-rose-400/50 bg-rose-500/20 px-2 py-0.5 text-[0.68rem] font-bold text-danger">
                       {t('badge_item_lost')}
                     </span>
                   );
@@ -1550,14 +1550,14 @@ const Container = () => {
                   resultBadge = (() => {
                     if (item.isSuccess) {
                       return (
-                        <span className="inline-flex items-center rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 text-[0.68rem] font-bold text-emerald-300">
+                        <span className="inline-flex items-center rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 text-[0.68rem] font-bold text-success">
                           {t('badge_success')}
                         </span>
                       );
                     }
                     if (item.bsbConsumed > 0) {
                       return (
-                        <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/15 px-2 py-0.5 text-[0.68rem] font-bold text-amber-300">
+                        <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/15 px-2 py-0.5 text-[0.68rem] font-bold text-warn">
                           <img src="/images/blacksmith_blessing.png" alt="BSB" className="h-3.5 w-3.5 object-contain" />
                           {t('badge_protected')} ×{item.bsbConsumed}
                         </span>
@@ -1565,7 +1565,7 @@ const Container = () => {
                     }
                     if (item.msg && item.msg.includes('ไอเทมหาย')) {
                       return (
-                        <span className="inline-flex items-center rounded-full border border-rose-400/50 bg-rose-500/20 px-2 py-0.5 text-[0.68rem] font-bold text-rose-300">
+                        <span className="inline-flex items-center rounded-full border border-rose-400/50 bg-rose-500/20 px-2 py-0.5 text-[0.68rem] font-bold text-danger">
                           {t('badge_item_lost')}
                         </span>
                       );
@@ -1579,24 +1579,24 @@ const Container = () => {
               }
 
               return (
-                <li key={idx} className="border-b border-slate-800/50 py-1.5 last:border-0">
+                <li key={idx} className="border-b border-line-soft/50 py-1.5 last:border-0">
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="w-7 shrink-0 text-right text-[0.68rem] tabular-nums text-slate-600">
+                    <span className="w-7 shrink-0 text-right text-[0.68rem] tabular-nums text-faint">
                       #{idx + 1}
                     </span>
                     {item.itemType && ITEM_TYPE_LABELS[item.itemType] && (
-                      <span className="rounded bg-[#3a2e1e] px-1.5 py-0.5 text-[0.68rem] font-bold text-amber-300">
+                      <span className="rounded bg-[#3a2e1e] px-1.5 py-0.5 text-[0.68rem] font-bold text-amber-100">
                         {ITEM_TYPE_LABELS[item.itemType]}
                       </span>
                     )}
                     {item.oreName && ORE_IMAGES[item.oreName] ? (
-                      <span className="inline-flex items-center gap-1 rounded bg-[#1a2230] px-1.5 py-0.5 text-[0.68rem] font-semibold text-sky-300">
+                      <span className="inline-flex items-center gap-1 rounded bg-[#1a2230] px-1.5 py-0.5 text-[0.68rem] font-semibold text-sky-100">
                         <img src={ORE_IMAGES[item.oreName]} alt={item.oreName} className="h-4 w-4 object-contain" />
                         {item.oreName}
                       </span>
                     ) : (
                       <span className={`rounded px-1.5 py-0.5 text-[0.68rem] font-bold ${
-                        item.useEnriched ? 'bg-[#3a3420] text-amber-200' : item.useCash ? 'bg-[#3a3220] text-orange-300' : 'bg-[#1e2a3a] text-sky-300'
+                        item.useEnriched ? 'bg-[#3a3420] text-amber-100' : item.useCash ? 'bg-[#3a3220] text-orange-100' : 'bg-[#1e2a3a] text-sky-100'
                       }`}>
                         {item.useEnriched ? 'Enriched' : item.useCash ? 'HD' : t('log_stone_normal')}
                       </span>
@@ -1608,20 +1608,20 @@ const Container = () => {
                       </span>
                     )}
                     {levelStr && (
-                      <span className="font-mono text-xs font-semibold text-slate-300">{levelStr}</span>
+                      <span className="font-mono text-xs font-semibold text-body">{levelStr}</span>
                     )}
                     {resultBadge}
                   </div>
                   {/* Roll detail */}
                   {item.rollData ? (
-                    <div className="ml-9 mt-0.5 text-[0.65rem] leading-relaxed text-slate-600">
+                    <div className="ml-9 mt-0.5 text-[0.65rem] leading-relaxed text-faint">
                       {t('roll_success_pct')} {item.rollData.successPct.toFixed(2)}% / {t('roll_fail_pct')} {item.rollData.failPct.toFixed(2)}% → {t('roll_result')}: {item.rollData.isSuccess ? t('roll_success_side') : t('roll_fail_side')} {t('roll_at')} {item.rollData.rollPct.toFixed(2)}%
                     </div>
                   ) : (() => {
                     const sep = item.msg ? item.msg.indexOf(' — ') : -1;
                     const detail = sep >= 0 ? item.msg.slice(sep + 3) : '';
                     return detail ? (
-                      <div className="ml-9 mt-0.5 text-[0.65rem] leading-relaxed text-slate-600">{detail}</div>
+                      <div className="ml-9 mt-0.5 text-[0.65rem] leading-relaxed text-faint">{detail}</div>
                     ) : null;
                   })()}
                 </li>
@@ -1654,12 +1654,12 @@ const Container = () => {
         const usedBaht = rows.some((r) => curOf(r.key) === 'baht');
         const usedZenny = rows.some((r) => curOf(r.key) === 'zenny');
         return (
-          <div className="rounded-2xl border border-slate-700/60 bg-[#181a20]/90 p-4">
+          <div className="rounded-2xl border border-line-soft/60 bg-card/90 p-4">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <b className="text-lg font-bold text-amber-300">{t('usage_title')}</b>
+              <b className="text-lg font-bold text-warn">{t('usage_title')}</b>
               {/* mobile (ตอน wrap ลงมาอยู่ชิดซ้าย) ให้ align ซ้ายตาม — ≥sm ค่อยชิดขวา */}
               <div className="flex flex-col items-start gap-1 sm:items-end">
-                <div role="group" aria-label="Currency" className="inline-flex gap-1 rounded-xl border border-slate-600/80 bg-slate-950/70 p-1 shadow-inner shadow-black/50">
+                <div role="group" aria-label="Currency" className="inline-flex gap-1 rounded-xl border border-line/80 bg-app/70 p-1 shadow-inner shadow-black/50">
                   <button
                     type="button"
                     onClick={() => { setCurrency('zenny'); setRowCurrency({}); }}
@@ -1667,7 +1667,7 @@ const Container = () => {
                     className={`cursor-pointer rounded-lg px-3 py-1.5 text-sm font-semibold transition-all duration-150 ${
                       currency === 'zenny'
                         ? 'bg-amber-400 font-bold text-slate-900 shadow-md shadow-black/40'
-                        : 'text-slate-400 hover:-translate-y-px hover:bg-slate-700/70 hover:text-slate-100 active:translate-y-0 active:scale-95'
+                        : 'text-dim hover:-translate-y-px hover:bg-line-soft/70 hover:text-body active:translate-y-0 active:scale-95'
                     }`}
                   >
                     Zenny
@@ -1679,17 +1679,17 @@ const Container = () => {
                     className={`cursor-pointer rounded-lg px-3 py-1.5 text-sm font-semibold transition-all duration-150 ${
                       currency === 'baht'
                         ? 'bg-amber-400 font-bold text-slate-900 shadow-md shadow-black/40'
-                        : 'text-slate-400 hover:-translate-y-px hover:bg-slate-700/70 hover:text-slate-100 active:translate-y-0 active:scale-95'
+                        : 'text-dim hover:-translate-y-px hover:bg-line-soft/70 hover:text-body active:translate-y-0 active:scale-95'
                     }`}
                   >
                     ฿ {lang === 'th' ? 'บาท' : 'Baht'}
                   </button>
                 </div>
-                <span className="text-[0.65rem] text-slate-500">{t('set_all_hint')}</span>
+                <span className="text-[0.65rem] text-faint">{t('set_all_hint')}</span>
               </div>
             </div>
             {rows.length === 0 && (
-              <div className="flex h-[72px] items-center justify-center text-center text-xs text-slate-600">
+              <div className="flex h-[72px] items-center justify-center text-center text-xs text-faint">
                 {t('usage_empty_hint')}
               </div>
             )}
@@ -1697,7 +1697,7 @@ const Container = () => {
               {rows.map((r) => {
                 const rc = curOf(r.key);
                 return (
-                <li key={r.key} className="flex flex-wrap items-center gap-x-2 gap-y-1.5 rounded-lg bg-[#0f1117] px-3 py-2.5 text-sm">
+                <li key={r.key} className="flex flex-wrap items-center gap-x-2 gap-y-1.5 rounded-lg bg-sunken px-3 py-2.5 text-sm">
                   {r.icon ? (
                     <img src={r.icon} alt={r.key} className="h-[22px] w-[22px] object-contain" />
                   ) : (
@@ -1706,9 +1706,9 @@ const Container = () => {
                     </span>
                   )}
                   <span className="min-w-[120px] font-medium text-amber-400">{r.label}:</span>
-                  <span className="font-bold text-white">{r.qty}</span>
-                  <span className="text-slate-400">{r.unit}</span>
-                  <span className="text-slate-500">×</span>
+                  <span className="font-bold text-body">{r.qty}</span>
+                  <span className="text-dim">{r.unit}</span>
+                  <span className="text-faint">×</span>
                   <input
                     type="number"
                     min="0"
@@ -1716,13 +1716,13 @@ const Container = () => {
                     value={prices[r.key] ?? ''}
                     onChange={(e) => setPrices((p) => ({ ...p, [r.key]: e.target.value }))}
                     placeholder={t('price_placeholder')}
-                    className="w-24 rounded-md border border-slate-600 bg-[#181a20] px-2 py-1 text-right text-white outline-none transition-colors focus-visible:border-amber-400 focus-visible:ring-2 focus-visible:ring-amber-300/30 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                    className="w-24 rounded-md border border-line bg-card px-2 py-1 text-right text-body outline-none transition-colors focus-visible:border-amber-400 focus-visible:ring-2 focus-visible:ring-amber-300/30 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                   />
                   <button
                     type="button"
                     onClick={() => setRowCurrency((p) => ({ ...p, [r.key]: rc === 'zenny' ? 'baht' : 'zenny' }))}
                     title={t('row_currency_title')}
-                    className="inline-flex min-w-[58px] cursor-pointer items-center justify-center gap-1 rounded-lg border border-slate-500/80 bg-slate-800/80 px-1.5 py-1 text-xs font-bold text-slate-200 shadow-sm shadow-black/40 transition-all duration-150 hover:-translate-y-px hover:border-amber-400/70 hover:bg-slate-700 hover:text-amber-300 active:translate-y-0 active:scale-95"
+                    className="inline-flex min-w-[58px] cursor-pointer items-center justify-center gap-1 rounded-lg border border-line/80 bg-sunken px-1.5 py-1 text-xs font-bold text-body shadow-sm shadow-black/40 transition-all duration-150 hover:-translate-y-px hover:border-amber-400/70 hover:bg-line-soft hover:text-warn active:translate-y-0 active:scale-95"
                   >
                     {/* ลูกศรสลับ บอกว่ากดเปลี่ยนหน่วยได้ */}
                     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3 opacity-70" aria-hidden="true">
@@ -1730,15 +1730,15 @@ const Container = () => {
                     </svg>
                     {unitOf(rc)}
                   </button>
-                  <span className="text-slate-500">=</span>
-                  <span className="ml-auto font-bold text-emerald-300">{fmtCur(r.qty * num(prices[r.key]), rc)}</span>
+                  <span className="text-faint">=</span>
+                  <span className="ml-auto font-bold text-success">{fmtCur(r.qty * num(prices[r.key]), rc)}</span>
                 </li>
                 );
               })}
             </ul>
             <div className="mt-3 flex items-center justify-between rounded-lg border border-amber-400/40 bg-amber-400/10 px-3 py-2.5">
-              <span className="font-bold text-amber-300">{t('total_label')}</span>
-              <span className="flex flex-col items-end gap-0.5 text-lg font-bold text-emerald-300">
+              <span className="font-bold text-warn">{t('total_label')}</span>
+              <span className="flex flex-col items-end gap-0.5 text-lg font-bold text-success">
                 {usedBaht && <span>{fmtCur(totals.baht, 'baht')}</span>}
                 {usedZenny && <span>{fmtCur(totals.zenny, 'zenny')}</span>}
               </span>
@@ -1749,21 +1749,21 @@ const Container = () => {
       </Reveal>
 
       {/* Disclaimer — เว็บนี้เป็นการจำลอง ไม่ทราบ rate จริงของเกม ใช้ pRNG ของเบราว์เซอร์ */}
-      <div className="w-full rounded-xl border border-slate-700/50 bg-gradient-to-b from-slate-800/30 to-[#0f1117]/40 p-4 sm:p-5">
+      <div className="w-full rounded-xl border border-line-soft/50 bg-sunken/50 p-4 sm:p-5">
         <div className="flex items-start gap-3">
-          <span className="mt-0.5 flex h-7 w-7 flex-none items-center justify-center rounded-full border border-slate-600/60 bg-slate-700/30 text-slate-400">
+          <span className="mt-0.5 flex h-7 w-7 flex-none items-center justify-center rounded-full border border-line/60 bg-line-soft/30 text-dim">
             <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9 9a1 1 0 012 0v4a1 1 0 11-2 0V9zm1-4.5A1.25 1.25 0 1010 7a1.25 1.25 0 000-2.5z" clipRule="evenodd" />
             </svg>
           </span>
           <div className="min-w-0 space-y-2">
-            <div className="text-xs font-semibold tracking-wide text-slate-300">{t('disclaimer_title')}</div>
-            <p className="text-[0.72rem] leading-relaxed text-slate-500">{t('disclaimer_text')}</p>
+            <div className="text-xs font-semibold tracking-wide text-body">{t('disclaimer_title')}</div>
+            <p className="text-[0.72rem] leading-relaxed text-faint">{t('disclaimer_text')}</p>
             <a
               href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-600/60 bg-slate-700/20 px-2.5 py-1 text-[0.7rem] font-medium text-slate-300 transition-colors hover:border-slate-500 hover:text-slate-200"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-line/60 bg-line-soft/20 px-2.5 py-1 text-[0.7rem] font-medium text-body transition-colors hover:border-line hover:text-body"
             >
               {t('disclaimer_ref')}
               <svg className="h-3 w-3" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
@@ -1775,9 +1775,9 @@ const Container = () => {
       </div>
 
       {/* Footer */}
-      <footer className="mt-2 mb-2 text-center text-xs text-slate-500">
+      <footer className="mt-2 mb-2 text-center text-xs text-faint">
         &copy; {new Date().getFullYear()} JarMoo — RO Refine Simulator. All rights reserved.
-        <span className="ml-2 text-slate-600">v{APP_VERSION}</span>
+        <span className="ml-2 text-faint">v{APP_VERSION}</span>
       </footer>
     </div>
 
@@ -1788,50 +1788,50 @@ const Container = () => {
         onClick={() => setShowStoneModal(false)}
       >
         <div
-          className="flex max-h-[90vh] w-full max-w-2xl flex-col rounded-2xl border border-slate-700/60 bg-[#181a20] shadow-2xl"
+          className="flex max-h-[90vh] w-full max-w-2xl flex-col rounded-2xl border border-line-soft/60 bg-card shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between border-b border-slate-700/60 px-5 py-4">
-            <h2 className="text-base font-bold text-amber-300">{t('stone_table_title')}</h2>
+          <div className="flex items-center justify-between border-b border-line-soft/60 px-5 py-4">
+            <h2 className="text-base font-bold text-warn">{t('stone_table_title')}</h2>
             <button
               type="button"
               onClick={() => setShowStoneModal(false)}
-              className="rounded-lg border border-slate-600 px-3 py-1 text-sm text-slate-300 hover:border-slate-400"
+              className="rounded-lg border border-line px-3 py-1 text-sm text-body hover:border-dim"
             >{t('close_btn')}</button>
           </div>
           <div className="overflow-y-auto p-4">
             <table className="w-full border-collapse text-sm">
               <thead className="sticky top-0 z-10">
-                <tr className="bg-[#181a20] text-xs text-slate-400">
-                  <th className="border border-slate-700 p-2 text-left">{t('stone_col')}</th>
-                  <th className="border border-slate-700 p-2 text-center">{t('for_col')}</th>
-                  <th className="border border-slate-700 p-2 text-center">{t('range_col')}</th>
-                  <th className="border border-slate-700 p-2 text-center">{t('on_fail_col')}</th>
-                  <th className="border border-slate-700 p-2 text-center">{t('note_col')}</th>
+                <tr className="bg-card text-xs text-dim">
+                  <th className="border border-line-soft p-2 text-left">{t('stone_col')}</th>
+                  <th className="border border-line-soft p-2 text-center">{t('for_col')}</th>
+                  <th className="border border-line-soft p-2 text-center">{t('range_col')}</th>
+                  <th className="border border-line-soft p-2 text-center">{t('on_fail_col')}</th>
+                  <th className="border border-line-soft p-2 text-center">{t('note_col')}</th>
                 </tr>
               </thead>
               <tbody>
                 {STONE_REFERENCE.map((r, i) =>
                   r.section ? (
                     <tr key={i}>
-                      <td colSpan={5} className="border border-slate-700 bg-slate-700/40 px-3 py-1.5 text-xs font-bold text-amber-300">
+                      <td colSpan={5} className="border border-line-soft bg-line-soft/40 px-3 py-1.5 text-xs font-bold text-warn">
                         {r.section}
                       </td>
                     </tr>
                   ) : (
-                    <tr key={i} className="odd:bg-[#23272f] even:bg-[#181a20]">
-                      <td className="border border-slate-700 p-2">
+                    <tr key={i} className="odd:bg-sunken even:bg-card">
+                      <td className="border border-line-soft p-2">
                         <div className="flex items-center gap-2">
                           {r.img && <img src={r.img} alt={r.ore} className="h-7 w-7 object-contain" />}
-                          <span className="font-medium text-amber-200">{r.ore}</span>
+                          <span className="font-medium text-warn">{r.ore}</span>
                         </div>
                       </td>
-                      <td className="border border-slate-700 p-2 text-center text-xs text-slate-300">{r.for}</td>
-                      <td className="border border-slate-700 p-2 text-center font-bold text-indigo-300">{r.range}</td>
-                      <td className={`border border-slate-700 p-2 text-center text-xs font-semibold ${
-                        r.fail.includes('หาย') ? 'text-rose-400' : r.fail.includes('−1') ? 'text-orange-300' : 'text-amber-300'
+                      <td className="border border-line-soft p-2 text-center text-xs text-body">{r.for}</td>
+                      <td className="border border-line-soft p-2 text-center font-bold text-brand2">{r.range}</td>
+                      <td className={`border border-line-soft p-2 text-center text-xs font-semibold ${
+                        r.fail.includes('หาย') ? 'text-rose-400' : r.fail.includes('−1') ? 'text-warn' : 'text-warn'
                       }`}>{stoneFailLabel(r.fail)}</td>
-                      <td className="border border-slate-700 p-2 text-center text-xs text-sky-300">{stoneNoteLabel(r.note)}</td>
+                      <td className="border border-line-soft p-2 text-center text-xs text-info">{stoneNoteLabel(r.note)}</td>
                     </tr>
                   )
                 )}

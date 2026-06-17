@@ -19,10 +19,24 @@
   --color-accent-3: var(--accent-3);
   --color-accent-fg: var(--accent-fg);
   --color-accent-surface: var(--accent-surface);
+  /* semantic accent text — สลับเข้ม/อ่อนตามธีม ให้ contrast ดีทั้ง dark/light */
+  --color-warn: var(--warn);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+  --color-brand2: var(--brand2);
 }
 
 /* brand gradient (neon เขียว→ฟ้า→ม่วง) — ใช้เป็น accent เส้นบาง/แถบ ไม่ใช้เป็นพื้นใหญ่/พื้นปุ่มที่มีข้อความ */
 .bg-brand { background-image: var(--brand-gradient); }
+
+/* กล่อง/แผง: พื้นในเป็น bg-card + ขอบ brand gradient 1px ล้อมรอบ (padding-box/border-box) */
+.brand-border {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--card), var(--card)) padding-box,
+    var(--brand-gradient) border-box;
+}
 
 /* cursor มือกับทุก element ที่กดได้ — Tailwind v4 preflight ไม่ใส่ pointer ให้ปุ่มเอง
    อยู่ใน @layer base เพื่อให้ utility cursor-* ที่ระบุเอง(เช่น disabled:cursor-not-allowed) ชนะ */
@@ -60,6 +74,11 @@
   --accent-fg: #e7b9ff;     /* ข้อความบนพื้น tint (โทนสว่าง) */
   --accent-surface: rgba(175, 0, 255, 0.15);
   --brand-gradient: linear-gradient(175deg, #00f610, #40fee5, #af00ff 75%);
+  --warn: #fcd34d;     /* amber-300 */
+  --success: #6ee7b7;  /* emerald-300 */
+  --danger: #fda4af;   /* rose-300 */
+  --info: #7dd3fc;     /* sky-300 */
+  --brand2: #c7d2fe;   /* indigo-200 */
   color-scheme: dark;
 }
 
@@ -78,6 +97,11 @@ html.light {
   --accent-fg: #7a00b3;     /* ข้อความบนพื้น tint (โทนเข้ม) */
   --accent-surface: rgba(175, 0, 255, 0.10);
   --brand-gradient: linear-gradient(175deg, #00d40e, #19c9b4, #af00ff 75%);
+  --warn: #b45309;     /* amber-700 */
+  --success: #047857;  /* emerald-700 */
+  --danger: #be123c;   /* rose-700 */
+  --info: #0369a1;     /* sky-700 */
+  --brand2: #4338ca;   /* indigo-700 */
   color-scheme: light;
 }
 

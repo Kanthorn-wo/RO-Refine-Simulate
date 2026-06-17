@@ -10,9 +10,9 @@ const DistChart = lazy(() => import('./DistChart'));
 
 // สีหลักของแต่ละชนิดหิน (ปุ่มเลือก)
 const STONE_BTN_ACTIVE = {
-  normal: 'border-sky-400 bg-sky-500/20 text-sky-200',
-  enriched: 'border-amber-400 bg-amber-400/20 text-amber-200',
-  hd: 'border-orange-400 bg-orange-500/20 text-orange-200',
+  normal: 'border-sky-400 bg-sky-500/20 text-info',
+  enriched: 'border-amber-400 bg-amber-400/20 text-warn',
+  hd: 'border-orange-400 bg-orange-500/20 text-warn',
 };
 
 const ROUND_PRESETS = [100, 300, 500, 1000];
@@ -182,9 +182,7 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable, apiItem }) => {
   const fmt = (n, d = 1) => Number(n.toFixed(d)).toLocaleString();
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-accent/40 bg-card">
-      {/* แถบ accent บางด้านบน — brand gradient (จุดแบรนด์ ไม่มีข้อความทับ) */}
-      <div className="h-1 bg-brand" />
+    <div className="brand-border overflow-hidden rounded-2xl">
       {/* Header — กดเพื่อ slide เปิด/ปิด */}
       <button
         type="button"

@@ -19,7 +19,7 @@ const FloatingMenu = ({ onOpenPatchNotes, suppressed = false }) => {
     {
       key: 'theme',
       label: theme === 'light' ? t('menu_theme_dark') : t('menu_theme_light'),
-      btnClass: 'border-violet-400/40 bg-[#181a20]/95 text-violet-300 hover:bg-violet-400 hover:text-slate-900',
+      btnClass: 'border-violet-400/40 bg-card/95 text-brand2 hover:bg-violet-400 hover:text-slate-900',
       onClick: () => {
         setTheme(toggleTheme());
         setOpen(false);
@@ -40,7 +40,7 @@ const FloatingMenu = ({ onOpenPatchNotes, suppressed = false }) => {
     {
       key: 'patch',
       label: t('menu_updates'),
-      btnClass: 'border-amber-400/40 bg-[#181a20]/95 text-amber-300 hover:bg-amber-400 hover:text-slate-900',
+      btnClass: 'border-amber-400/40 bg-card/95 text-warn hover:bg-amber-400 hover:text-slate-900',
       onClick: () => {
         onOpenPatchNotes();
         setOpen(false);
@@ -55,7 +55,7 @@ const FloatingMenu = ({ onOpenPatchNotes, suppressed = false }) => {
     {
       key: 'report',
       label: t('menu_report'),
-      btnClass: 'border-sky-400/40 bg-[#181a20]/95 text-sky-300 hover:bg-sky-400 hover:text-slate-900',
+      btnClass: 'border-sky-400/40 bg-card/95 text-info hover:bg-sky-400 hover:text-slate-900',
       href: REPORT_FORM_URL,
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
@@ -85,7 +85,7 @@ const FloatingMenu = ({ onOpenPatchNotes, suppressed = false }) => {
               }`}
               style={{ transitionDelay: open ? `${i * 40}ms` : '0ms' }}
             >
-              <span className="rounded-lg border border-slate-700/60 bg-[#181a20]/95 px-2.5 py-1 text-xs font-medium text-slate-200 shadow-lg shadow-black/40 backdrop-blur">
+              <span className="rounded-lg border border-line-soft/60 bg-card/95 px-2.5 py-1 text-xs font-medium text-body shadow-lg shadow-black/40 backdrop-blur">
                 {a.label}
               </span>
               <Tag
