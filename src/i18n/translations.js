@@ -145,6 +145,7 @@ export const TRANSLATIONS = {
     event_banner_sub: 'อัตราสำเร็จตีบวกเพิ่มขึ้น — ตีช่วงนี้คุ้มสุด!',
     event_collapse: 'ย่อแถบ Event',
     event_expand: 'ขยายแถบ Event',
+    event_close: 'ปิด Event',
 
     // Language toggle
     lang_toggle_label: 'เปลี่ยนภาษา',
@@ -351,6 +352,7 @@ export const TRANSLATIONS = {
     event_banner_sub: 'Refine success rates are boosted — best time to refine!',
     event_collapse: 'Collapse event bar',
     event_expand: 'Expand event bar',
+    event_close: 'Turn off Event',
 
     // Language toggle
     lang_toggle_label: 'Language',

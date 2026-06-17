@@ -8,12 +8,41 @@ const REPORT_FORM_URL =
 const FloatingMenu = ({ onOpenPatchNotes, suppressed = false }) => {
   const [open, setOpen] = useState(false);
   const [theme, setTheme] = useState(getTheme());
+  const [scrollHidden, setScrollHidden] = useState(false);
   const { t } = useLang();
 
   // ซ่อน FAB (และปิด speed dial) ระหว่างที่ cookie bar โชว์ กันทับกัน
   useEffect(() => {
     if (suppressed) setOpen(false);
   }, [suppressed]);
+
+  // ซ่อน FAB ตอนเลื่อนลง (กันบังปุ่มบน content) — โผล่ตอนเลื่อนขึ้น
+  useEffect(() => {
+    let lastY = window.scrollY;
+    let raf = 0;
+    const onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        const y = window.scrollY;
+        const dy = y - lastY;
+        if (Math.abs(dy) > 8) {
+          if (dy > 0 && y > 160) setScrollHidden(true);   // เลื่อนลง (พ้น 160px) → ซ่อน
+          else if (dy < 0) setScrollHidden(false);          // เลื่อนขึ้น → โผล่
+          lastY = y;
+        }
+        raf = 0;
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => { window.removeEventListener('scroll', onScroll); if (raf) cancelAnimationFrame(raf); };
+  }, []);
+
+  // ปิด speed dial ตอน FAB ถูกซ่อน
+  useEffect(() => {
+    if (scrollHidden) setOpen(false);
+  }, [scrollHidden]);
+
+  const hidden = suppressed || scrollHidden;
 
   const actions = [
     {
@@ -72,18 +101,17 @@ const FloatingMenu = ({ onOpenPatchNotes, suppressed = false }) => {
 
       <div
         className={`fixed bottom-4 right-4 z-40 flex flex-col items-end gap-3 transition-all duration-300 ${
-          suppressed ? 'pointer-events-none translate-y-6 opacity-0' : ''
+          hidden ? 'pointer-events-none translate-y-6 opacity-0' : ''
         }`}
       >
-        {actions.map((a, i) => {
+        {/* lazy render — action menu มี HTML เฉพาะตอนเปิด (ปิดแล้วไม่มีโครงค้างบัง content) */}
+        {open && actions.map((a, i) => {
           const Tag = a.href ? 'a' : 'button';
           return (
             <div
               key={a.key}
-              className={`flex items-center gap-2 transition-all duration-200 ${
-                open ? 'translate-y-0 scale-100 opacity-100' : 'pointer-events-none translate-y-2 scale-90 opacity-0'
-              }`}
-              style={{ transitionDelay: open ? `${i * 40}ms` : '0ms' }}
+              className="fab-action flex items-center gap-2"
+              style={{ animationDelay: `${i * 40}ms` }}
             >
               <span className="rounded-lg border border-line-soft/60 bg-card/95 px-2.5 py-1 text-xs font-medium text-body shadow-lg shadow-black/40 backdrop-blur">
                 {a.label}

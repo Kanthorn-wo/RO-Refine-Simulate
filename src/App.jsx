@@ -11,7 +11,7 @@ function App() {
 
   return (
     <LangProvider>
-      <div className="min-h-screen w-full flex justify-center px-3 py-6 sm:px-6 sm:py-10">
+      <div className="relative min-h-screen w-full flex justify-center px-3 py-6 sm:px-6 sm:py-10">
         <Container />
         <FloatingMenu onOpenPatchNotes={() => setPatchOpenTrigger((n) => n + 1)} suppressed={cookieVisible} />
         <PatchNotesModal openTrigger={patchOpenTrigger} />

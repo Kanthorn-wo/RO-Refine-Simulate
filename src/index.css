@@ -117,6 +117,13 @@ html.light body {
   background: radial-gradient(circle at 50% 0%, #ffffff 0%, #eef1f6 55%, #e3e8f1 100%);
 }
 
+/* FAB speed-dial action — เด้งเข้าแบบ stagger ตอน mount (lazy render) */
+@keyframes fab-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.9); }
+  to { opacity: 1; transform: none; }
+}
+.fab-action { animation: fab-in 0.2s ease-out both; }
+
 /* เด้งเข้า (ใช้กับ badge ผลลัพธ์การตีบวก) */
 @keyframes pop-in {
   0% { opacity: 0; transform: scale(0.8); }
@@ -127,39 +134,97 @@ html.light body {
   animation: pop-in 0.35s ease-out;
 }
 
-/* ===== Event Rate banner — animated fire background ===== */
-@keyframes fire-shift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-@keyframes fire-flicker {
-  0%, 100% { opacity: 0.8; }
-  20% { opacity: 1; }
-  45% { opacity: 0.65; }
-  70% { opacity: 0.95; }
-}
-@keyframes ember-float {
-  0% { transform: translateY(20%) scale(1); opacity: 0; }
-  15% { opacity: 1; }
-  100% { transform: translateY(-520%) scale(0.35); opacity: 0; }
-}
+/* ===== Event Rate banner — realistic layered fire ===== */
+/* ฐานความร้อน: ร้อนด้านล่าง (ส้ม/เหลือง) ไล่เป็นแดงเข้ม/ดำด้านบน */
 .event-fire-bar {
-  background: linear-gradient(90deg, #7f1d1d, #ea580c, #fbbf24, #ef4444, #b45309, #7f1d1d);
-  background-size: 300% 100%;
-  animation: fire-shift 5s ease-in-out infinite;
+  background: linear-gradient(to top, #f59e0b 0%, #ea580c 22%, #b91c1c 54%, #7f1d1d 78%, #450a0a 100%);
+  /* isolate: ให้ mix-blend-mode ของ ::after blend แค่ภายในแถบ ไม่ไป blend กับเพจที่อยู่หลัง (กันไฟโผล่ที่อื่น) */
+  isolation: isolate;
+}
+/* เปลวไฟ 2 ชั้น = div จริงซ้อนกันตำแหน่งเดียวกัน (ไม่ใช้ pseudo — div จริงโดน overflow-hidden clip แน่นอน
+   ไม่หลุดเหมือน pseudo+filter, ไม่กระทบ scrollHeight) อยู่ในแถบเท่านั้นด้วย isolate + overflow-hidden */
+.event-flame-1,
+.event-flame-2 {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+/* ชั้นใน — แกนเหลือง/ขาวร้อน ลิ้นไฟถี่ */
+.event-flame-1 {
+  background:
+    radial-gradient(22% 88% at 10% 118%, rgba(255, 247, 204, 0.95), transparent 60%),
+    radial-gradient(20% 98% at 28% 126%, rgba(253, 224, 71, 0.92), transparent 60%),
+    radial-gradient(22% 90% at 48% 118%, rgba(255, 247, 204, 0.9), transparent 60%),
+    radial-gradient(20% 98% at 68% 126%, rgba(253, 224, 71, 0.92), transparent 60%),
+    radial-gradient(22% 88% at 88% 118%, rgba(255, 247, 204, 0.95), transparent 60%);
+  background-size: 130% 130%;
+  animation: flame-flicker-a 1s ease-in-out infinite, flame-drift 5s ease-in-out infinite;
+}
+/* ชั้นนอก — ส้ม ลุกสูงกว่า ไหวคนละจังหวะ */
+.event-flame-2 {
+  background:
+    radial-gradient(30% 120% at 20% 122%, rgba(251, 146, 60, 0.92), transparent 66%),
+    radial-gradient(28% 130% at 42% 130%, rgba(249, 115, 22, 0.9), transparent 66%),
+    radial-gradient(30% 120% at 64% 122%, rgba(251, 146, 60, 0.88), transparent 66%),
+    radial-gradient(28% 130% at 86% 130%, rgba(249, 115, 22, 0.9), transparent 66%);
+  background-size: 140% 140%;
+  animation: flame-flicker-b 0.78s ease-in-out infinite, flame-drift 4s ease-in-out infinite reverse;
+}
+/* opacity-only (ไม่ใช้ transform — กัน transform ของ pseudo ไปกระทบ scrollHeight/layout jitter)
+   ความไหวของเปลวมาจาก flame-drift (background-position) แทน */
+@keyframes flame-flicker-a {
+  0%, 100% { opacity: 0.7; }
+  30% { opacity: 1; }
+  55% { opacity: 0.8; }
+  80% { opacity: 0.95; }
+}
+@keyframes flame-flicker-b {
+  0%, 100% { opacity: 0.58; }
+  35% { opacity: 0.92; }
+  70% { opacity: 0.7; }
+}
+@keyframes flame-drift {
+  0%, 100% { background-position: 0% 100%; }
+  50% { background-position: 100% 100%; }
+}
+/* glow ฟุ้งกลางแถบ */
+@keyframes fire-flicker {
+  0%, 100% { opacity: 0.75; }
+  25% { opacity: 1; }
+  55% { opacity: 0.6; }
+  80% { opacity: 0.92; }
 }
 .event-fire-glow {
-  animation: fire-flicker 1.6s ease-in-out infinite;
+  animation: fire-flicker 1.7s ease-in-out infinite;
+}
+/* ลูกไฟลอยขึ้น — มี sway เล็กน้อย + เรืองแสง */
+@keyframes ember-float {
+  0% { transform: translate(0, 30%) scale(1); opacity: 0; }
+  12% { opacity: 1; }
+  50% { transform: translate(5px, -230%) scale(0.72); opacity: 0.9; }
+  100% { transform: translate(-4px, -520%) scale(0.3); opacity: 0; }
 }
 .event-ember {
   position: absolute;
   bottom: -4px;
   border-radius: 9999px;
-  background: radial-gradient(circle, #fde68a 0%, #f97316 55%, transparent 75%);
+  background: radial-gradient(circle, #fff7cc 0%, #fde68a 35%, #f97316 65%, transparent 78%);
+  box-shadow: 0 0 6px rgba(249, 115, 22, 0.7);
   animation: ember-float 2.6s linear infinite;
-  filter: blur(0.5px);
+  filter: blur(0.4px);
   pointer-events: none;
+}
+/* ไอคอนเปลวไฟ — ไหวเบา ๆ จากฐาน */
+@keyframes flame-icon-flicker {
+  0%, 100% { transform: scale(1, 1); }
+  30% { transform: scale(1.05, 0.96); }
+  60% { transform: scale(0.97, 1.06); }
+}
+.event-flame-icon {
+  animation: flame-icon-flicker 1.1s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: bottom center;
 }
 @keyframes arrow-up-nudge {
   0%, 100% { transform: translateY(2px); }
@@ -174,10 +239,35 @@ html.light body {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-4px); }
 }
-/* โหมด pill (ตอนย่อ): เด้งขึ้นลงต่อเนื่อง — delay ให้ morph (0.5s) จบก่อนค่อยเริ่มเด้ง
-   ต้องประกาศ fire-shift ซ้ำในลิสต์เพราะ animation shorthand ทับของ .event-fire-bar */
+/* โหมด pill (ตอนย่อ): เด้งขึ้นลง — เปลวไฟอยู่ใน ::before/::after แล้ว ไม่ต้องประกาศ fire-shift ซ้ำ */
 .event-pill-mode {
-  animation:
-    fire-shift 5s ease-in-out infinite,
-    pill-bob 1.8s ease-in-out 0.5s infinite;
+  animation: pill-bob 1.8s ease-in-out 0.5s infinite;
+}
+
+/* ===== กรอบไฟล้อมขอบเพจ — absolute เลื่อนตาม body (ครอบทั้งหน้า), อยู่หลัง content (z-[-1]), ไม่รับคลิก ===== */
+.event-fire-edge {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  /* ไฟเฉพาะขอบซ้าย-ขวา (เต็มความสูงเพจ) — บน/ล่างไม่มี, กลางโปร่งใสสนิท ไม่ย้อม content */
+  background:
+    linear-gradient(to right, rgba(234, 88, 12, 0.26), transparent) left / 40px 100% no-repeat,
+    linear-gradient(to left, rgba(234, 88, 12, 0.26), transparent) right / 40px 100% no-repeat;
+  animation: edge-flicker 2.4s ease-in-out infinite;
+}
+@keyframes edge-flicker {
+  0%, 100% { opacity: 0.85; }
+  30% { opacity: 1; }
+  55% { opacity: 0.76; }
+  80% { opacity: 0.95; }
+}
+
+/* เคารพ prefers-reduced-motion — หยุดไฟ/ลูกไฟ/ไหว */
+@media (prefers-reduced-motion: reduce) {
+  .event-fire-bar::before, .event-fire-bar::after, .event-fire-glow,
+  .event-ember, .event-flame-icon, .rateup-arrow, .event-pill-mode,
+  .event-fire-edge, .event-fire-edge::after {
+    animation: none !important;
+  }
 }

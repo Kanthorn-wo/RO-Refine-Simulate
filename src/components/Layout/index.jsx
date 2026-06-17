@@ -83,6 +83,7 @@ const Container = () => {
   const [itemType, setItemType] = useState('armor1');
   const [isEventRate, setIsEventRate] = useState(false);
   const [eventBarCollapsed, setEventBarCollapsed] = useState(false);
+  const [showEventBar, setShowEventBar] = useState(false); // คง mount ไว้ระหว่างสไลด์ออกก่อน unmount
   // ตาราง rate ย่อเหลือ +1~+10 เป็นค่าเริ่มต้น — กันตารางยาวดันหน้าต่างตีบวกตกใต้ fold
   const [showFullRateTable, setShowFullRateTable] = useState(false);
   const bsbTable = isEventRate ? BSB_REQUIRED_EVENT : BSB_REQUIRED_NORMAL;
@@ -529,6 +530,12 @@ const Container = () => {
     const isSpecial = itemType === 'weapon5' || itemType === 'armor2';
     if (isSpecial && useCash && stack.length < 10) setUseCash(false);
   }, [itemType, useCash, stack.length]);
+  // sync mount ของแถบ Event: เปิด → mount ทันที, ปิด → คงไว้ ~520ms ให้สไลด์ออกก่อน unmount
+  useEffect(() => {
+    if (isEventRate) { setShowEventBar(true); return; }
+    const id = setTimeout(() => setShowEventBar(false), 520);
+    return () => clearTimeout(id);
+  }, [isEventRate]);
 
   const handleFetchItem = async () => {
     const id = itemIdInput.trim();
@@ -618,22 +625,18 @@ const Container = () => {
 
   return (
     <>
-    {/* แถบ Event Rate Up — fixed ลอยบนสุดเต็มจอ โชว์เฉพาะตอนเปิด Event ที่ตาราง (ย่อเป็น pill ได้) */}
-    {isEventRate && (
+    {/* แถบ Event Rate Up (fixed บนสุด สไลด์เข้า/ออก ย่อเป็น pill ได้ + ปุ่มปิด) + กรอบไฟล้อมขอบเพจ */}
+    {showEventBar && (
       <EventRateBanner
+        active={isEventRate}
         collapsed={eventBarCollapsed}
         onToggle={() => setEventBarCollapsed((c) => !c)}
+        onClose={() => setIsEventRate(false)}
       />
     )}
     {/* pb กันเนื้อหาท้ายหน้าโดน FAB (FloatingMenu) บังบน mobile */}
     <div className="w-full max-w-5xl mx-auto flex flex-col gap-5 pb-16 sm:pb-4">
-      {/* spacer กันเนื้อหาโดนแถบ Event (fixed) บัง — ยุบ/ขยายนุ่ม ๆ ตามสถานะแถบ (-mb-5 หักล้าง gap ตอนยุบ) */}
-      {isEventRate && (
-        <div
-          aria-hidden="true"
-          className={`transition-all duration-500 ease-in-out ${eventBarCollapsed ? 'h-0 -mb-5' : 'h-8 sm:h-10'}`}
-        />
-      )}
+      {/* ไม่มี spacer แล้ว — แถบ Event overlay สไลด์ลงจากบน (fixed) ไม่ดัน content (กัน layout shift) */}
       {/* Hero Banner + ปุ่มเปลี่ยนภาษา ซ้อนมุมขวาบน (ตำแหน่งมาตรฐานของ language switch) */}
       <div className="relative">
         <HeroBanner />
