@@ -72,25 +72,28 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable, apiItem }) => {
   const [cooldownActive, setCooldownActive] = useState(false);
   const [cooldownLeft, setCooldownLeft] = useState(0); // วินาทีที่เหลือ (ทศนิยม) ก่อนกดจำลองใหม่ได้
   const cooldownEndRef = useRef(0);
-  const cancelRef = useRef(false);
 
-  // นับถอยหลัง cooldown แบบลื่น (ทศนิยม) อิงเวลาจริงผ่าน requestAnimationFrame
+  // นับถอยหลัง cooldown อิงเวลาจริง (cooldownEndRef = timestamp สิ้นสุด)
+  // - เปิดแผง: rAF อัปเดตทุกเฟรมให้เลขวิ่งลื่น
+  // - พับแผง: setTimeout ครั้งเดียวรอจนหมดเวลา ไม่ re-render ทุกเฟรมตอนมองไม่เห็น
   useEffect(() => {
     if (!cooldownActive) return;
+    const finish = () => { setCooldownLeft(0); setCooldownActive(false); };
+    if (!open) {
+      const remaining = Math.max(0, cooldownEndRef.current - Date.now());
+      const id = setTimeout(finish, remaining);
+      return () => clearTimeout(id);
+    }
     let raf;
     const tick = () => {
       const left = (cooldownEndRef.current - Date.now()) / 1000;
-      if (left <= 0) {
-        setCooldownLeft(0);
-        setCooldownActive(false);
-        return;
-      }
+      if (left <= 0) { finish(); return; }
       setCooldownLeft(left);
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [cooldownActive]);
+  }, [cooldownActive, open]);
 
   const clampedRounds = Math.max(10, Math.min(1000, rounds || 0));
 
@@ -119,14 +122,12 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable, apiItem }) => {
       bsb: useBSB && bsbRelevant ? 1 : 0,
       event_rate: isEventRate ? 1 : 0,
     });
-    cancelRef.current = false;
     setRunning(true);
     setProgress(0);
     setResults(null);
     const cfg = { itemType, startLevel, targetLevel, stone, useBSB: useBSB && bsbRelevant, isEventRate, bsbTable };
     const all = [];
     const step = () => {
-      if (cancelRef.current) { setRunning(false); return; }
       const todo = Math.min(CHUNK_SIZE, clampedRounds - all.length);
       for (let i = 0; i < todo; i++) all.push(simulateRound(cfg));
       setProgress(all.length);
@@ -147,7 +148,6 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable, apiItem }) => {
           };
         };
         const finalize = () => {
-          if (cancelRef.current) { setRunning(false); return; }
           setResults({
             runs: all,
             // เก็บ config ที่ใช้รันจริง — กัน state ปัจจุบันถูกเปลี่ยนหลังรันแล้วข้อความ/ป้ายเพี้ยน
@@ -225,6 +225,12 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable, apiItem }) => {
                     src={apiItem ? apiItem.imageUrl : (itemType.startsWith('weapon') ? '/images/default_weapon.png' : '/images/default_armor.png')}
                     alt=""
                     className="h-5 w-5 flex-none object-contain"
+                    onError={(e) => {
+                      // รูปจาก API พัง (404) → ใช้รูป default ตามประเภท (กัน loop ด้วย flag)
+                      if (e.currentTarget.dataset.fb) return;
+                      e.currentTarget.dataset.fb = '1';
+                      e.currentTarget.src = itemType.startsWith('weapon') ? '/images/default_weapon.png' : '/images/default_armor.png';
+                    }}
                   />
                   <span className="flex flex-col leading-tight">
                     {apiItem && <span className="max-w-[180px] truncate">{apiItem.name}</span>}

@@ -1436,7 +1436,7 @@ const Container = () => {
 
       {/* Simulator หาค่าเฉลี่ย (Monte Carlo) — ซ่อนใน panel slide เหนือสถิติ Session */}
       <Reveal>
-        <SimulatorPanel itemType={itemType} isEventRate={isEventRate} bsbTable={bsbTable} apiItem={showItemInfo ? apiItem : null} />
+        <SimulatorPanel itemType={itemType} isEventRate={isEventRate} bsbTable={bsbTable} apiItem={showItemInfo && apiItem && apiItem.type === itemType ? apiItem : null} />
       </Reveal>
 
       {/* สรุปจำนวนครั้งที่ตี */}

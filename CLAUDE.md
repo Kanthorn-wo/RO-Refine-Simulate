@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-จำลองระบบตีบวก (refine) ของ Ragnarok Online เป็นหน้าเดียวด้วย React 19 + Vite (plugin `@vitejs/plugin-react-swc`) ไม่มี TypeScript ไม่มี test runner ติดตั้งอยู่ การ deploy ใช้ **Vercel** (auto build จาก push master)
+จำลองระบบตีบวก (refine) ของ Ragnarok Online เป็นหน้าเดียวด้วย React 19 + Vite (plugin `@vitejs/plugin-react-swc`) ไม่มี TypeScript การ deploy ใช้ **Vercel** (auto build จาก push master) มี **Vitest** เป็น test runner สำหรับ unit test ของ pure logic
 
 ## Commands
 
@@ -12,6 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run build` — build production bundle ไปที่ `dist/`
 - `npm run preview` — preview build
 - `npm run lint` — ESLint ตามคอนฟิกใน `eslint.config.js` (flat config, rule `no-unused-vars` ignore ตัวที่ขึ้นต้นด้วยตัวพิมพ์ใหญ่หรือ `_`)
+- `npm test` — รัน Vitest ครั้งเดียว (unit test ของ pure logic: `simulate.js`, `stones.js`, `refineRates.js` — ไฟล์ `*.test.js` วางข้างโมดูล), `npm run test:watch` — watch mode. Manual QA checklist อยู่ที่ `docs/QA-checklist.md`
 
 คำเตือนเกี่ยวกับ script auto-commit ใน `package.json`:
 - `deploy`, `quick-commit`, `auto-deploy`, `watch-and-deploy`, `start-auto`, `watch-changes` ทุกตัว **commit + push อัตโนมัติ** ห้ามรันให้ผู้ใช้โดยไม่ขออนุญาตก่อน
@@ -199,7 +200,7 @@ Deploy หลักใช้ **Vercel** (auto build จาก push master, root 
   - `MINOR` (+0.1.0) — มีฟีเจอร์ใหม่อย่างน้อย 1 อย่าง
   - `MAJOR` (+1.0.0) — เปลี่ยน architecture, redesign ใหญ่
 
-version ปัจจุบัน: **1.11.0** (มีการ renumber CHANGELOG ทั้งชุดเมื่อ 2026-06-10 — เลขเดิม 1.9.3 กลายเป็น 1.6.0)
+version ปัจจุบัน: **1.11.1** (CHANGELOG ล่าสุดอยู่ที่ 1.11.0 — 1.11.1 เป็น bugfix/internal ที่ผู้เล่นไม่เห็น จึงไม่มี entry ใหม่ ทำให้ `LATEST_CHANGELOG_VERSION` ≠ `APP_VERSION` โดยตั้งใจ) (มีการ renumber CHANGELOG ทั้งชุดเมื่อ 2026-06-10 — เลขเดิม 1.9.3 กลายเป็น 1.6.0)
 
 ## Patch Notes (changelog)
 
