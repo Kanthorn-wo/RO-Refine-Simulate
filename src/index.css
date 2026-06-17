@@ -24,6 +24,18 @@
 /* brand gradient (neon เขียว→ฟ้า→ม่วง) — ใช้เป็น accent เส้นบาง/แถบ ไม่ใช้เป็นพื้นใหญ่/พื้นปุ่มที่มีข้อความ */
 .bg-brand { background-image: var(--brand-gradient); }
 
+/* cursor มือกับทุก element ที่กดได้ — Tailwind v4 preflight ไม่ใส่ pointer ให้ปุ่มเอง
+   อยู่ใน @layer base เพื่อให้ utility cursor-* ที่ระบุเอง(เช่น disabled:cursor-not-allowed) ชนะ */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled),
+  select:not(:disabled),
+  summary,
+  label:has(> input:is([type="checkbox"], [type="radio"])) {
+    cursor: pointer;
+  }
+}
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;

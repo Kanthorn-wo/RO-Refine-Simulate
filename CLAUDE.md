@@ -208,7 +208,7 @@ Deploy หลักใช้ **Vercel** (auto build จาก push master, root 
   - `MINOR` (+0.1.0) — มีฟีเจอร์ใหม่อย่างน้อย 1 อย่าง
   - `MAJOR` (+1.0.0) — เปลี่ยน architecture, redesign ใหญ่
 
-version ปัจจุบัน: **1.11.2** (CHANGELOG ล่าสุดอยู่ที่ 1.11.0 — 1.11.1/1.11.2 เป็นงาน internal/in-progress ที่ผู้เล่นไม่เห็น จึงไม่มี entry ใหม่ ทำให้ `LATEST_CHANGELOG_VERSION` ≠ `APP_VERSION` โดยตั้งใจ; 1.11.2 = ระบบธีม dark/light เฟส 1 ยังไม่ครบ ยังไม่ประกาศ) (มีการ renumber CHANGELOG ทั้งชุดเมื่อ 2026-06-10 — เลขเดิม 1.9.3 กลายเป็น 1.6.0)
+version ปัจจุบัน: **1.11.3** (CHANGELOG ล่าสุดอยู่ที่ 1.11.0 — 1.11.1–1.11.3 เป็นงาน internal/in-progress/polish ที่ผู้เล่นไม่เห็น จึงไม่มี entry ใหม่ ทำให้ `LATEST_CHANGELOG_VERSION` ≠ `APP_VERSION` โดยตั้งใจ; 1.11.2 = ระบบธีม dark/light เฟส 1, 1.11.3 = cursor pointer ทุก element ที่กดได้) (มีการ renumber CHANGELOG ทั้งชุดเมื่อ 2026-06-10 — เลขเดิม 1.9.3 กลายเป็น 1.6.0)
 
 ## Patch Notes (changelog)
 
