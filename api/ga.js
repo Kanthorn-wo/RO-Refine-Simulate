@@ -9,6 +9,7 @@ import { BetaAnalyticsDataClient } from '@google-analytics/data'
 //   GA_PRIVATE_KEY    — service account private key (เก็บแบบมี \n literal ได้)
 //   SUPABASE_URL      — เช่น https://xxxx.supabase.co
 //   SUPABASE_ANON_KEY — anon key (ใช้ verify token)
+//   DASHBOARD_ALLOWED_EMAILS — อีเมลเจ้าของที่เข้า dashboard ได้ (คั่นด้วย , — ถ้าไม่ตั้ง = ปฏิเสธทุกคน)
 
 const RANGE = { startDate: '30daysAgo', endDate: 'today' }
 const PREV_RANGE = { startDate: '60daysAgo', endDate: '31daysAgo' }
@@ -17,10 +18,10 @@ const TREND_RANGE = { startDate: '90daysAgo', endDate: 'today' }
 // custom event ของเว็บ (ตรงกับ trackEvent ใน src/utils/analytics.js)
 const FEATURE_EVENTS = ['refine_attempt', 'auto_start', 'sim_open', 'sim_run']
 
-async function verifyUser(req) {
+async function getUser(req) {
   const auth = req.headers.authorization || ''
   const token = auth.startsWith('Bearer ') ? auth.slice(7) : ''
-  if (!token || !process.env.SUPABASE_URL) return false
+  if (!token || !process.env.SUPABASE_URL) return null
   try {
     const r = await fetch(`${process.env.SUPABASE_URL}/auth/v1/user`, {
       headers: {
@@ -28,10 +29,19 @@ async function verifyUser(req) {
         apikey: process.env.SUPABASE_ANON_KEY || '',
       },
     })
-    return r.ok
+    if (!r.ok) return null
+    return await r.json()
   } catch {
-    return false
+    return null
   }
+}
+
+// เฉพาะอีเมลเจ้าของใน DASHBOARD_ALLOWED_EMAILS เท่านั้น — ไม่ตั้ง env = ปฏิเสธทุกคน (fail closed)
+function isOwner(user) {
+  const allow = (process.env.DASHBOARD_ALLOWED_EMAILS || '')
+    .split(',').map((s) => s.trim().toLowerCase()).filter(Boolean)
+  const email = ((user && user.email) || '').toLowerCase()
+  return allow.length > 0 && !!email && allow.includes(email)
 }
 
 // "20260518" -> "05/18"
@@ -39,9 +49,9 @@ const fmtDate = (s) => (s && s.length === 8 ? `${s.slice(4, 6)}/${s.slice(6, 8)}
 const num = (v) => Number(v || 0)
 
 export default async function handler(req, res) {
-  if (!(await verifyUser(req))) {
-    return res.status(401).json({ error: 'unauthorized' })
-  }
+  const user = await getUser(req)
+  if (!user) return res.status(401).json({ error: 'unauthorized' })
+  if (!isOwner(user)) return res.status(403).json({ error: 'ไม่มีสิทธิ์เข้าถึง (เฉพาะเจ้าของเว็บ)' })
 
   const { GA_PROPERTY_ID, GA_CLIENT_EMAIL, GA_PRIVATE_KEY } = process.env
   if (!GA_PROPERTY_ID || !GA_CLIENT_EMAIL || !GA_PRIVATE_KEY) {

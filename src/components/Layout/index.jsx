@@ -19,9 +19,7 @@ import { frameCount, WAITING_FRAMES, PROCESSING_FRAMES, SUCCESS_FRAMES, FAIL_FRA
 import { useLang } from '../../contexts/LangContext';
 import { trackEvent } from '../../utils/analytics';
 
-// API ของ divine-pride สำหรับค้นไอเทมจาก ID
-// หมายเหตุ: เว็บเป็น static site คีย์นี้จะถูก build ติดไปกับ JS และเป็นสาธารณะ
-const DIVINE_PRIDE_API_KEY = '7a8b539b5e6171b362a6ef264e43dffc';
+// ค้นไอเทมจาก ID ผ่าน serverless proxy /api/item (ซ่อน divine-pride API key ไว้ฝั่ง server)
 
 // ── ระบบช่วงหิน Auto: กำแพงที่จุดเปลี่ยนแร่ ───────────────────────────────
 // กำแพงจุดเปลี่ยนแร่ (destination level): ทุก item เปลี่ยน low→high ที่ +11
@@ -538,7 +536,7 @@ const Container = () => {
     setApiLoading(true);
     setApiError('');
     try {
-      const res = await fetch(`https://www.divine-pride.net/api/database/Item/${id}?apiKey=${DIVINE_PRIDE_API_KEY}`);
+      const res = await fetch(`/api/item?id=${encodeURIComponent(id)}`);
       if (!res.ok) throw new Error(t('api_error_http', { status: res.status }));
       const data = await res.json();
       let lvl = Number(data.itemLevel) || 1;
