@@ -15,6 +15,14 @@
 
 export const CHANGELOG = [
   {
+    version: '1.11.0',
+    date: '2026-06-17',
+    items: [
+      { type: 'improve', text: 'ปรับโฉมโหมดจำลองหาค่าเฉลี่ยใหม่ จัดกลุ่มการตั้งค่าให้อ่านง่ายขึ้น แสดงไอเทม/ประเภทที่กำลังจำลอง มีหน้าจอกำลังประมวลผลและผลลัพธ์ที่ค่อย ๆ เลื่อนแสดงนุ่มนวล พร้อมนับถอยหลังที่ปุ่มเริ่มจำลองกันการกดซ้ำถี่เกินไป', textEn: 'Revamped the average-simulation mode: cleaner grouped settings, shows the item/type being simulated, a loading screen with smoothly sliding results, and a button countdown to prevent rapid re-clicks' },
+      { type: 'improve', text: 'เพิ่มหมายเหตุชี้แจงว่าผลลัพธ์ทั้งหมดเป็นการจำลอง ไม่ใช่อัตราทางการจากเกม', textEn: 'Added a note clarifying that all results are simulated and not the game’s official rates' },
+    ],
+  },
+  {
     version: '1.10.0',
     date: '2026-06-16',
     items: [

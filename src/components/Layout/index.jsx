@@ -1436,7 +1436,7 @@ const Container = () => {
 
       {/* Simulator หาค่าเฉลี่ย (Monte Carlo) — ซ่อนใน panel slide เหนือสถิติ Session */}
       <Reveal>
-        <SimulatorPanel itemType={itemType} isEventRate={isEventRate} bsbTable={bsbTable} />
+        <SimulatorPanel itemType={itemType} isEventRate={isEventRate} bsbTable={bsbTable} apiItem={showItemInfo ? apiItem : null} />
       </Reveal>
 
       {/* สรุปจำนวนครั้งที่ตี */}
@@ -1747,6 +1747,32 @@ const Container = () => {
         );
       })()}
       </Reveal>
+
+      {/* Disclaimer — เว็บนี้เป็นการจำลอง ไม่ทราบ rate จริงของเกม ใช้ pRNG ของเบราว์เซอร์ */}
+      <div className="w-full rounded-xl border border-slate-700/50 bg-gradient-to-b from-slate-800/30 to-[#0f1117]/40 p-4 sm:p-5">
+        <div className="flex items-start gap-3">
+          <span className="mt-0.5 flex h-7 w-7 flex-none items-center justify-center rounded-full border border-slate-600/60 bg-slate-700/30 text-slate-400">
+            <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9 9a1 1 0 012 0v4a1 1 0 11-2 0V9zm1-4.5A1.25 1.25 0 1010 7a1.25 1.25 0 000-2.5z" clipRule="evenodd" />
+            </svg>
+          </span>
+          <div className="min-w-0 space-y-2">
+            <div className="text-xs font-semibold tracking-wide text-slate-300">{t('disclaimer_title')}</div>
+            <p className="text-[0.72rem] leading-relaxed text-slate-500">{t('disclaimer_text')}</p>
+            <a
+              href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-600/60 bg-slate-700/20 px-2.5 py-1 text-[0.7rem] font-medium text-slate-300 transition-colors hover:border-slate-500 hover:text-slate-200"
+            >
+              {t('disclaimer_ref')}
+              <svg className="h-3 w-3" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                <path d="M6 3h7v7M13 3L4 12" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
 
       {/* Footer */}
       <footer className="mt-2 mb-2 text-center text-xs text-slate-500">

@@ -1,7 +1,7 @@
-import React, { useState, useRef, Suspense, lazy } from 'react';
+import React, { useState, useRef, useEffect, Suspense, lazy } from 'react';
 import { useLang } from '../../contexts/LangContext';
 import { STONE_META, getEffectiveStone } from '../../utils/stones';
-import { ORE_IMAGES, ORE_COLORS } from '../../constants/ores';
+import { ORE_IMAGES, ORE_COLORS, ITEM_TYPE_LABELS } from '../../constants/ores';
 import { simulateRound, summarize, MAX_ATTEMPTS_PER_ROUND } from '../../utils/simulate';
 import { trackEvent } from '../../utils/analytics';
 
@@ -17,6 +17,8 @@ const STONE_BTN_ACTIVE = {
 
 const ROUND_PRESETS = [100, 300, 500, 1000];
 const CHUNK_SIZE = 50;
+const COOLDOWN_SEC = 3; // กันกดรัว ๆ — ต้องรอ 3 วิ จึงกดจำลองใหม่ได้
+const MIN_RUN_MS = 500; // เวลาขั้นต่ำให้ loading โชว์ก่อนผลลัพธ์ (กันผลโผล่มาทันทีจนเหมือนกระพริบ)
 
 // metric สรุปต่อรอบ — ใช้ทั้งการ์ดสรุปและปุ่มสลับกราฟ
 const METRIC_CARDS = [
@@ -55,7 +57,7 @@ const AvgCard = ({ label, value, unit, minValue, maxValue, accent }) => (
   </div>
 );
 
-const SimulatorPanel = ({ itemType, isEventRate, bsbTable }) => {
+const SimulatorPanel = ({ itemType, isEventRate, bsbTable, apiItem }) => {
   const { t } = useLang();
   const [open, setOpen] = useState(false);
   const [startLevel, setStartLevel] = useState(10);
@@ -67,7 +69,28 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable }) => {
   const [progress, setProgress] = useState(0);
   const [results, setResults] = useState(null);
   const [chartMetric, setChartMetric] = useState('attempts');
+  const [cooldownActive, setCooldownActive] = useState(false);
+  const [cooldownLeft, setCooldownLeft] = useState(0); // วินาทีที่เหลือ (ทศนิยม) ก่อนกดจำลองใหม่ได้
+  const cooldownEndRef = useRef(0);
   const cancelRef = useRef(false);
+
+  // นับถอยหลัง cooldown แบบลื่น (ทศนิยม) อิงเวลาจริงผ่าน requestAnimationFrame
+  useEffect(() => {
+    if (!cooldownActive) return;
+    let raf;
+    const tick = () => {
+      const left = (cooldownEndRef.current - Date.now()) / 1000;
+      if (left <= 0) {
+        setCooldownLeft(0);
+        setCooldownActive(false);
+        return;
+      }
+      setCooldownLeft(left);
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [cooldownActive]);
 
   const clampedRounds = Math.max(10, Math.min(1000, rounds || 0));
 
@@ -85,7 +108,8 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable }) => {
   };
 
   const runSimulation = () => {
-    if (running) return;
+    if (running || cooldownActive) return;
+    const startedAt = Date.now();
     trackEvent('sim_run', {
       item_type: itemType,
       start: startLevel,
@@ -122,24 +146,34 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable }) => {
             max: Math.max(...vals),
           };
         };
-        setResults({
-          runs: all,
-          // เก็บ config ที่ใช้รันจริง — กัน state ปัจจุบันถูกเปลี่ยนหลังรันแล้วข้อความ/ป้ายเพี้ยน
-          cfgUsed: { startLevel, targetLevel, isEventRate },
-          stats: summarize(attempts),
-          attempts,
-          metrics: {
-            attempts: metric((r) => r.attempts),
-            successes: metric((r) => r.successes),
-            fails: metric((r) => r.fails),
-            itemsLost: metric((r) => r.itemsLost),
-            oresTotal: metric((r) => r.oresTotal),
-            bsbUsed: metric((r) => r.bsbUsed),
-          },
-          oreAvg,
-          hasAborted: all.some((r) => r.aborted),
-        });
-        setRunning(false);
+        const finalize = () => {
+          if (cancelRef.current) { setRunning(false); return; }
+          setResults({
+            runs: all,
+            // เก็บ config ที่ใช้รันจริง — กัน state ปัจจุบันถูกเปลี่ยนหลังรันแล้วข้อความ/ป้ายเพี้ยน
+            cfgUsed: { startLevel, targetLevel, isEventRate },
+            stats: summarize(attempts),
+            attempts,
+            metrics: {
+              attempts: metric((r) => r.attempts),
+              successes: metric((r) => r.successes),
+              fails: metric((r) => r.fails),
+              itemsLost: metric((r) => r.itemsLost),
+              oresTotal: metric((r) => r.oresTotal),
+              bsbUsed: metric((r) => r.bsbUsed),
+            },
+            oreAvg,
+            hasAborted: all.some((r) => r.aborted),
+          });
+          setRunning(false);
+          cooldownEndRef.current = Date.now() + COOLDOWN_SEC * 1000;
+          setCooldownLeft(COOLDOWN_SEC);
+          setCooldownActive(true);
+        };
+        // โชว์ loading อย่างน้อย MIN_RUN_MS กันผลโผล่มาทันทีจนเหมือนกระพริบ
+        const elapsed = Date.now() - startedAt;
+        if (elapsed < MIN_RUN_MS) setTimeout(finalize, MIN_RUN_MS - elapsed);
+        else finalize();
       }
     };
     setTimeout(step, 0);
@@ -179,47 +213,72 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable }) => {
               {t('sim_beta_remark')} — {t('sim_desc')}
             </p>
 
-            {/* สถานะเรทที่ใช้จำลอง — อิงสวิตช์ Event ของหน้าหลัก */}
-            <div className="flex flex-wrap items-center gap-2 text-xs">
-              <span className="font-semibold text-slate-400">{t('sim_rate_mode')}:</span>
-              <span className={`rounded-full border px-2 py-0.5 text-[0.68rem] font-bold ${
-                isEventRate
-                  ? 'border-amber-400/50 bg-amber-400/15 text-amber-300'
-                  : 'border-slate-600 bg-slate-700/30 text-slate-300'
-              }`}>
-                {isEventRate ? t('event_rate_up') : t('no_event')}
-              </span>
-              <span className="text-[0.65rem] text-slate-500">{t('sim_rate_hint')}</span>
+            {/* (A) สรุปสิ่งที่จะจำลอง — read-only context อิงค่าจากหน้าหลัก */}
+            <div className="rounded-xl border border-slate-700/50 bg-[#0f1117]/40 p-3">
+              <div className="mb-2 flex items-center gap-1.5 text-[0.62rem] font-bold uppercase tracking-wider text-slate-500">
+                <span className="h-1.5 w-1.5 rounded-full bg-violet-400" />
+                {t('sim_section_context')}
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-2 rounded-lg border border-violet-400/40 bg-violet-500/10 px-2.5 py-1.5 text-xs font-bold text-violet-100">
+                  <img
+                    src={apiItem ? apiItem.imageUrl : (itemType.startsWith('weapon') ? '/images/default_weapon.png' : '/images/default_armor.png')}
+                    alt=""
+                    className="h-5 w-5 flex-none object-contain"
+                  />
+                  <span className="flex flex-col leading-tight">
+                    {apiItem && <span className="max-w-[180px] truncate">{apiItem.name}</span>}
+                    <span className={apiItem ? 'text-[0.6rem] font-normal text-violet-300/70' : ''}>{ITEM_TYPE_LABELS[itemType]}</span>
+                  </span>
+                </span>
+                <span className={`inline-flex items-center rounded-lg border px-2.5 py-1.5 text-[0.7rem] font-bold ${
+                  isEventRate
+                    ? 'border-amber-400/50 bg-amber-400/15 text-amber-300'
+                    : 'border-slate-600 bg-slate-700/30 text-slate-300'
+                }`}>
+                  {isEventRate ? t('event_rate_up') : t('no_event')}
+                </span>
+              </div>
+              <p className="mt-1.5 text-[0.62rem] text-slate-500">{t('sim_rate_hint')}</p>
             </div>
 
-            {/* Config */}
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <label className="block">
-                <span className="mb-1 block text-xs font-semibold text-slate-400">{t('sim_from')}</span>
-                <select
-                  value={startLevel}
-                  onChange={(e) => handleStartChange(Number(e.target.value))}
-                  disabled={running}
-                  className="w-full rounded-lg border border-slate-600 bg-[#0f1117] px-2 py-2 text-sm text-slate-200"
-                >
-                  {Array.from({ length: 20 }, (_, i) => <option key={i} value={i}>+{i}</option>)}
-                </select>
-              </label>
-              <label className="block">
-                <span className="mb-1 block text-xs font-semibold text-slate-400">{t('sim_to')}</span>
-                <select
-                  value={targetLevel}
-                  onChange={(e) => { setTargetLevel(Number(e.target.value)); setResults(null); }}
-                  disabled={running}
-                  className="w-full rounded-lg border border-slate-600 bg-[#0f1117] px-2 py-2 text-sm text-slate-200"
-                >
-                  {Array.from({ length: 20 - startLevel }, (_, i) => startLevel + 1 + i).map((v) => (
-                    <option key={v} value={v}>+{v}</option>
-                  ))}
-                </select>
-              </label>
-              <div className="col-span-2">
-                <span className="mb-1 block text-xs font-semibold text-slate-400">{t('sim_stone_label')}</span>
+            {/* (B) ตั้งค่า — ค่าที่ปรับได้ จัดเป็น label คอลัมน์ซ้าย + control ขวา */}
+            <div className="rounded-xl border border-slate-700/50 bg-[#0f1117]/40 p-3">
+              <div className="mb-3 flex items-center gap-1.5 text-[0.62rem] font-bold uppercase tracking-wider text-slate-500">
+                <span className="h-1.5 w-1.5 rounded-full bg-violet-400" />
+                {t('sim_section_settings')}
+              </div>
+              <div className="grid gap-3 sm:grid-cols-[auto_1fr] sm:items-center sm:gap-x-4">
+                {/* ช่วงตีบวก */}
+                <span className="text-xs font-semibold text-slate-400">{t('sim_range_label')}</span>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={startLevel}
+                    onChange={(e) => handleStartChange(Number(e.target.value))}
+                    disabled={running}
+                    aria-label={t('sim_from')}
+                    className="rounded-lg border border-slate-600 bg-[#0f1117] px-2 py-1.5 text-sm font-bold text-slate-200"
+                  >
+                    {Array.from({ length: 20 }, (_, i) => <option key={i} value={i}>+{i}</option>)}
+                  </select>
+                  <svg className="h-3.5 w-3.5 flex-none text-slate-500" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                    <path d="M3 8h10M9 4l4 4-4 4" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <select
+                    value={targetLevel}
+                    onChange={(e) => { setTargetLevel(Number(e.target.value)); setResults(null); }}
+                    disabled={running}
+                    aria-label={t('sim_to')}
+                    className="rounded-lg border border-slate-600 bg-[#0f1117] px-2 py-1.5 text-sm font-bold text-slate-200"
+                  >
+                    {Array.from({ length: 20 - startLevel }, (_, i) => startLevel + 1 + i).map((v) => (
+                      <option key={v} value={v}>+{v}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* หิน */}
+                <span className="text-xs font-semibold text-slate-400">{t('sim_stone_label')}</span>
                 <div className="flex gap-2">
                   {['normal', 'enriched', 'hd'].map((s) => {
                     const usable = stoneUsableCount(s) > 0;
@@ -238,6 +297,54 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable }) => {
                     );
                   })}
                 </div>
+
+                {/* BSB (เฉพาะช่วงที่เกี่ยวข้อง) */}
+                {bsbRelevant && (
+                  <>
+                    <span className="text-xs font-semibold text-slate-400">BSB</span>
+                    <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-slate-300">
+                      <input
+                        type="checkbox"
+                        checked={useBSB}
+                        onChange={(e) => { setUseBSB(e.target.checked); setResults(null); }}
+                        disabled={running}
+                        className="h-4 w-4 accent-emerald-400"
+                      />
+                      <img src="/images/blacksmith_blessing.png" alt="" className="h-4 w-4 object-contain" />
+                      {t('sim_use_bsb')}
+                    </label>
+                  </>
+                )}
+
+                {/* จำนวนรอบ */}
+                <span className="text-xs font-semibold text-slate-400 sm:pt-1.5">{t('sim_rounds_label')}</span>
+                <div className="flex flex-wrap gap-1">
+                  {ROUND_PRESETS.map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      disabled={running}
+                      onClick={() => { setRounds(p); setResults(null); }}
+                      className={`rounded-lg border px-2.5 py-1.5 text-xs font-bold transition-colors ${
+                        rounds === p ? 'border-violet-400 bg-violet-500/20 text-violet-200' : 'border-slate-600 text-slate-400 hover:border-slate-400'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                  <input
+                    type="number"
+                    min="10"
+                    max="1000"
+                    value={rounds}
+                    disabled={running}
+                    onChange={(e) => { setRounds(Number(e.target.value)); setResults(null); }}
+                    onBlur={() => setRounds(clampedRounds)}
+                    placeholder={t('sim_rounds_custom')}
+                    aria-label={t('sim_rounds_label')}
+                    className="w-20 rounded-lg border border-slate-600 bg-[#0f1117] px-2 py-1.5 text-center text-xs font-bold text-slate-200 [appearance:textfield] focus:border-violet-400 focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  />
+                </div>
               </div>
             </div>
 
@@ -247,64 +354,41 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable }) => {
               </p>
             )}
 
-            <div className="flex flex-wrap items-end gap-3">
-              {bsbRelevant && (
-                <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-slate-300">
-                  <input
-                    type="checkbox"
-                    checked={useBSB}
-                    onChange={(e) => { setUseBSB(e.target.checked); setResults(null); }}
-                    disabled={running}
-                    className="h-4 w-4 accent-emerald-400"
-                  />
-                  <img src="/images/blacksmith_blessing.png" alt="" className="h-4 w-4 object-contain" />
-                  {t('sim_use_bsb')}
-                </label>
+            {/* (C) ปุ่ม CTA หลัก — เต็มความกว้าง เด่นสุด */}
+            <button
+              type="button"
+              onClick={runSimulation}
+              disabled={running || cooldownActive}
+              className="flex w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-violet-400/60 bg-gradient-to-r from-violet-500/40 to-fuchsia-500/40 px-4 py-3 text-sm font-bold tabular-nums text-violet-50 shadow-lg shadow-violet-900/20 transition-colors hover:from-violet-500/60 hover:to-fuchsia-500/60 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {!running && !cooldownActive && (
+                <svg className="h-3.5 w-3.5" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                  <path d="M4 3.5v9a.5.5 0 00.77.42l7-4.5a.5.5 0 000-.84l-7-4.5A.5.5 0 004 3.5z" />
+                </svg>
               )}
-              {/* mobile: เต็มความกว้าง ปุ่มรันอยู่บรรทัดของตัวเอง (กันโดนบีบ/โดน FAB ทับ) — ≥sm ค่อยชิดขวาแถวเดียว */}
-              <div className="flex w-full flex-wrap items-end gap-2 sm:ml-auto sm:w-auto">
-                <label className="block w-full sm:w-auto">
-                  <span className="mb-1 block text-xs font-semibold text-slate-400">{t('sim_rounds_label')} (10–1000)</span>
-                  <div className="flex flex-wrap gap-1">
-                    {ROUND_PRESETS.map((p) => (
-                      <button
-                        key={p}
-                        type="button"
-                        disabled={running}
-                        onClick={() => { setRounds(p); setResults(null); }}
-                        className={`rounded-lg border px-2 py-1.5 text-xs font-bold transition-colors ${
-                          rounds === p ? 'border-violet-400 bg-violet-500/20 text-violet-200' : 'border-slate-600 text-slate-400 hover:border-slate-400'
-                        }`}
-                      >
-                        {p}
-                      </button>
-                    ))}
-                    <input
-                      type="number"
-                      min="10"
-                      max="1000"
-                      value={rounds}
-                      disabled={running}
-                      onChange={(e) => { setRounds(Number(e.target.value)); setResults(null); }}
-                      onBlur={() => setRounds(clampedRounds)}
-                      placeholder={t('sim_rounds_custom')}
-                      aria-label={t('sim_rounds_label')}
-                      className="w-20 min-w-0 flex-1 rounded-lg border border-slate-600 bg-[#0f1117] px-2 py-1.5 text-center text-xs font-bold text-slate-200 [appearance:textfield] focus:border-violet-400 focus:outline-none sm:flex-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                    />
-                  </div>
-                </label>
-                <button
-                  type="button"
-                  onClick={runSimulation}
-                  disabled={running}
-                  className="w-full whitespace-nowrap rounded-lg border border-violet-400/60 bg-gradient-to-r from-violet-500/30 to-fuchsia-500/30 px-4 py-2 text-sm font-bold text-violet-100 transition-colors hover:from-violet-500/50 hover:to-fuchsia-500/50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:py-1.5"
-                >
-                  {running ? t('sim_running', { done: progress, total: clampedRounds }) : t('sim_run')}
-                </button>
-              </div>
-            </div>
+              {running
+                ? t('sim_running', { done: progress, total: clampedRounds })
+                : cooldownActive
+                  ? t('sim_cooldown', { sec: cooldownLeft.toFixed(2) })
+                  : t('sim_run')}
+            </button>
 
-            {/* Results */}
+            {/* Results — slide ลงมา (grid-rows trick) + loading ระหว่างประมวลผล */}
+            <div className={`grid transition-[grid-template-rows] duration-500 ease-out ${(running || results) ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
+              <div className="overflow-hidden">
+            {running && !results && (
+              <div className="flex flex-col items-center justify-center gap-3 border-t border-slate-700/60 py-8">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-violet-500/30 border-t-violet-300" />
+                <div className="text-xs font-semibold text-violet-200">{t('sim_loading')}</div>
+                <div className="h-1.5 w-40 overflow-hidden rounded-full bg-slate-700/50">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-violet-400 to-fuchsia-400 transition-[width] duration-150 ease-out"
+                    style={{ width: `${Math.round((progress / clampedRounds) * 100)}%` }}
+                  />
+                </div>
+                <div className="text-[0.65rem] text-slate-500">{progress}/{clampedRounds}</div>
+              </div>
+            )}
             {results && (
               <div className="space-y-4 border-t border-slate-700/60 pt-4">
                 {results.hasAborted && (
@@ -452,6 +536,8 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable }) => {
                 </div>
               </div>
             )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
