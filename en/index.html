@@ -6,6 +6,11 @@
     <link rel="apple-touch-icon" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+    <!-- Theme bootstrap — ใส่ class light ก่อน paint กัน flash (default = dark) -->
+    <script>
+      try { if (localStorage.getItem('ro_refine_theme') === 'light') document.documentElement.classList.add('light'); } catch (e) {}
+    </script>
+
     <!-- Preload LCP image (HeroBanner) so it is discoverable before JS runs
          imagesrcset/imagesizes must match the <img> in HeroBanner or the browser downloads twice -->
     <link rel="preload" as="image" type="image/webp" fetchpriority="high"

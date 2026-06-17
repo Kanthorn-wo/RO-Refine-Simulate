@@ -127,6 +127,8 @@ export const TRANSLATIONS = {
     // Floating menu
     menu_updates: 'อัปเดตใหม่',
     menu_report: 'แจ้งปัญหา',
+    menu_theme_light: 'โหมดสว่าง',
+    menu_theme_dark: 'โหมดมืด',
     menu_open: 'เปิดเมนู',
     menu_close: 'ปิดเมนู',
 
@@ -331,6 +333,8 @@ export const TRANSLATIONS = {
     // Floating menu
     menu_updates: 'Updates',
     menu_report: 'Report',
+    menu_theme_light: 'Light mode',
+    menu_theme_dark: 'Dark mode',
     menu_open: 'Open menu',
     menu_close: 'Close menu',
 

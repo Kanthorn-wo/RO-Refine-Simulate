@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useLang } from '../../contexts/LangContext';
+import { getTheme, toggleTheme } from '../../utils/theme';
 
 const REPORT_FORM_URL =
   'https://docs.google.com/forms/d/e/1FAIpQLSegZdTgvGgHiekYN-JiMeVtwvSvCbfvzLagkJa8ZSzQZpWFzw/viewform';
 
 const FloatingMenu = ({ onOpenPatchNotes, suppressed = false }) => {
   const [open, setOpen] = useState(false);
+  const [theme, setTheme] = useState(getTheme());
   const { t } = useLang();
 
   // ซ่อน FAB (และปิด speed dial) ระหว่างที่ cookie bar โชว์ กันทับกัน
@@ -14,6 +16,27 @@ const FloatingMenu = ({ onOpenPatchNotes, suppressed = false }) => {
   }, [suppressed]);
 
   const actions = [
+    {
+      key: 'theme',
+      label: theme === 'light' ? t('menu_theme_dark') : t('menu_theme_light'),
+      btnClass: 'border-violet-400/40 bg-[#181a20]/95 text-violet-300 hover:bg-violet-400 hover:text-slate-900',
+      onClick: () => {
+        setTheme(toggleTheme());
+        setOpen(false);
+      },
+      icon: theme === 'light' ? (
+        // กำลัง light → ปุ่มสลับเป็น dark (ไอคอนพระจันทร์)
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+          <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+        </svg>
+      ) : (
+        // กำลัง dark → ปุ่มสลับเป็น light (ไอคอนพระอาทิตย์)
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+        </svg>
+      ),
+    },
     {
       key: 'patch',
       label: t('menu_updates'),

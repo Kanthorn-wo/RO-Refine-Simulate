@@ -20,14 +20,14 @@ const CHUNK_SIZE = 50;
 const COOLDOWN_SEC = 3; // กันกดรัว ๆ — ต้องรอ 3 วิ จึงกดจำลองใหม่ได้
 const MIN_RUN_MS = 500; // เวลาขั้นต่ำให้ loading โชว์ก่อนผลลัพธ์ (กันผลโผล่มาทันทีจนเหมือนกระพริบ)
 
-// metric สรุปต่อรอบ — ใช้ทั้งการ์ดสรุปและปุ่มสลับกราฟ
+// metric สรุปต่อรอบ — ใช้ทั้งการ์ดสรุปและปุ่มสลับกราฟ (bg=sunken token ปรับตามธีม, ขอบ+ข้อความสีระบุชนิด)
 const METRIC_CARDS = [
-  { key: 'attempts', label: 'sim_avg_attempts', unit: 'sim_unit_times', accent: 'border-slate-700/60 bg-[#0f1117] text-amber-300' },
-  { key: 'successes', label: 'sim_avg_success', unit: 'sim_unit_times', accent: 'border-emerald-700/40 bg-emerald-950/20 text-emerald-400' },
-  { key: 'fails', label: 'sim_avg_fail', unit: 'sim_unit_times', accent: 'border-rose-700/40 bg-rose-950/20 text-rose-400' },
-  { key: 'itemsLost', label: 'sim_avg_lost', unit: 'sim_unit_items', accent: 'border-rose-700/40 bg-rose-950/20 text-rose-300' },
-  { key: 'oresTotal', label: 'sim_avg_stone', unit: 'sim_unit_pcs', accent: 'border-sky-700/40 bg-sky-950/20 text-sky-300' },
-  { key: 'bsbUsed', label: 'sim_avg_bsb', unit: 'sim_unit_pcs', accent: 'border-amber-700/40 bg-amber-950/20 text-amber-300' },
+  { key: 'attempts', label: 'sim_avg_attempts', unit: 'sim_unit_times', accent: 'border-line-soft bg-sunken text-amber-500' },
+  { key: 'successes', label: 'sim_avg_success', unit: 'sim_unit_times', accent: 'border-emerald-500/30 bg-sunken text-emerald-500' },
+  { key: 'fails', label: 'sim_avg_fail', unit: 'sim_unit_times', accent: 'border-rose-500/30 bg-sunken text-rose-500' },
+  { key: 'itemsLost', label: 'sim_avg_lost', unit: 'sim_unit_items', accent: 'border-rose-500/30 bg-sunken text-rose-400' },
+  { key: 'oresTotal', label: 'sim_avg_stone', unit: 'sim_unit_pcs', accent: 'border-sky-500/30 bg-sunken text-sky-500' },
+  { key: 'bsbUsed', label: 'sim_avg_bsb', unit: 'sim_unit_pcs', accent: 'border-amber-500/30 bg-sunken text-amber-500' },
 ];
 
 // metric ที่ให้สลับดูบนกราฟ (ติด/ล้ม derive จากตีอยู่แล้ว เลยไม่ใส่)
@@ -35,24 +35,24 @@ const CHART_METRIC_KEYS = ['attempts', 'oresTotal', 'bsbUsed', 'itemsLost'];
 
 
 const StatChip = ({ label, value }) => (
-  <div className="rounded-lg border border-slate-700/60 bg-[#0f1117] px-3 py-2 text-center">
-    <div className="text-[0.65rem] text-slate-500">{label}</div>
-    <div className="text-sm font-bold text-slate-200">{value}</div>
+  <div className="rounded-lg border border-line-soft bg-sunken px-3 py-2 text-center">
+    <div className="text-[0.65rem] text-faint">{label}</div>
+    <div className="text-sm font-bold text-body">{value}</div>
   </div>
 );
 
 // การ์ดสรุป 1 metric: ค่าเฉลี่ยตัวใหญ่ + Min/Max แถวเล็กในการ์ดเดียว (ไม่แยก 3 แถวซ้ำซ้อน)
 const AvgCard = ({ label, value, unit, minValue, maxValue, accent }) => (
   <div className={`rounded-xl border px-2 py-3 text-center ${accent}`}>
-    <div className="text-xs font-semibold text-slate-400">{label}</div>
+    <div className="text-xs font-semibold text-dim">{label}</div>
     <div className="text-xl font-bold">{value}</div>
-    <div className="text-[0.65rem] text-slate-500">{unit}</div>
-    <div className="mt-1.5 flex items-center justify-center gap-1 border-t border-slate-700/40 pt-1.5 text-[0.65rem] leading-none">
-      <span className="text-slate-500">Min</span>
-      <b className="text-slate-300">{minValue}</b>
-      <span className="text-slate-600">·</span>
-      <span className="text-slate-500">Max</span>
-      <b className="text-slate-300">{maxValue}</b>
+    <div className="text-[0.65rem] text-faint">{unit}</div>
+    <div className="mt-1.5 flex items-center justify-center gap-1 border-t border-line-soft pt-1.5 text-[0.65rem] leading-none">
+      <span className="text-faint">Min</span>
+      <b className="text-body">{minValue}</b>
+      <span className="text-faint">·</span>
+      <span className="text-faint">Max</span>
+      <b className="text-body">{maxValue}</b>
     </div>
   </div>
 );
@@ -182,7 +182,9 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable, apiItem }) => {
   const fmt = (n, d = 1) => Number(n.toFixed(d)).toLocaleString();
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-violet-500/30 bg-gradient-to-b from-violet-950/30 to-[#181a20]/90">
+    <div className="overflow-hidden rounded-2xl border border-accent/40 bg-card">
+      {/* แถบ accent บางด้านบน — brand gradient (จุดแบรนด์ ไม่มีข้อความทับ) */}
+      <div className="h-1 bg-brand" />
       {/* Header — กดเพื่อ slide เปิด/ปิด */}
       <button
         type="button"
@@ -190,17 +192,17 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable, apiItem }) => {
           if (!o) trackEvent('sim_open');
           return !o;
         })}
-        className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left transition-colors hover:bg-violet-500/10"
+        className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left transition-colors hover:bg-accent-surface"
         aria-expanded={open}
       >
         <span className="flex items-center gap-2">
-          <svg className="h-4 w-4 text-violet-300" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+          <svg className="h-4 w-4 text-accent" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
             <rect x="1" y="9" width="3" height="6" rx="0.5" /><rect x="6.5" y="5" width="3" height="10" rx="0.5" /><rect x="12" y="1" width="3" height="14" rx="0.5" />
           </svg>
-          <span className="text-sm font-bold text-violet-200">{t('sim_toggle')}</span>
-          <span className="rounded-full border border-fuchsia-400/50 bg-fuchsia-500/15 px-2 py-0.5 text-[0.6rem] font-bold tracking-wider text-fuchsia-300">BETA</span>
+          <span className="text-sm font-bold text-accent-fg">{t('sim_toggle')}</span>
+          <span className="rounded-full border border-fuchsia-400/50 bg-fuchsia-500/15 px-2 py-0.5 text-[0.6rem] font-bold tracking-wider text-fuchsia-500">BETA</span>
         </span>
-        <svg className={`h-4 w-4 text-violet-300 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+        <svg className={`h-4 w-4 text-accent transition-transform duration-300 ${open ? 'rotate-180' : ''}`} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
           <path d="M3 6l5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
@@ -209,18 +211,18 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable, apiItem }) => {
       <div className={`grid transition-[grid-template-rows] duration-300 ease-out ${open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
         <div className="overflow-hidden">
           <div className="space-y-4 px-4 pb-4">
-            <p className="text-[0.7rem] leading-relaxed text-slate-500">
+            <p className="text-[0.7rem] leading-relaxed text-faint">
               {t('sim_beta_remark')} — {t('sim_desc')}
             </p>
 
             {/* (A) สรุปสิ่งที่จะจำลอง — read-only context อิงค่าจากหน้าหลัก */}
-            <div className="rounded-xl border border-slate-700/50 bg-[#0f1117]/40 p-3">
-              <div className="mb-2 flex items-center gap-1.5 text-[0.62rem] font-bold uppercase tracking-wider text-slate-500">
-                <span className="h-1.5 w-1.5 rounded-full bg-violet-400" />
+            <div className="rounded-xl border border-line-soft bg-sunken/40 p-3">
+              <div className="mb-2 flex items-center gap-1.5 text-[0.62rem] font-bold uppercase tracking-wider text-faint">
+                <span className="h-1.5 w-1.5 rounded-full bg-accent" />
                 {t('sim_section_context')}
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-2 rounded-lg border border-violet-400/40 bg-violet-500/10 px-2.5 py-1.5 text-xs font-bold text-violet-100">
+                <span className="inline-flex items-center gap-2 rounded-lg border border-accent/40 bg-accent-surface px-2.5 py-1.5 text-xs font-bold text-accent-fg">
                   <img
                     src={apiItem ? apiItem.imageUrl : (itemType.startsWith('weapon') ? '/images/default_weapon.png' : '/images/default_armor.png')}
                     alt=""
@@ -234,40 +236,40 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable, apiItem }) => {
                   />
                   <span className="flex flex-col leading-tight">
                     {apiItem && <span className="max-w-[180px] truncate">{apiItem.name}</span>}
-                    <span className={apiItem ? 'text-[0.6rem] font-normal text-violet-300/70' : ''}>{ITEM_TYPE_LABELS[itemType]}</span>
+                    <span className={apiItem ? 'text-[0.6rem] font-normal text-accent/70' : ''}>{ITEM_TYPE_LABELS[itemType]}</span>
                   </span>
                 </span>
                 <span className={`inline-flex items-center rounded-lg border px-2.5 py-1.5 text-[0.7rem] font-bold ${
                   isEventRate
-                    ? 'border-amber-400/50 bg-amber-400/15 text-amber-300'
-                    : 'border-slate-600 bg-slate-700/30 text-slate-300'
+                    ? 'border-amber-400/50 bg-amber-400/15 text-amber-500'
+                    : 'border-line bg-line-soft/50 text-dim'
                 }`}>
                   {isEventRate ? t('event_rate_up') : t('no_event')}
                 </span>
               </div>
-              <p className="mt-1.5 text-[0.62rem] text-slate-500">{t('sim_rate_hint')}</p>
+              <p className="mt-1.5 text-[0.62rem] text-faint">{t('sim_rate_hint')}</p>
             </div>
 
             {/* (B) ตั้งค่า — ค่าที่ปรับได้ จัดเป็น label คอลัมน์ซ้าย + control ขวา */}
-            <div className="rounded-xl border border-slate-700/50 bg-[#0f1117]/40 p-3">
-              <div className="mb-3 flex items-center gap-1.5 text-[0.62rem] font-bold uppercase tracking-wider text-slate-500">
-                <span className="h-1.5 w-1.5 rounded-full bg-violet-400" />
+            <div className="rounded-xl border border-line-soft bg-sunken/40 p-3">
+              <div className="mb-3 flex items-center gap-1.5 text-[0.62rem] font-bold uppercase tracking-wider text-faint">
+                <span className="h-1.5 w-1.5 rounded-full bg-accent" />
                 {t('sim_section_settings')}
               </div>
               <div className="grid gap-3 sm:grid-cols-[auto_1fr] sm:items-center sm:gap-x-4">
                 {/* ช่วงตีบวก */}
-                <span className="text-xs font-semibold text-slate-400">{t('sim_range_label')}</span>
+                <span className="text-xs font-semibold text-dim">{t('sim_range_label')}</span>
                 <div className="flex items-center gap-2">
                   <select
                     value={startLevel}
                     onChange={(e) => handleStartChange(Number(e.target.value))}
                     disabled={running}
                     aria-label={t('sim_from')}
-                    className="rounded-lg border border-slate-600 bg-[#0f1117] px-2 py-1.5 text-sm font-bold text-slate-200"
+                    className="rounded-lg border border-line bg-sunken px-2 py-1.5 text-sm font-bold text-body"
                   >
                     {Array.from({ length: 20 }, (_, i) => <option key={i} value={i}>+{i}</option>)}
                   </select>
-                  <svg className="h-3.5 w-3.5 flex-none text-slate-500" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                  <svg className="h-3.5 w-3.5 flex-none text-faint" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                     <path d="M3 8h10M9 4l4 4-4 4" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                   <select
@@ -275,7 +277,7 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable, apiItem }) => {
                     onChange={(e) => { setTargetLevel(Number(e.target.value)); setResults(null); }}
                     disabled={running}
                     aria-label={t('sim_to')}
-                    className="rounded-lg border border-slate-600 bg-[#0f1117] px-2 py-1.5 text-sm font-bold text-slate-200"
+                    className="rounded-lg border border-line bg-sunken px-2 py-1.5 text-sm font-bold text-body"
                   >
                     {Array.from({ length: 20 - startLevel }, (_, i) => startLevel + 1 + i).map((v) => (
                       <option key={v} value={v}>+{v}</option>
@@ -284,7 +286,7 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable, apiItem }) => {
                 </div>
 
                 {/* หิน */}
-                <span className="text-xs font-semibold text-slate-400">{t('sim_stone_label')}</span>
+                <span className="text-xs font-semibold text-dim">{t('sim_stone_label')}</span>
                 <div className="flex gap-2">
                   {['normal', 'enriched', 'hd'].map((s) => {
                     const usable = stoneUsableCount(s) > 0;
@@ -295,7 +297,7 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable, apiItem }) => {
                         disabled={!usable || running}
                         onClick={() => { setStone(s); setResults(null); }}
                         className={`flex-1 rounded-lg border px-2 py-2 text-xs font-bold transition-colors ${
-                          stone === s ? STONE_BTN_ACTIVE[s] : 'border-slate-600 text-slate-400 hover:border-slate-400'
+                          stone === s ? STONE_BTN_ACTIVE[s] : 'border-line text-dim hover:border-dim'
                         } ${!usable ? 'cursor-not-allowed opacity-30' : ''}`}
                       >
                         {STONE_META[s].label}
@@ -307,8 +309,8 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable, apiItem }) => {
                 {/* BSB (เฉพาะช่วงที่เกี่ยวข้อง) */}
                 {bsbRelevant && (
                   <>
-                    <span className="text-xs font-semibold text-slate-400">BSB</span>
-                    <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-slate-300">
+                    <span className="text-xs font-semibold text-dim">BSB</span>
+                    <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-body">
                       <input
                         type="checkbox"
                         checked={useBSB}
@@ -323,7 +325,7 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable, apiItem }) => {
                 )}
 
                 {/* จำนวนรอบ */}
-                <span className="text-xs font-semibold text-slate-400 sm:pt-1.5">{t('sim_rounds_label')}</span>
+                <span className="text-xs font-semibold text-dim sm:pt-1.5">{t('sim_rounds_label')}</span>
                 <div className="flex flex-wrap gap-1">
                   {ROUND_PRESETS.map((p) => (
                     <button
@@ -332,7 +334,7 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable, apiItem }) => {
                       disabled={running}
                       onClick={() => { setRounds(p); setResults(null); }}
                       className={`rounded-lg border px-2.5 py-1.5 text-xs font-bold transition-colors ${
-                        rounds === p ? 'border-violet-400 bg-violet-500/20 text-violet-200' : 'border-slate-600 text-slate-400 hover:border-slate-400'
+                        rounds === p ? 'border-accent bg-accent-surface text-accent-fg' : 'border-line text-dim hover:border-dim'
                       }`}
                     >
                       {p}
@@ -348,24 +350,24 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable, apiItem }) => {
                     onBlur={() => setRounds(clampedRounds)}
                     placeholder={t('sim_rounds_custom')}
                     aria-label={t('sim_rounds_label')}
-                    className="w-20 rounded-lg border border-slate-600 bg-[#0f1117] px-2 py-1.5 text-center text-xs font-bold text-slate-200 [appearance:textfield] focus:border-violet-400 focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                    className="w-20 rounded-lg border border-line bg-sunken px-2 py-1.5 text-center text-xs font-bold text-body [appearance:textfield] focus:border-accent focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                   />
                 </div>
               </div>
             </div>
 
             {stonePartial && (
-              <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[0.7rem] text-amber-300">
+              <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[0.7rem] text-amber-500">
                 {t('sim_stone_partial_warn')}
               </p>
             )}
 
-            {/* (C) ปุ่ม CTA หลัก — เต็มความกว้าง เด่นสุด */}
+            {/* (C) ปุ่ม CTA หลัก — เต็มความกว้าง เด่นสุด (gradient ทึบ legible ทั้ง 2 ธีม) */}
             <button
               type="button"
               onClick={runSimulation}
               disabled={running || cooldownActive}
-              className="flex w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-violet-400/60 bg-gradient-to-r from-violet-500/40 to-fuchsia-500/40 px-4 py-3 text-sm font-bold tabular-nums text-violet-50 shadow-lg shadow-violet-900/20 transition-colors hover:from-violet-500/60 hover:to-fuchsia-500/60 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-violet-500 bg-violet-600 px-4 py-3 text-sm font-bold tabular-nums text-white shadow-lg shadow-black/30 transition-colors hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {!running && !cooldownActive && (
                 <svg className="h-3.5 w-3.5" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
@@ -383,34 +385,34 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable, apiItem }) => {
             <div className={`grid transition-[grid-template-rows] duration-500 ease-out ${(running || results) ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
               <div className="overflow-hidden">
             {running && !results && (
-              <div className="flex flex-col items-center justify-center gap-3 border-t border-slate-700/60 py-8">
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-violet-500/30 border-t-violet-300" />
-                <div className="text-xs font-semibold text-violet-200">{t('sim_loading')}</div>
-                <div className="h-1.5 w-40 overflow-hidden rounded-full bg-slate-700/50">
+              <div className="flex flex-col items-center justify-center gap-3 border-t border-line-soft py-8">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent/30 border-t-accent" />
+                <div className="text-xs font-semibold text-accent-fg">{t('sim_loading')}</div>
+                <div className="h-1.5 w-40 overflow-hidden rounded-full bg-line-soft">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-violet-400 to-fuchsia-400 transition-[width] duration-150 ease-out"
+                    className="bg-brand h-full rounded-full transition-[width] duration-150 ease-out"
                     style={{ width: `${Math.round((progress / clampedRounds) * 100)}%` }}
                   />
                 </div>
-                <div className="text-[0.65rem] text-slate-500">{progress}/{clampedRounds}</div>
+                <div className="text-[0.65rem] text-faint">{progress}/{clampedRounds}</div>
               </div>
             )}
             {results && (
-              <div className="space-y-4 border-t border-slate-700/60 pt-4">
+              <div className="space-y-4 border-t border-line-soft pt-4">
                 {results.hasAborted && (
-                  <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-[0.7rem] text-rose-300">
+                  <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-[0.7rem] text-rose-400">
                     {t('sim_aborted_warn', { cap: MAX_ATTEMPTS_PER_ROUND.toLocaleString() })}
                   </p>
                 )}
 
                 {/* สรุปต่อรอบ — การ์ดเดียวต่อ metric: เฉลี่ยตัวใหญ่ + Min/Max ในตัว */}
                 <div>
-                  <div className="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-400">
+                  <div className="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold text-dim">
                     <span>{t('sim_summary')} ({results.runs.length} {t('sim_rounds_unit')})</span>
                     <span className={`rounded-full border px-2 py-0.5 text-[0.65rem] font-bold ${
                       results.cfgUsed.isEventRate
-                        ? 'border-amber-400/50 bg-amber-400/15 text-amber-300'
-                        : 'border-slate-600 bg-slate-700/30 text-slate-300'
+                        ? 'border-amber-400/50 bg-amber-400/15 text-amber-500'
+                        : 'border-line bg-line-soft/50 text-dim'
                     }`}>
                       {results.cfgUsed.isEventRate ? t('event_rate_up') : t('no_event')}
                     </span>
@@ -433,15 +435,15 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable, apiItem }) => {
                 {/* แร่เฉลี่ยแยกชนิด */}
                 {Object.keys(results.oreAvg).length > 0 && (
                   <div>
-                    <div className="mb-2 text-xs font-semibold text-slate-400">{t('sim_ore_avg_title')}</div>
+                    <div className="mb-2 text-xs font-semibold text-dim">{t('sim_ore_avg_title')}</div>
                     <div className="flex flex-wrap gap-2">
                       {Object.entries(results.oreAvg).map(([name, avg]) => (
-                        <span key={name} className="inline-flex items-center gap-1.5 rounded-full border border-slate-600/60 bg-[#0f1117] px-2.5 py-1 text-xs text-slate-300">
+                        <span key={name} className="inline-flex items-center gap-1.5 rounded-full border border-line-soft bg-sunken px-2.5 py-1 text-xs text-dim">
                           {ORE_IMAGES[name]
                             ? <img src={ORE_IMAGES[name]} alt="" className="h-4 w-4 object-contain" />
                             : <span className={`h-2 w-2 rounded-full ${ORE_COLORS[name] || 'bg-slate-400'}`} />}
                           {name}
-                          <b className="text-slate-100">{fmt(avg)}</b>
+                          <b className="text-body">{fmt(avg)}</b>
                         </span>
                       ))}
                     </div>
@@ -461,7 +463,7 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable, apiItem }) => {
                   return (
                     <div>
                       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                        <span className="text-xs font-semibold text-slate-400">{t('sim_dist_title')}</span>
+                        <span className="text-xs font-semibold text-dim">{t('sim_dist_title')}</span>
                         <div className="flex gap-1">
                           {available.map((k) => {
                             const c = METRIC_CARDS.find((m) => m.key === k);
@@ -471,7 +473,7 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable, apiItem }) => {
                                 type="button"
                                 onClick={() => setChartMetric(k)}
                                 className={`rounded-lg border px-2 py-1 text-[0.68rem] font-bold transition-colors ${
-                                  metricKey === k ? 'border-violet-400 bg-violet-500/20 text-violet-200' : 'border-slate-600 text-slate-400 hover:border-slate-400'
+                                  metricKey === k ? 'border-accent bg-accent-surface text-accent-fg' : 'border-line text-dim hover:border-dim'
                                 }`}
                               >
                                 {t(c.label)}
@@ -487,14 +489,14 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable, apiItem }) => {
                         <StatChip label="P90" value={fmt(chartStats.p90, 0)} />
                         <StatChip label={t('sim_stat_minmax')} value={`${chartStats.min}–${chartStats.max}`} />
                       </div>
-                      <div className="rounded-xl border border-slate-700/60 bg-[#0f1117] p-2">
-                        <Suspense fallback={<div className="flex h-[230px] items-center justify-center text-xs text-slate-500">{t('loading_text')}</div>}>
+                      <div className="rounded-xl border border-line-soft bg-sunken p-2">
+                        <Suspense fallback={<div className="flex h-[230px] items-center justify-center text-xs text-faint">{t('loading_text')}</div>}>
                           <DistChart values={chartValues} stats={chartStats} />
                         </Suspense>
-                        <div className="mt-1 text-center text-[0.65rem] text-slate-500">{t('sim_dist_note')}</div>
+                        <div className="mt-1 text-center text-[0.65rem] text-faint">{t('sim_dist_note')}</div>
                       </div>
                       {/* ประโยคสรุปอ่านง่ายใต้กราฟ */}
-                      <p className="mt-2 rounded-lg border border-sky-500/20 bg-sky-500/5 px-3 py-2 text-center text-[0.72rem] text-sky-200">
+                      <p className="mt-2 rounded-lg border border-line-soft bg-sunken/60 px-3 py-2 text-center text-[0.72rem] text-dim">
                         {t('sim_budget_note', {
                           label: t(card.label),
                           p90: fmt(chartStats.p90, 0),
@@ -510,24 +512,24 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable, apiItem }) => {
 
                 {/* ตารางรายรอบ */}
                 <div>
-                  <div className="mb-2 text-xs font-semibold text-slate-400">{t('sim_rounds_detail')}</div>
-                  <div className="max-h-[240px] overflow-y-auto rounded-xl border border-slate-700/60 bg-[#0f1117]">
+                  <div className="mb-2 text-xs font-semibold text-dim">{t('sim_rounds_detail')}</div>
+                  <div className="max-h-[240px] overflow-y-auto rounded-xl border border-line-soft bg-sunken">
                     <table className="w-full text-center text-xs">
-                      <thead className="sticky top-0 bg-[#181a20]">
-                        <tr className="text-slate-400">
+                      <thead className="sticky top-0 bg-card">
+                        <tr className="text-dim">
                           <th className="px-2 py-2 font-semibold">{t('sim_col_round')}</th>
                           <th className="px-2 py-2 font-semibold">{t('sim_col_attempts')}</th>
-                          <th className="px-2 py-2 font-semibold text-emerald-400">{t('sim_col_success')}</th>
-                          <th className="px-2 py-2 font-semibold text-rose-400">{t('sim_col_fail')}</th>
-                          <th className="px-2 py-2 font-semibold text-sky-300">{t('sim_col_stone')}</th>
-                          <th className="px-2 py-2 font-semibold text-amber-300">BSB</th>
-                          <th className="px-2 py-2 font-semibold text-rose-300">{t('sim_col_lost')}</th>
+                          <th className="px-2 py-2 font-semibold text-emerald-500">{t('sim_col_success')}</th>
+                          <th className="px-2 py-2 font-semibold text-rose-500">{t('sim_col_fail')}</th>
+                          <th className="px-2 py-2 font-semibold text-sky-500">{t('sim_col_stone')}</th>
+                          <th className="px-2 py-2 font-semibold text-amber-500">BSB</th>
+                          <th className="px-2 py-2 font-semibold text-rose-400">{t('sim_col_lost')}</th>
                         </tr>
                       </thead>
                       <tbody>
                         {results.runs.map((r, i) => (
-                          <tr key={i} className="border-t border-slate-800/60 text-slate-300">
-                            <td className="px-2 py-1.5 text-slate-500">#{i + 1}</td>
+                          <tr key={i} className="border-t border-line-soft text-dim">
+                            <td className="px-2 py-1.5 text-faint">#{i + 1}</td>
                             <td className="px-2 py-1.5 font-semibold">{r.attempts}{r.aborted ? '*' : ''}</td>
                             <td className="px-2 py-1.5">{r.successes}</td>
                             <td className="px-2 py-1.5">{r.fails}</td>

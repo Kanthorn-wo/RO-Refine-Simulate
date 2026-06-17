@@ -1,14 +1,72 @@
 @import "tailwindcss";
 
+/* ===== Semantic design tokens (approach A — dark/light theme) =====
+   ใช้คู่ token ผ่าน @theme inline → Tailwind สร้าง utility bg-card/text-body/border-line ฯลฯ
+   ค่าจริงของ token อยู่ใน :root (dark default) และ html.light (light) สลับได้ runtime
+   neutral: app/card/sunken/line/line-soft/body/dim/faint
+   accent (violet brand): accent (เส้น/ไอคอน), accent-fg (ข้อความบนพื้น tint), accent-surface (พื้น tint) */
+@theme inline {
+  --color-app: var(--app);
+  --color-card: var(--card);
+  --color-sunken: var(--sunken);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-body: var(--body);
+  --color-dim: var(--dim);
+  --color-faint: var(--faint);
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-accent-3: var(--accent-3);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-surface: var(--accent-surface);
+}
+
+/* brand gradient (neon เขียว→ฟ้า→ม่วง) — ใช้เป็น accent เส้นบาง/แถบ ไม่ใช้เป็นพื้นใหญ่/พื้นปุ่มที่มีข้อความ */
+.bg-brand { background-image: var(--brand-gradient); }
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color-scheme: dark;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* dark (default) */
+  --app: #0a0c10;
+  --card: #14161c;
+  --sunken: #0e1016;
+  --line: #3a4150;
+  --line-soft: #262b35;
+  --body: #e2e8f0;
+  --dim: #94a3b8;
+  --faint: #6b7585;
+  --accent: #c64bff;        /* ม่วง-มาเจนต้าตัวกลาง gradient — border/icon/active */
+  --accent-2: #40fee5;      /* ฟ้าอความารีน — ไฮไลต์รอง */
+  --accent-3: #00f610;      /* เขียวนีออน — ใช้น้อยมาก */
+  --accent-fg: #e7b9ff;     /* ข้อความบนพื้น tint (โทนสว่าง) */
+  --accent-surface: rgba(175, 0, 255, 0.15);
+  --brand-gradient: linear-gradient(175deg, #00f610, #40fee5, #af00ff 75%);
+  color-scheme: dark;
+}
+
+html.light {
+  --app: #f4f6fa;
+  --card: #ffffff;
+  --sunken: #f1f5f9;
+  --line: #cbd5e1;
+  --line-soft: #e2e8f0;
+  --body: #1e293b;
+  --dim: #475569;
+  --faint: #64748b;
+  --accent: #9500d6;
+  --accent-2: #0891b2;      /* ฟ้าเข้มขึ้นให้ contrast บนพื้นขาว */
+  --accent-3: #15a800;      /* เขียวเข้มขึ้นบนพื้นขาว */
+  --accent-fg: #7a00b3;     /* ข้อความบนพื้น tint (โทนเข้ม) */
+  --accent-surface: rgba(175, 0, 255, 0.10);
+  --brand-gradient: linear-gradient(175deg, #00d40e, #19c9b4, #af00ff 75%);
+  color-scheme: light;
 }
 
 body {
@@ -16,7 +74,11 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background: radial-gradient(circle at 50% 0%, #1f2330 0%, #0d0f15 60%, #07080c 100%);
-  color: rgba(255, 255, 255, 0.92);
+  color: var(--body);
+}
+
+html.light body {
+  background: radial-gradient(circle at 50% 0%, #ffffff 0%, #eef1f6 55%, #e3e8f1 100%);
 }
 
 /* เด้งเข้า (ใช้กับ badge ผลลัพธ์การตีบวก) */
