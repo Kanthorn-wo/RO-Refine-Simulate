@@ -1,0 +1,64 @@
+name: Website Monitoring
+
+on:
+  schedule:
+    # รันวันละครั้ง ~03:00 UTC (= 10:00 ไทย) แต่ขยับเวลาเริ่มจริงด้วย sleep สุ่มในงาน
+    # (cron ของ GitHub ตั้งเวลาสุ่มรายวันตรง ๆ ไม่ได้ — ใช้ sleep ทำให้เวลาไม่ตายตัว)
+    - cron: "0 3 * * *"
+  workflow_dispatch: # สั่งรันเอง (ไม่ต้องสุ่ม delay)
+
+permissions:
+  contents: write # ต้องใช้ push report กลับเข้า repo
+  issues: write # เผื่อเฟสถัดไป (issue automation)
+
+concurrency:
+  group: website-monitoring
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Random start delay (schedule only)
+        if: github.event_name == 'schedule'
+        run: |
+          # สุ่มหน่วง 0–5 ชั่วโมง ให้เวลาทำงานจริงไม่ตายตัวทุกวัน
+          DELAY=$(( RANDOM % 18000 ))
+          echo "Sleeping ${DELAY}s (~$((DELAY/60)) min) before monitoring..."
+          sleep "$DELAY"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run monitoring
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+        run: npm run monitor
+
+      - name: Commit daily report
+        run: |
+          git config --local user.email "kanthorn.wo@gmail.com"
+          git config --local user.name "Kanthorn-wo"
+          git add reports/
+          if git diff --staged --quiet; then
+            echo "ℹ️ ไม่มีการเปลี่ยนแปลงของ report — ข้ามการ commit"
+          else
+            git commit -m "chore(monitor): daily report $(date -u +%Y-%m-%d)"
+            git push
+            echo "✅ commit report สำเร็จ"
+          fi
