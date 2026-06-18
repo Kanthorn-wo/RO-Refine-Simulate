@@ -15,6 +15,9 @@ dist-ssr
 # Secrets — service account keys / credentials (ห้าม commit เด็ดขาด)
 .secrets/
 
+# Claude memory (local notes only)
+memory/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
