@@ -9,7 +9,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Dev-only: รัน serverless function /api/* ภายใต้ vite dev server
 // (production ใช้ Vercel function จริง — plugin นี้ apply: 'serve' เท่านั้น ไม่กระทบ build)
 function devApiPlugin() {
-  const routes = { '/api/ga': './api/ga.js', '/api/item': './api/item.js' };
+  const routes = { '/api/ga': './api/ga.js', '/api/item': './api/item.js', '/api/monitor': './api/monitor.js' };
   return {
     name: 'dev-api',
     apply: 'serve',
@@ -46,7 +46,7 @@ function devApiPlugin() {
 export default defineConfig(({ mode }) => {
   // โหลด env ทั้งหมด (รวมตัวที่ไม่ขึ้นต้น VITE_) ให้ dev api handler อ่าน process.env ได้
   const env = loadEnv(mode, process.cwd(), '');
-  for (const k of ['GA_PROPERTY_ID', 'GA_CLIENT_EMAIL', 'GA_PRIVATE_KEY', 'SUPABASE_URL', 'SUPABASE_ANON_KEY', 'DASHBOARD_ALLOWED_EMAILS', 'DIVINE_PRIDE_API_KEY']) {
+  for (const k of ['GA_PROPERTY_ID', 'GA_CLIENT_EMAIL', 'GA_PRIVATE_KEY', 'SUPABASE_URL', 'SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY', 'DASHBOARD_ALLOWED_EMAILS', 'DIVINE_PRIDE_API_KEY']) {
     if (env[k]) process.env[k] = env[k];
   }
 
