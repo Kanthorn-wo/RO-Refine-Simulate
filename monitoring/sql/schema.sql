@@ -5,6 +5,9 @@
 -- เขียนจาก GitHub Actions ด้วย service_role key (bypass RLS)
 -- ============================================================================
 
+-- Supabase เปิด pgcrypto ไว้ให้ default อยู่แล้ว แต่ใส่ไว้กัน environment อื่น
+create extension if not exists pgcrypto;
+
 -- 1) test_runs — 1 แถวต่อการรัน monitor 1 ครั้ง
 create table if not exists public.monitor_test_runs (
   id           uuid primary key default gen_random_uuid(),
