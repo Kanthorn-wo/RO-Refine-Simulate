@@ -15,6 +15,13 @@
 
 export const CHANGELOG = [
   {
+    version: '1.11.6',
+    date: '2026-06-18',
+    items: [
+      { type: 'improve', text: 'ปรับอัตราสำเร็จการตีบวกให้ตรงกับเกมแม่นยำขึ้น โดยเฉพาะอาวุธ Lv.5 / เกราะ Lv.2 (อัตราเดิมสูงเกินจริง) — กระทบทั้งตัวเลขที่แสดงและผลในโหมดจำลอง', textEn: 'Refined success rates to match the game more accurately, especially Weapon Lv.5 / Armor Lv.2 (previous rates were too high) — affects both displayed numbers and the simulator results' },
+    ],
+  },
+  {
     version: '1.11.0',
     date: '2026-06-17',
     items: [

@@ -222,7 +222,7 @@ Deploy หลักใช้ **Vercel** (auto build จาก push master, root 
   - `MINOR` (+0.1.0) — มีฟีเจอร์ใหม่อย่างน้อย 1 อย่าง
   - `MAJOR` (+1.0.0) — เปลี่ยน architecture, redesign ใหญ่
 
-version ปัจจุบัน: **1.11.5** (CHANGELOG ล่าสุดอยู่ที่ 1.11.0 — push `d67a45a` (2026-06-17) เป็น event fire bar redesign + FAB scroll-hide + lazy render + slide in/out + security ยังไม่มี CHANGELOG entry เพราะ internal/polish ทั้งหมด; 1.11.2 = ธีม dark/light เฟส 1, 1.11.3 = cursor pointer, 1.11.4 = ธีม Phase 2–3,5, 1.11.5 = security (dashboard email allowlist + ซ่อน divine-pride key ผ่าน api/item proxy))
+version ปัจจุบัน: **1.11.6** (CHANGELOG ล่าสุดอยู่ที่ 1.11.6 — แก้ค่า `RATE_TABLES` ทั้งหมดให้ตรง iROWiki ครบ 560/560 ค่า: W5/A2 ทุกตาราง (เดิมใช้ค่า event ผิดมาทั้งคู่), W3 event +10+, W2 event +7→8, W1/2/3 noevent.normal +15 → ใช้ตารางหิน normal ของ iROWiki โดยตรง; เพิ่ม `docs/refine-bible.md` เป็นเอกสารอ้างอิงระบบตีบวก. ก่อนหน้า: 1.11.5 = security (dashboard email allowlist + ซ่อน divine-pride key ผ่าน api/item proxy), 1.11.4 = ธีม Phase 2–3,5, 1.11.3 = cursor pointer, 1.11.2 = ธีม dark/light เฟส 1; push `d67a45a` (2026-06-17) event fire bar redesign + FAB scroll-hide ไม่มี CHANGELOG เพราะ internal/polish)
 
 ## Patch Notes (changelog)
 
