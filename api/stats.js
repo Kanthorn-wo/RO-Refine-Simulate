@@ -117,7 +117,7 @@ export default async function handler(req, res) {
 
       const reqs = [
         sbFetch('usage_counters?select=metric,count&metric=in.(refine_total,stone_total,bsb_total)'),
-        sbFetch(`usage_daily?select=metric,count&day=eq.${today}&metric=in.(visits,visits_new,visits_returning,auto,simulate)`),
+        sbFetch(`usage_daily?select=metric,count&day=eq.${today}&metric=in.(refine,stone,bsb,visits,visits_new,visits_returning,auto,simulate)`),
         sbFetch('site_settings?select=key,value&key=eq.show_stats'),
         sbFetch('usage_visitors?select=vid&limit=1', { headers: { Prefer: 'count=exact' } }),
       ]
@@ -144,6 +144,9 @@ export default async function handler(req, res) {
         refine: get('refine_total'),
         stone: get('stone_total'),
         bsb: get('bsb_total'),
+        refineToday: todayOf('refine'),
+        stoneToday: todayOf('stone'),
+        bsbToday: todayOf('bsb'),
         visitsToday: todayOf('visits'),
         newToday: todayOf('visits_new'),
         returningToday: todayOf('visits_returning'),

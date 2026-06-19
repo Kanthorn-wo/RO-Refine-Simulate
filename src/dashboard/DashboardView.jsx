@@ -54,6 +54,15 @@ const NAV_ITEMS = [
   { id: 'monitor',   label: 'Monitor',   sub: 'สุขภาพเว็บไซต์',  icon: NavIc.monitor },
 ]
 
+// อ่าน tab จาก URL hash (เช่น #usage) — validate ว่ามีจริง ไม่งั้น default analytics
+function tabFromHash() {
+  try {
+    const h = (window.location.hash || '').replace(/^#/, '')
+    if (h && NAV_ITEMS.some((n) => n.id === h)) return h
+  } catch { /* ignore */ }
+  return 'analytics'
+}
+
 /* ─── icons (analytics section) ─── */
 const Icon = {
   users: (p) => (
@@ -456,8 +465,7 @@ function ActivityFeed() {
   const [filter, setFilter] = useState('all')
   const [sortKey, setSortKey] = useState('at')   // 'at' | 'type' | 'count'
   const [sortDir, setSortDir] = useState('desc')  // 'asc' | 'desc'
-  const pageRef = useRef(1)
-  pageRef.current = page
+  const [live, setLive] = useState(false)
   const mountedRef = useRef(true)
 
   const load = async () => {
@@ -474,12 +482,20 @@ function ActivityFeed() {
     }
   }
 
-  // โหลดครั้งแรก + poll ทุก 5 วิ (หยุด poll ถ้าไม่ได้อยู่หน้า 1 กันรายการเลื่อนตอนดูหน้าเก่า)
+  // โหลดรายการเริ่มต้น + subscribe realtime (INSERT) — กิจกรรมใหม่เด้งทันที ไม่ต้อง poll
   useEffect(() => {
     mountedRef.current = true
     load()
-    const id = setInterval(() => { if (pageRef.current === 1) load() }, 5000)
-    return () => { mountedRef.current = false; clearInterval(id) }
+    const channel = supabase
+      .channel('usage_events_feed')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'usage_events' }, (payload) => {
+        if (!mountedRef.current) return
+        const r = payload.new
+        const ev = { at: r.created_at, type: r.type, count: Number(r.count || 1), vid: r.vid || null }
+        setEvents((prev) => [ev, ...(prev || [])].slice(0, 200))
+      })
+      .subscribe((status) => { if (mountedRef.current) setLive(status === 'SUBSCRIBED') })
+    return () => { mountedRef.current = false; supabase.removeChannel(channel) }
   }, [])
 
   // ticker อัปเดตเวลา relative ทุก 2 วิ
@@ -515,10 +531,10 @@ function ActivityFeed() {
   return (
     <Panel
       title="กิจกรรมล่าสุด"
-      subtitle="อัปเดตอัตโนมัติทุก 5 วินาที (เฉพาะหน้าแรก)"
+      subtitle="เรียลไทม์ — กิจกรรมใหม่เด้งทันทีผ่าน Supabase Realtime"
       action={
         <div className="flex items-center gap-2">
-          {safePage === 1 && (
+          {live && (
             <span className="inline-flex items-center gap-1.5 text-xs text-emerald-400">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
@@ -699,6 +715,13 @@ function UsageContent({ session }) {
   const activeMetric = USAGE_METRICS.find((m) => m.id === metric) || USAGE_METRICS[0]
   const rangeTotal = daily.reduce((s, d) => s + (d[metric] || 0), 0)
   const setQuickRange = (n) => { setFrom(usageDaysAgo(n - 1)); setTo(usageToday()) }
+  // insight: ตีเฉลี่ยต่อผู้ใช้ไม่ซ้ำ (all-time)
+  const avgPerUser = data && data.totalVisitors ? data.refine / data.totalVisitors : 0
+  // สัดส่วนคนใหม่ vs กลับมาซ้ำ ในช่วงที่เลือก
+  const rangeNew = daily.reduce((s, d) => s + (d.visits_new || 0), 0)
+  const rangeReturning = daily.reduce((s, d) => s + (d.visits_returning || 0), 0)
+  const rangeVisits = rangeNew + rangeReturning
+  const newPct = rangeVisits ? Math.round((rangeNew / rangeVisits) * 100) : 0
 
   if (loading && !data) return <LoadingState />
 
@@ -724,24 +747,30 @@ function UsageContent({ session }) {
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <KpiCard icon={Icon.session} label="ตีบวกรวม (ครั้ง)" value={fmt(data?.refine)}      color="#818cf8" />
-        <KpiCard icon={Icon.eye}     label="ใช้แร่รวม (ก้อน)" value={fmt(data?.stone)}        color="#34d399" />
         <KpiCard icon={Icon.users}   label="ผู้ใช้ไม่ซ้ำทั้งหมด" value={fmt(data?.totalVisitors)} color="#a78bfa" />
-        <KpiCard icon={Icon.users}   label="คนใช้วันนี้"      value={fmt(data?.visitsToday)}  color="#f472b6" />
+        <KpiCard icon={Icon.eye}     label="เฉลี่ยตี/คน"      value={avgPerUser.toFixed(1)}   color="#34d399" />
+        <KpiCard icon={Icon.session} label="ใช้ BSB รวม"      value={fmt(data?.bsb)}          color="#fbbf24" />
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        {[
-          { label: 'คนใหม่วันนี้',    value: data?.newToday,       color: '#22d3ee' },
-          { label: 'กลับมาซ้ำวันนี้', value: data?.returningToday, color: '#a78bfa' },
-          { label: 'เริ่ม Auto วันนี้', value: data?.autoToday,    color: '#f59e0b' },
-          { label: 'รันจำลองวันนี้',  value: data?.simToday,       color: '#4ade80' },
-          { label: 'ใช้ BSB รวม',     value: data?.bsb,            color: '#fbbf24' },
-        ].map((s) => (
-          <div key={s.label} className="rounded-xl border border-white/5 bg-white/[0.03] px-3 py-2.5">
-            <div className="text-lg font-bold tabular-nums" style={{ color: s.color }}>{fmt(s.value)}</div>
-            <div className="mt-0.5 text-[11px] text-slate-500">{s.label}</div>
-          </div>
-        ))}
+      <div>
+        <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">วันนี้ · {today}</h3>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[
+            { label: 'ตีบวกวันนี้',     value: data?.refineToday,    color: '#818cf8' },
+            { label: 'ใช้แร่วันนี้',     value: data?.stoneToday,     color: '#34d399' },
+            { label: 'คนเข้าวันนี้',     value: data?.visitsToday,    color: '#f472b6' },
+            { label: 'คนใหม่วันนี้',    value: data?.newToday,       color: '#22d3ee' },
+            { label: 'กลับมาซ้ำวันนี้', value: data?.returningToday, color: '#a78bfa' },
+            { label: 'เริ่ม Auto วันนี้', value: data?.autoToday,    color: '#f59e0b' },
+            { label: 'รันจำลองวันนี้',  value: data?.simToday,       color: '#4ade80' },
+            { label: 'ใช้ BSB วันนี้',   value: data?.bsbToday,       color: '#fbbf24' },
+          ].map((s) => (
+            <div key={s.label} className="rounded-xl border border-white/5 bg-white/[0.03] px-3 py-2.5">
+              <div className="text-lg font-bold tabular-nums" style={{ color: s.color }}>{fmt(s.value)}</div>
+              <div className="mt-0.5 text-[11px] text-slate-500">{s.label}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
       <Panel
@@ -794,6 +823,45 @@ function UsageContent({ session }) {
         )}
       </Panel>
 
+      <Panel
+        title="สรุปรายช่วง"
+        subtitle={`${from} → ${to} · ${daily.length} วัน · คนใหม่ ${newPct}% · กลับมาซ้ำ ${100 - newPct}%`}
+      >
+        {daily.length === 0 ? (
+          <p className="py-8 text-center text-sm text-slate-500">ไม่มีข้อมูลในช่วงนี้</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-white/10 text-left text-xs text-slate-500">
+                  <th className="px-2 py-2 font-medium">ตัวชี้วัด</th>
+                  <th className="px-2 py-2 text-right font-medium">รวมในช่วง</th>
+                  <th className="px-2 py-2 text-right font-medium">เฉลี่ย/วัน</th>
+                </tr>
+              </thead>
+              <tbody>
+                {USAGE_METRICS.map((m) => {
+                  const total = daily.reduce((s, d) => s + (d[m.id] || 0), 0)
+                  const avg = daily.length ? total / daily.length : 0
+                  return (
+                    <tr key={m.id} className="border-b border-white/5 last:border-0">
+                      <td className="px-2 py-2">
+                        <span className="inline-flex items-center gap-2 text-slate-200">
+                          <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: m.color }} />
+                          {m.label}
+                        </span>
+                      </td>
+                      <td className="px-2 py-2 text-right tabular-nums text-slate-200">{fmt(total)}</td>
+                      <td className="px-2 py-2 text-right tabular-nums text-slate-400">{avg.toFixed(1)}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Panel>
+
       <ActivityFeed />
 
       <Panel title="แสดงสถิติบนหน้าเว็บ" subtitle="เปิด/ปิด section ตัวเลขใต้แบนเนอร์ที่ผู้เล่นเห็น">
@@ -822,9 +890,24 @@ function UsageContent({ session }) {
 
 /* ─── shell with side nav ─── */
 export default function DashboardView({ session }) {
-  const [activeTab, setActiveTab] = useState('analytics')
+  // tab เก็บใน URL hash (#usage) — F5/แชร์ลิงก์/back-forward อยู่ tab เดิม
+  const [activeTab, setActiveTab] = useState(tabFromHash)
   const [sideOpen, setSideOpen] = useState(false)   // mobile drawer
   const [deskOpen, setDeskOpen] = useState(true)    // desktop sidebar
+
+  // sync hash → state (back/forward, แก้ hash เอง, เปิดลิงก์ที่มี hash)
+  useEffect(() => {
+    const onHash = () => setActiveTab(tabFromHash())
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [])
+
+  // sync state → hash (replaceState กันสร้าง history ซ้ำ ๆ เวลากด tab)
+  useEffect(() => {
+    if (tabFromHash() !== activeTab) {
+      window.history.replaceState(null, '', `#${activeTab}`)
+    }
+  }, [activeTab])
 
   const activeItem = NAV_ITEMS.find(n => n.id === activeTab)
 

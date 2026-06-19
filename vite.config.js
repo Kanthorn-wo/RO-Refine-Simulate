@@ -2,7 +2,7 @@ import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -20,7 +20,8 @@ function devApiPlugin() {
         const mod = routes[path];
         if (!mod) return next();
         try {
-          const { default: handler } = await import(mod);
+          // cache-busting query กัน Node cache โมดูลเก่า — แก้ api/*.js แล้วเห็นผลทันทีไม่ต้อง restart (dev เท่านั้น)
+          const { default: handler } = await import(`${pathToFileURL(mod).href}?t=${Date.now()}`);
           // shim ให้ res มี .status()/.json()/.setHeader() แบบ Vercel
           const shim = {
             statusCode: 200,
