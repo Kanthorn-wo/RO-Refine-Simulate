@@ -123,7 +123,9 @@
 | +15~+18 | 17 | 17 | 17 | 7 | 7 | 7 | — |
 | +19~+20 | 15 | 15 | 15 | 5 | 5 | 5 | — |
 
-> W.Lv5/A.Lv2 ตอนใช้ Ethernium/Etherdeocon ระหว่าง Refine Event ได้เรท: 80/80/60/60/40/40/18 (สูงกว่า) — ดู §5.3
+> W.Lv5/A.Lv2 ตอนใช้ Ethernium/Etherdeocon ระหว่าง Refine Event ได้เรท (จากคอลัมน์ `X%/Y%*` ในตาราง normal metals):
+> +3→+10 = 80/80/60/60/40/40/18, +11~+14 = 16, +15~+18 = 14, +19~+20 = 10
+> (เป็นเรทหิน **ธรรมดา**ช่วง event — ต่างจาก HD event ที่ +11+ = 20/15/10 ใน §5.4)
 
 ### 5.2 หิน Enriched / HD — ไม่มี Event
 
@@ -203,13 +205,14 @@
 | §5.1 Normal ไม่มี event | `noevent.normal` |
 | §5.2 Enriched/HD ไม่มี event | `noevent.cash` |
 | §5.3 Enriched event (+1~+10) + §5.4 HD event (+11+) | `event.cash` |
-| §5.1 +1~+10 (normal ไม่รับ event) + §5.4 HD event (+11+) | `event.normal` |
+| W1–4/A1 = เท่า `noevent.normal` ทั้งเส้น · W5/A2 = คอลัมน์ `Y*` ของ §5.1 | `event.normal` |
 
 หมายเหตุการ implement:
 - `weapon5` กับ `armor2` ใช้คอลัมน์ "W.Lv5/A.Lv2" เหมือนกัน
 - `weapon4` กับ `armor1` ใช้คอลัมน์เดียวกัน (W.Lv4 / A.Lv1 เรทตรงกัน)
-- `event.normal` ของ W5/A2 ที่ +3~+10 ใช้เรท Ethernium Event (80/80/60/60/40/40/18) ไม่ใช่เรท no-event
-- `ENRICHED_RATE_BONUS = 10` ในโค้ดเป็น logic เสริมเก่า; ค่าจริงในตารางคือ rate ที่ระบุไว้ตรง ๆ แล้ว
+- `event.normal` ของ **W1–4/A1 = เท่ากับ `noevent.normal` ทุกค่า** เพราะหินธรรมดาของชนิดนี้ไม่รับบูสต์ตอน event (ในตาราง normal metals ไม่มี `*`)
+- `event.normal` ของ **W5/A2** ใช้เรทหินธรรมดาช่วง event ทั้งเส้น: +3~+10 = 80/80/60/60/40/40/18, +11~+14 = 16, +15~+18 = 14, +19~+20 = 10 (มาจากฝั่ง `Y*` ของคอลัมน์ `X%/Y%*` ในตาราง normal metals — **ไม่ใช่** เรท HD event 20/15/10) เพราะมีเฉพาะคอลัมน์ W5/A2 ที่มี `*`
+- **Enriched ใช้เรทชุดเดียวกับ HD** (ตาราง cash) ตาม iROWiki — ต่างกันแค่ "ผลตอนล้ม" `getRate` จึงอ่านตาราง cash เมื่อ `useCash || useEnriched` (ไม่มี `ENRICHED_RATE_BONUS` แล้ว)
 
 ---
 

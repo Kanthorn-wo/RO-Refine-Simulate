@@ -35,7 +35,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Pure helpers / data ที่แยกออกจาก `index.jsx` แล้ว
 ตรรกะ stateful ทั้งหมดยังอยู่ใน `Container` (`index.jsx`) แต่ค่าคงที่/ฟังก์ชัน pure ถูกแยกเป็นโมดูลย่อย (import กลับเข้า index.jsx):
-- `src/constants/refineRates.js` — `RATE_TABLES` (4 ชุด noevent/event × normal/cash), `getRateTable`, `ENRICHED_RATE_BONUS`, `getRate` (ตารางอัตราที่ใช้จริง — **ไม่ใช่** ค่าใน `refineConfig.js` ที่ import มาแต่ไม่ใช้)
+- `src/constants/refineRates.js` — `RATE_TABLES` (4 ชุด noevent/event × normal/cash), `getRateTable`, `getRate` (ตารางอัตราที่ใช้จริง — **ไม่ใช่** ค่าใน `refineConfig.js` ที่ import มาแต่ไม่ใช้). **Enriched ใช้เรทชุดเดียวกับ HD** (ตาราง cash) ตาม iROWiki — `getRate` อ่านตาราง cash เมื่อ `useCash || useEnriched` (ไม่มี `ENRICHED_RATE_BONUS` แล้ว ต่างกันแค่ "ผลตอนล้ม")
 - `src/utils/stones.js` — `STONE_META`, `getStoneMinLevel`, `getEffectiveStone`, `getPlannedStone`, `toggleHasMeaning` (logic เลือก/validate ชนิดหิน auto)
 - `src/constants/ores.js` — `ITEM_TYPE_LABELS`, `ORE_BY_TYPE`, `SPECIAL_ORE`, `ORE_COLORS`, `ORE_IMAGES`, `getOreName`, `getStoneOre`, `STONE_REFERENCE`
 - `src/constants/frames.js` — `frameCount`, `getFrameSrc`, `getAllFrameSrcs` + เฟรม precompute (`WAITING_FRAMES`/`PROCESSING_FRAMES`/`SUCCESS_FRAMES`/`FAIL_FRAMES`/`ALL_FRAMES`) คำนวณครั้งเดียวตอน module load
@@ -219,7 +219,7 @@ Deploy หลักใช้ **Vercel** (auto build จาก push master, root 
   - `MINOR` (+0.1.0) — มีฟีเจอร์ใหม่อย่างน้อย 1 อย่าง
   - `MAJOR` (+1.0.0) — เปลี่ยน architecture, redesign ใหญ่
 
-version ปัจจุบัน: **1.11.6** (CHANGELOG ล่าสุดอยู่ที่ 1.11.6 — แก้ค่า `RATE_TABLES` ทั้งหมดให้ตรง iROWiki ครบ 560/560 ค่า: W5/A2 ทุกตาราง (เดิมใช้ค่า event ผิดมาทั้งคู่), W3 event +10+, W2 event +7→8, W1/2/3 noevent.normal +15 → ใช้ตารางหิน normal ของ iROWiki โดยตรง; เพิ่ม `docs/refine-bible.md` เป็นเอกสารอ้างอิงระบบตีบวก. ก่อนหน้า: 1.11.5 = security (dashboard email allowlist + ซ่อน divine-pride key ผ่าน api/item proxy), 1.11.4 = ธีม Phase 2–3,5, 1.11.3 = cursor pointer, 1.11.2 = ธีม dark/light เฟส 1; push `d67a45a` (2026-06-17) event fire bar redesign + FAB scroll-hide ไม่มี CHANGELOG เพราะ internal/polish)
+version ปัจจุบัน: **1.11.7** (CHANGELOG ล่าสุดอยู่ที่ 1.11.7 — **Enriched ใช้เรทชุดเดียวกับ HD** (ตาราง cash) ตาม iROWiki: `getRate` อ่านตาราง cash เมื่อ `useCash || useEnriched` ลบ `ENRICHED_RATE_BONUS` (เดิมคิด normal+10 ทำให้เรท Enriched ต่ำกว่าจริง); แก้ `event.normal` ของ W1–4/A1 = เท่า `noevent.normal` (หินธรรมดาไม่รับบูสต์ event — มี `*` เฉพาะคอลัมน์ W5/A2); ตรวจ exhaustive ครบ 840/840 combination (event×ชนิด×ระดับ×หิน) ตรง iROWiki ทั้ง 4 ตาราง. ก่อนหน้า 1.11.6 — แก้ค่า `RATE_TABLES` ให้ตรง iROWiki: W5/A2 ทุกตาราง (เดิมใช้ค่า event ผิดมาทั้งคู่), W3 event +10+, W2 event +7→8, W1/2/3 noevent.normal +15; เพิ่ม `docs/refine-bible.md` เป็นเอกสารอ้างอิงระบบตีบวก. ก่อนหน้า: 1.11.5 = security (dashboard email allowlist + ซ่อน divine-pride key ผ่าน api/item proxy), 1.11.4 = ธีม Phase 2–3,5, 1.11.3 = cursor pointer, 1.11.2 = ธีม dark/light เฟส 1; push `d67a45a` (2026-06-17) event fire bar redesign + FAB scroll-hide ไม่มี CHANGELOG เพราะ internal/polish)
 
 ## Patch Notes (changelog)
 

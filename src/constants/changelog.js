@@ -15,6 +15,13 @@
 
 export const CHANGELOG = [
   {
+    version: '1.11.7',
+    date: '2026-06-19',
+    items: [
+      { type: 'fix', text: 'ปรับอัตราสำเร็จของหิน Enriched ให้ตรงเกม (เดิมแสดงต่ำกว่าจริง — Enriched ใช้อัตราชุดเดียวกับหิน HD) และแก้อัตราช่วง Event ของอาวุธ Lv.1–4 / เกราะ Lv.1 ให้ถูกต้อง — กระทบทั้งตัวเลขที่แสดงและผลในโหมดจำลอง', textEn: 'Corrected Enriched ore success rates to match the game (previously shown too low — Enriched shares the same rates as HD ores) and fixed Event-period rates for Weapon Lv.1–4 / Armor Lv.1 — affects both displayed numbers and the simulator results' },
+    ],
+  },
+  {
     version: '1.11.6',
     date: '2026-06-18',
     items: [

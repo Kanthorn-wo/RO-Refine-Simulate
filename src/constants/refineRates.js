@@ -26,13 +26,13 @@ export const RATE_TABLES = {
   },
   event: {
     normal: {
-      armor1:  [100, 100, 100, 100,  60,  40,  40,  20,  20,   9,  20,  20,  16,  16,  15,  15,  14,  14,  10,  10],
-      armor2:  [100, 100, 100,  80,  80,  60,  60,  40,  40,  18,  20,  20,  20,  20,  15,  15,  15,  15,  10,  10],
-      weapon1: [100, 100, 100, 100, 100, 100, 100,  60,  40,  19,  40,  40,  35,  35,  30,  30,  20,  20,  15,  15],
-      weapon2: [100, 100, 100, 100, 100, 100,  60,  40,  20,  19,  40,  40,  35,  35,  30,  30,  20,  20,  15,  15],
-      weapon3: [100, 100, 100, 100, 100,  60,  50,  20,  20,  19,  35,  35,  30,  30,  25,  25,  20,  20,  15,  15],
-      weapon4: [100, 100, 100, 100,  60,  40,  40,  20,  20,   9,  20,  20,  16,  16,  15,  15,  14,  14,  10,  10],
-      weapon5: [100, 100, 100,  80,  80,  60,  60,  40,  40,  18,  20,  20,  20,  20,  15,  15,  15,  15,  10,  10],
+      armor1:  [100, 100, 100, 100,  60,  40,  40,  20,  20,   9,   8,   8,   8,   8,   7,   7,   7,   7,   5,   5],
+      armor2:  [100, 100, 100,  80,  80,  60,  60,  40,  40,  18,  16,  16,  16,  16,  14,  14,  14,  14,  10,  10],
+      weapon1: [100, 100, 100, 100, 100, 100, 100,  60,  40,  19,  18,  18,  18,  18,  17,  17,  17,  17,  15,  15],
+      weapon2: [100, 100, 100, 100, 100, 100,  60,  40,  20,  19,  18,  18,  18,  18,  17,  17,  17,  17,  15,  15],
+      weapon3: [100, 100, 100, 100, 100,  60,  50,  20,  20,  19,  18,  18,  18,  18,  17,  17,  17,  17,  15,  15],
+      weapon4: [100, 100, 100, 100,  60,  40,  40,  20,  20,   9,   8,   8,   8,   8,   7,   7,   7,   7,   5,   5],
+      weapon5: [100, 100, 100,  80,  80,  60,  60,  40,  40,  18,  16,  16,  16,  16,  14,  14,  14,  14,  10,  10],
     },
     cash: {
       armor1:  [100, 100, 100, 100,  95,  80,  80,  60,  50,  35,  20,  20,  16,  16,  15,  15,  14,  14,  10,  10],
@@ -50,10 +50,7 @@ export const RATE_TABLES = {
 export const getRateTable = (isEventRate, useCash) =>
   RATE_TABLES[isEventRate ? 'event' : 'noevent'][useCash ? 'cash' : 'normal'];
 
-// Enriched เพิ่มโอกาสสำเร็จจากตารางหินปกติ (clamp ไม่เกิน 100%)
-export const ENRICHED_RATE_BONUS = 10;
-
-export const getRate = (isEventRate, useCash, useEnriched, itemType, idx) => {
-  const base = getRateTable(isEventRate, useCash)[itemType][Math.min(idx, 19)];
-  return useEnriched ? Math.min(100, base + ENRICHED_RATE_BONUS) : base;
-};
+// iROWiki: Enriched ใช้เรทชุดเดียวกับ HD (ตาราง cash) — ต่างกันแค่ "ผลตอนล้ม"
+// (Enriched ล้ม = ลดระดับ, HD ล้ม = ลดระดับ/ไม่แตก) ดังนั้นทั้งคู่อ่านตาราง cash
+export const getRate = (isEventRate, useCash, useEnriched, itemType, idx) =>
+  getRateTable(isEventRate, useCash || useEnriched)[itemType][Math.min(idx, 19)];
