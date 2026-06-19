@@ -68,11 +68,14 @@ grant  execute on function public.bump_daily(date, text, bigint) to service_role
 create table if not exists public.usage_events (
   id         bigint generated always as identity primary key,
   created_at timestamptz not null default now(),
-  type       text not null,             -- 'refine' | 'visit'
-  count      integer not null default 1
+  type       text not null,             -- 'refine' | 'visit' | 'auto' | 'simulate'
+  count      integer not null default 1,
+  vid        text                       -- ID สุ่ม anonymous ของผู้ใช้ (nullable — event เก่า/ไม่มีก็ได้)
 );
 alter table public.usage_events enable row level security;
 create index if not exists usage_events_created_idx on public.usage_events (created_at desc);
+-- สำหรับ DB ที่มีตารางอยู่แล้ว: เพิ่มคอลัมน์ vid (idempotent)
+alter table public.usage_events add column if not exists vid text;
 
 -- ตัดให้เหลือแค่ 200 แถวล่าสุดอัตโนมัติทุกครั้งที่ insert (กัน DB บวม)
 create or replace function public.trim_usage_events()

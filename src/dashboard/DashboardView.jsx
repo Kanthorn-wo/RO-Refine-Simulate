@@ -422,6 +422,12 @@ function Spinner({ size = 16, className = '' }) {
   )
 }
 
+// ย่อ vid (anonymous ID) ให้สั้นพออ่าน — โชว์ต้น 6 + ท้าย 4
+function shortVid(v) {
+  if (!v) return '—'
+  return v.length <= 12 ? v : `${v.slice(0, 6)}…${v.slice(-4)}`
+}
+
 function relTime(iso, now) {
   const s = Math.max(0, Math.floor((now - new Date(iso).getTime()) / 1000))
   if (s < 5) return 'เมื่อสักครู่'
@@ -569,6 +575,7 @@ function ActivityFeed() {
                   <th className="px-2 py-2 font-medium">
                     <button onClick={() => sortBy('type')} className="font-medium transition-colors hover:text-slate-200">กิจกรรม{sortIcon('type')}</button>
                   </th>
+                  <th className="w-32 px-2 py-2 font-medium">ผู้ใช้</th>
                   <th className="w-20 px-2 py-2 text-right font-medium">
                     <button onClick={() => sortBy('count')} className="font-medium transition-colors hover:text-slate-200">จำนวน{sortIcon('count')}</button>
                   </th>
@@ -589,6 +596,7 @@ function ActivityFeed() {
                           <span className="truncate">{meta.label}</span>
                         </span>
                       </td>
+                      <td className="px-2 py-2 font-mono text-xs text-slate-400" title={ev.vid || ''}>{shortVid(ev.vid)}</td>
                       <td className="px-2 py-2 text-right tabular-nums text-slate-300">{ev.type === 'refine' ? `×${fmt(ev.count)}` : '—'}</td>
                       <td className="whitespace-nowrap px-2 py-2 text-right tabular-nums text-slate-400" title={new Date(ev.at).toLocaleString('th-TH')}>{relTime(ev.at, now)}</td>
                     </tr>

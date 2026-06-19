@@ -124,7 +124,7 @@ export default async function handler(req, res) {
       let dailyIdx = -1
       let eventsIdx = -1
       if (range) { dailyIdx = reqs.length; reqs.push(sbFetch(`usage_daily?select=day,metric,count&day=gte.${range.from}&day=lte.${range.to}&order=day`)) }
-      if (evN)   { eventsIdx = reqs.length; reqs.push(sbFetch(`usage_events?select=created_at,type,count&order=created_at.desc&limit=${evN}`)) }
+      if (evN)   { eventsIdx = reqs.length; reqs.push(sbFetch(`usage_events?select=created_at,type,count,vid&order=created_at.desc&limit=${evN}`)) }
       const results = await Promise.all(reqs)
       const [cRes, vRes, sRes, visRes] = results
       const dRes = dailyIdx >= 0 ? results[dailyIdx] : null
@@ -178,7 +178,7 @@ export default async function handler(req, res) {
 
       if (eventsIdx >= 0) {
         const rows = eRes && eRes.ok ? await eRes.json() : []
-        payload.events = rows.map((r) => ({ at: r.created_at, type: r.type, count: Number(r.count || 1) }))
+        payload.events = rows.map((r) => ({ at: r.created_at, type: r.type, count: Number(r.count || 1), vid: r.vid || null }))
       }
 
       // ขอ events (feed) = อยาก realtime → ไม่ cache; อย่างอื่น cache 60 วิ
@@ -200,9 +200,11 @@ export default async function handler(req, res) {
       if (stone)  { tasks.push(bumpTotal('stone_total', stone));   tasks.push(bumpDaily(today, 'stone', stone)) }
       if (bsb)    { tasks.push(bumpTotal('bsb_total', bsb));        tasks.push(bumpDaily(today, 'bsb', bsb)) }
 
-      // visit: ถ้ามี vid (ID สุ่ม anonymous) ใช้ record_visit (แยกคนใหม่/กลับมาซ้ำ), ไม่มีก็นับรวมเฉย ๆ
+      // vid = ID สุ่ม anonymous ต่อเบราว์เซอร์ (ไม่ผูกตัวตน) — ผูกกับ event เพื่อรู้ว่ามาจากคนเดียวกัน
+      const vid = typeof body.vid === 'string' && /^[\w-]{8,64}$/.test(body.vid) ? body.vid : null
+
+      // visit: ถ้ามี vid ใช้ record_visit (แยกคนใหม่/กลับมาซ้ำ), ไม่มีก็นับรวมเฉย ๆ
       if (body.visit) {
-        const vid = typeof body.vid === 'string' && /^[\w-]{8,64}$/.test(body.vid) ? body.vid : null
         tasks.push(vid ? recordVisit(vid, today) : bumpDaily(today, 'visits', 1))
       }
 
@@ -210,11 +212,11 @@ export default async function handler(req, res) {
       const action = ACTION_EVENTS.includes(body.event) ? body.event : null
       if (action) tasks.push(bumpDaily(today, action, 1))
 
-      // activity feed: 1 event ต่อ 1 batch (ตี = รวบทั้ง batch กัน row บวมจาก auto)
+      // activity feed: 1 event ต่อ 1 batch (ตี = รวบทั้ง batch กัน row บวมจาก auto) — แนบ vid ของผู้ใช้
       const events = []
-      if (refine) events.push({ type: 'refine', count: refine })
-      if (body.visit) events.push({ type: 'visit', count: 1 })
-      if (action) events.push({ type: action, count: 1 })
+      if (refine) events.push({ type: 'refine', count: refine, vid })
+      if (body.visit) events.push({ type: 'visit', count: 1, vid })
+      if (action) events.push({ type: action, count: 1, vid })
       if (events.length) {
         tasks.push(sbFetch('usage_events', {
           method: 'POST',

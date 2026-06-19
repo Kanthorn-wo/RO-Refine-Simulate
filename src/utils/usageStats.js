@@ -28,7 +28,7 @@ export function flushUsage() {
   if (!refine && !stone && !bsb) return
   pending = { refine: 0, stone: 0, bsb: 0 }
   if (flushTimer) { clearTimeout(flushTimer); flushTimer = null }
-  post({ refine, stone, bsb })
+  post({ refine, stone, bsb, vid: getVisitorId() })
 }
 
 function scheduleFlush() {
@@ -73,7 +73,7 @@ export function pingVisitOncePerDay() {
 // บันทึก action แบบครั้งเดียว (auto = เริ่มระบบ Auto, simulate = รันโหมดจำลอง)
 export function recordAction(type) {
   if (type !== 'auto' && type !== 'simulate') return
-  post({ event: type })
+  post({ event: type, vid: getVisitorId() })
 }
 
 export async function fetchUsage() {
