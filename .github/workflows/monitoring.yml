@@ -21,6 +21,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history — checkout เกิดก่อน sleep สุ่ม (≤5 ชม.) local จึงค้างเก่า; rebase ตอน push ต้องมี history ครบ ไม่ใช่ shallow
 
       - name: Random start delay (schedule only)
         if: github.event_name == 'schedule'
@@ -62,6 +64,7 @@ jobs:
             # กัน race: ถ้ามี push อื่นแทรกระหว่าง run (push คนหรือ workflow อื่น)
             # ให้ rebase report ทับ remote ล่าสุดแล้วลองใหม่ (reports/ ไม่ชนกับโค้ด)
             for i in 1 2 3 4 5; do
+              git rebase --abort 2>/dev/null || true   # กู้สถานะถ้ารอบก่อน rebase ค้างกลางคัน
               git pull --rebase origin master && git push && { echo "✅ commit report สำเร็จ"; exit 0; }
               echo "⚠️ push ชน remote — rebase แล้วลองใหม่ ($i/5)"
               sleep 5
