@@ -422,12 +422,6 @@ function Spinner({ size = 16, className = '' }) {
   )
 }
 
-// ย่อ vid (anonymous ID) ให้สั้นพออ่าน — โชว์ต้น 6 + ท้าย 4
-function shortVid(v) {
-  if (!v) return '—'
-  return v.length <= 12 ? v : `${v.slice(0, 6)}…${v.slice(-4)}`
-}
-
 function relTime(iso, now) {
   const s = Math.max(0, Math.floor((now - new Date(iso).getTime()) / 1000))
   if (s < 5) return 'เมื่อสักครู่'
@@ -575,11 +569,11 @@ function ActivityFeed() {
                   <th className="px-2 py-2 font-medium">
                     <button onClick={() => sortBy('type')} className="font-medium transition-colors hover:text-slate-200">กิจกรรม{sortIcon('type')}</button>
                   </th>
-                  <th className="w-32 px-2 py-2 font-medium">ผู้ใช้</th>
-                  <th className="w-20 px-2 py-2 text-right font-medium">
+                  <th className="px-2 py-2 font-medium">ผู้ใช้</th>
+                  <th className="px-2 py-2 text-right font-medium">
                     <button onClick={() => sortBy('count')} className="font-medium transition-colors hover:text-slate-200">จำนวน{sortIcon('count')}</button>
                   </th>
-                  <th className="w-40 px-2 py-2 text-right font-medium">
+                  <th className="px-2 py-2 text-right font-medium">
                     <button onClick={() => sortBy('at')} className="font-medium transition-colors hover:text-slate-200">เวลา{sortIcon('at')}</button>
                   </th>
                 </tr>
@@ -596,7 +590,9 @@ function ActivityFeed() {
                           <span className="truncate">{meta.label}</span>
                         </span>
                       </td>
-                      <td className="px-2 py-2 font-mono text-xs text-slate-400" title={ev.vid || ''}>{shortVid(ev.vid)}</td>
+                      <td className="px-2 py-2 font-mono text-xs text-slate-400">
+                        <span className="block truncate" title={ev.vid || ''}>{ev.vid || '—'}</span>
+                      </td>
                       <td className="px-2 py-2 text-right tabular-nums text-slate-300">{ev.type === 'refine' ? `×${fmt(ev.count)}` : '—'}</td>
                       <td className="whitespace-nowrap px-2 py-2 text-right tabular-nums text-slate-400" title={new Date(ev.at).toLocaleString('th-TH')}>{relTime(ev.at, now)}</td>
                     </tr>
@@ -653,6 +649,8 @@ function UsageContent({ session }) {
   const [from, setFrom] = useState(usageDaysAgo(29))
   const [to, setTo] = useState(usageToday())
   const [metric, setMetric] = useState('refine')
+  const [reloadTick, setReloadTick] = useState(0)
+  const refresh = () => setReloadTick((t) => t + 1)
 
   useEffect(() => {
     let cancelled = false
@@ -671,7 +669,7 @@ function UsageContent({ session }) {
     }
     load()
     return () => { cancelled = true }
-  }, [from, to])
+  }, [from, to, reloadTick])
 
   const toggleShow = async () => {
     if (!data || saving) return
@@ -706,6 +704,20 @@ function UsageContent({ session }) {
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h2 className="text-base font-semibold text-slate-200">ภาพรวมการใช้งาน</h2>
+          <p className="text-xs text-slate-500">รีเฟรชเพื่อโหลดตัวเลขล่าสุด (กิจกรรมล่าสุดอัปเดตเองอยู่แล้ว)</p>
+        </div>
+        <button onClick={refresh} disabled={loading}
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:text-slate-100 disabled:opacity-50">
+          {loading
+            ? <Spinner size={14} />
+            : <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 4v6h-6M1 20v-6h6" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></svg>}
+          รีเฟรชข้อมูล
+        </button>
+      </div>
+
       {error && (
         <div className="rounded-xl border border-rose-900/50 bg-rose-950/40 p-3 text-sm text-rose-300">{error}</div>
       )}
