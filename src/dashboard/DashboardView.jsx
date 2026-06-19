@@ -408,7 +408,8 @@ function AnalyticsContent({ session }) {
 /* ─── shell with side nav ─── */
 export default function DashboardView({ session }) {
   const [activeTab, setActiveTab] = useState('analytics')
-  const [sideOpen, setSideOpen] = useState(false)
+  const [sideOpen, setSideOpen] = useState(false)   // mobile drawer
+  const [deskOpen, setDeskOpen] = useState(true)    // desktop sidebar
 
   const activeItem = NAV_ITEMS.find(n => n.id === activeTab)
 
@@ -418,13 +419,12 @@ export default function DashboardView({ session }) {
       <div className="pointer-events-none fixed inset-0 opacity-60"
         style={{ background: 'radial-gradient(800px 400px at 20% -5%, rgba(99,102,241,0.18), transparent), radial-gradient(700px 400px at 100% 0%, rgba(16,185,129,0.10), transparent)' }} />
 
-      {/* ─── side nav (desktop: always visible, mobile: overlay) ─── */}
-      {/* overlay backdrop (mobile) */}
+      {/* overlay backdrop (mobile only) */}
       {sideOpen && (
         <div className="fixed inset-0 z-20 bg-black/60 lg:hidden" onClick={() => setSideOpen(false)} />
       )}
 
-      <aside className={`fixed inset-y-0 left-0 z-30 flex w-56 flex-col border-r border-white/5 bg-slate-950/95 backdrop-blur-md transition-transform duration-300 lg:translate-x-0 lg:z-auto ${sideOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`fixed inset-y-0 left-0 z-30 flex w-56 flex-col border-r border-white/5 bg-slate-950/95 backdrop-blur-md transition-transform duration-300 ${sideOpen ? 'translate-x-0' : '-translate-x-full'} ${deskOpen ? 'lg:translate-x-0' : 'lg:-translate-x-full'}`}>
         {/* logo */}
         <div className="flex h-14 shrink-0 items-center gap-2.5 border-b border-white/5 px-4">
           <span className="grid h-7 w-7 place-items-center rounded-lg bg-indigo-500/20">
@@ -433,7 +433,7 @@ export default function DashboardView({ session }) {
             </svg>
           </span>
           <span className="text-sm font-semibold text-slate-100">RO Dashboard</span>
-          <button onClick={() => setSideOpen(false)} className="ml-auto lg:hidden text-slate-400 hover:text-slate-200 p-1">
+          <button onClick={() => { setSideOpen(false); setDeskOpen(false) }} className="ml-auto text-slate-400 hover:text-slate-200 p-1">
             <NavIc.x width={16} height={16} />
           </button>
         </div>
@@ -480,10 +480,10 @@ export default function DashboardView({ session }) {
       </aside>
 
       {/* ─── main content ─── */}
-      <div className="relative flex-1 min-w-0 lg:ml-56">
+      <div className={`relative flex-1 min-w-0 transition-all duration-300 ${deskOpen ? 'lg:ml-56' : 'lg:ml-0'}`}>
         {/* top bar */}
         <header className="sticky top-0 z-10 flex h-14 items-center gap-3 border-b border-white/5 bg-slate-950/80 px-4 backdrop-blur-md sm:px-6">
-          <button onClick={() => setSideOpen(true)} className="lg:hidden rounded-lg p-1.5 text-slate-400 hover:bg-white/[0.06] hover:text-slate-200 transition-colors">
+          <button onClick={() => { setSideOpen(true); setDeskOpen(true) }} className={`${deskOpen ? 'lg:hidden' : ''} rounded-lg p-1.5 text-slate-400 hover:bg-white/[0.06] hover:text-slate-200 transition-colors`}>
             <NavIc.menu width={20} height={20} />
           </button>
           <div className="min-w-0">

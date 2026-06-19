@@ -9,7 +9,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Dev-only: รัน serverless function /api/* ภายใต้ vite dev server
 // (production ใช้ Vercel function จริง — plugin นี้ apply: 'serve' เท่านั้น ไม่กระทบ build)
 function devApiPlugin() {
-  const routes = { '/api/ga': './api/ga.js', '/api/item': './api/item.js', '/api/monitor': './api/monitor.js' };
+  const apiDir = path.resolve(process.cwd(), 'api')
+  const routes = { '/api/ga': `${apiDir}/ga.js`, '/api/item': `${apiDir}/item.js`, '/api/monitor': `${apiDir}/monitor.js` };
   return {
     name: 'dev-api',
     apply: 'serve',
