@@ -4,6 +4,7 @@ import { STONE_META, getEffectiveStone } from '../../utils/stones';
 import { ORE_IMAGES, ORE_COLORS, ITEM_TYPE_LABELS } from '../../constants/ores';
 import { simulateRound, summarize, MAX_ATTEMPTS_PER_ROUND } from '../../utils/simulate';
 import { trackEvent } from '../../utils/analytics';
+import { recordAction } from '../../utils/usageStats';
 
 // lazy load กราฟ (recharts) — โหลดเฉพาะตอนมีผลจำลองให้แสดง main bundle ไม่บวม
 const DistChart = lazy(() => import('./DistChart'));
@@ -113,6 +114,7 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable, apiItem }) => {
   const runSimulation = () => {
     if (running || cooldownActive) return;
     const startedAt = Date.now();
+    recordAction('simulate');
     trackEvent('sim_run', {
       item_type: itemType,
       start: startLevel,

@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   ResponsiveContainer, AreaChart, Area, BarChart, Bar, Cell,
   PieChart, Pie, XAxis, YAxis, CartesianGrid, Tooltip,
 } from 'recharts'
 import { supabase } from '../lib/supabase'
 import MonitorView from './MonitorView'
+import Toggle from '../components/Toggle'
 
 const ACCENT = '#818cf8'
 const ACCENT2 = '#34d399'
@@ -30,6 +31,11 @@ const NavIc = {
       <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
     </svg>
   ),
+  usage: (p) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="M3 3v18h18" /><path d="M7 14l3-4 4 3 5-7" />
+    </svg>
+  ),
   menu: (p) => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
       <path d="M4 6h16M4 12h16M4 18h16" />
@@ -44,6 +50,7 @@ const NavIc = {
 
 const NAV_ITEMS = [
   { id: 'analytics', label: 'Analytics', sub: 'GA4 ผู้ใช้งาน', icon: NavIc.analytics },
+  { id: 'usage',     label: 'Usage',     sub: 'สถิติการใช้งานรวม', icon: NavIc.usage },
   { id: 'monitor',   label: 'Monitor',   sub: 'สุขภาพเว็บไซต์',  icon: NavIc.monitor },
 ]
 
@@ -405,6 +412,394 @@ function AnalyticsContent({ session }) {
   )
 }
 
+/* ─── Activity feed (realtime-ish via polling) ─── */
+function Spinner({ size = 16, className = '' }) {
+  return (
+    <svg className={`animate-spin ${className}`} viewBox="0 0 24 24" fill="none" width={size} height={size}>
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="3" opacity="0.25" />
+      <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function relTime(iso, now) {
+  const s = Math.max(0, Math.floor((now - new Date(iso).getTime()) / 1000))
+  if (s < 5) return 'เมื่อสักครู่'
+  if (s < 60) return `${s} วินาทีที่แล้ว`
+  const m = Math.floor(s / 60); if (m < 60) return `${m} นาทีที่แล้ว`
+  const h = Math.floor(m / 60); if (h < 24) return `${h} ชั่วโมงที่แล้ว`
+  const d = Math.floor(h / 24); return `${d} วันที่แล้ว`
+}
+
+const EVENT_META = {
+  refine:   { label: 'ตีบวก',        dot: '#818cf8' },
+  auto:     { label: 'เริ่ม Auto',   dot: '#fbbf24' },
+  simulate: { label: 'รันจำลอง',     dot: '#34d399' },
+  visit:    { label: 'มีคนเข้าเว็บ', dot: '#f472b6' },
+}
+const PAGE_SIZES = [10, 25, 50]
+const EVENT_FILTERS = [
+  { id: 'all',      label: 'ทั้งหมด' },
+  { id: 'refine',   label: 'ตีบวก' },
+  { id: 'auto',     label: 'Auto' },
+  { id: 'simulate', label: 'จำลอง' },
+  { id: 'visit',    label: 'เข้าเว็บ' },
+]
+
+function ActivityFeed() {
+  const [events, setEvents] = useState(null)
+  const [error, setError] = useState('')
+  const [refreshing, setRefreshing] = useState(false)
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const [now, setNow] = useState(Date.now())
+  const [filter, setFilter] = useState('all')
+  const [sortKey, setSortKey] = useState('at')   // 'at' | 'type' | 'count'
+  const [sortDir, setSortDir] = useState('desc')  // 'asc' | 'desc'
+  const pageRef = useRef(1)
+  pageRef.current = page
+  const mountedRef = useRef(true)
+
+  const load = async () => {
+    if (mountedRef.current) { setRefreshing(true); setError('') }
+    try {
+      const res = await fetch('/api/stats?events=200')
+      if (!res.ok) throw new Error(`โหลดไม่สำเร็จ (${res.status})`)
+      const json = await res.json()
+      if (mountedRef.current) setEvents(json.events || [])
+    } catch (err) {
+      if (mountedRef.current) setError(err.message)
+    } finally {
+      if (mountedRef.current) setRefreshing(false)
+    }
+  }
+
+  // โหลดครั้งแรก + poll ทุก 5 วิ (หยุด poll ถ้าไม่ได้อยู่หน้า 1 กันรายการเลื่อนตอนดูหน้าเก่า)
+  useEffect(() => {
+    mountedRef.current = true
+    load()
+    const id = setInterval(() => { if (pageRef.current === 1) load() }, 5000)
+    return () => { mountedRef.current = false; clearInterval(id) }
+  }, [])
+
+  // ticker อัปเดตเวลา relative ทุก 2 วิ
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 2000)
+    return () => clearInterval(id)
+  }, [])
+
+  const all = events || []
+  const filtered = filter === 'all' ? all : all.filter((e) => e.type === filter)
+  const dir = sortDir === 'asc' ? 1 : -1
+  const sorted = [...filtered].sort((a, b) => {
+    let av, bv
+    if (sortKey === 'count') { av = a.count; bv = b.count }
+    else if (sortKey === 'type') { av = a.type; bv = b.type }
+    else { av = a.at; bv = b.at }
+    if (av < bv) return -1 * dir
+    if (av > bv) return 1 * dir
+    return 0
+  })
+  const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize))
+  const safePage = Math.min(page, totalPages)
+  const start = (safePage - 1) * pageSize
+  const rows = sorted.slice(start, start + pageSize)
+
+  const sortBy = (key) => {
+    if (sortKey === key) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+    else { setSortKey(key); setSortDir(key === 'type' ? 'asc' : 'desc') }
+    setPage(1)
+  }
+  const sortIcon = (key) => (sortKey === key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : '')
+
+  return (
+    <Panel
+      title="กิจกรรมล่าสุด"
+      subtitle="อัปเดตอัตโนมัติทุก 5 วินาที (เฉพาะหน้าแรก)"
+      action={
+        <div className="flex items-center gap-2">
+          {safePage === 1 && (
+            <span className="inline-flex items-center gap-1.5 text-xs text-emerald-400">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              </span>
+              Live
+            </span>
+          )}
+          <button onClick={load} disabled={refreshing}
+            className="inline-flex items-center gap-1 rounded-md border border-white/10 bg-white/[0.03] px-2 py-1 text-xs text-slate-400 transition-colors hover:text-slate-200 disabled:opacity-50">
+            {refreshing
+              ? <Spinner size={13} />
+              : <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 4v6h-6M1 20v-6h6" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></svg>}
+            รีเฟรช
+          </button>
+        </div>
+      }
+    >
+      {error && <div className="mb-3 rounded-lg border border-rose-900/50 bg-rose-950/40 p-2.5 text-xs text-rose-300">{error}</div>}
+
+      {events === null ? (
+        <div className="flex items-center justify-center gap-2 py-12 text-sm text-slate-500"><Spinner /> กำลังโหลด…</div>
+      ) : all.length === 0 ? (
+        <p className="py-12 text-center text-sm text-slate-500">ยังไม่มีกิจกรรม</p>
+      ) : (
+        <>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <div className="inline-flex flex-wrap rounded-lg border border-white/10 bg-white/[0.03] p-0.5">
+              {EVENT_FILTERS.map((f) => (
+                <button key={f.id} onClick={() => { setFilter(f.id); setPage(1) }}
+                  className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${filter === f.id ? 'bg-indigo-500/25 text-indigo-200' : 'text-slate-400 hover:text-slate-200'}`}>
+                  {f.label}
+                </button>
+              ))}
+            </div>
+            <span className="text-xs text-slate-500">{fmt(sorted.length)} รายการ</span>
+          </div>
+
+          {sorted.length === 0 ? (
+            <p className="py-12 text-center text-sm text-slate-500">ไม่มีกิจกรรมในตัวกรองนี้</p>
+          ) : (
+          <>
+          <div className="overflow-x-auto">
+            <table className="w-full table-fixed text-sm">
+              <thead>
+                <tr className="border-b border-white/10 text-left text-xs text-slate-500">
+                  <th className="w-10 px-2 py-2 font-medium">#</th>
+                  <th className="px-2 py-2 font-medium">
+                    <button onClick={() => sortBy('type')} className="font-medium transition-colors hover:text-slate-200">กิจกรรม{sortIcon('type')}</button>
+                  </th>
+                  <th className="w-20 px-2 py-2 text-right font-medium">
+                    <button onClick={() => sortBy('count')} className="font-medium transition-colors hover:text-slate-200">จำนวน{sortIcon('count')}</button>
+                  </th>
+                  <th className="w-40 px-2 py-2 text-right font-medium">
+                    <button onClick={() => sortBy('at')} className="font-medium transition-colors hover:text-slate-200">เวลา{sortIcon('at')}</button>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((ev, i) => {
+                  const meta = EVENT_META[ev.type] || { label: ev.type, dot: '#94a3b8' }
+                  return (
+                    <tr key={start + i} className="border-b border-white/5 last:border-0">
+                      <td className="px-2 py-2 tabular-nums text-slate-500">{start + i + 1}</td>
+                      <td className="px-2 py-2">
+                        <span className="inline-flex items-center gap-2 text-slate-200">
+                          <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: meta.dot }} />
+                          <span className="truncate">{meta.label}</span>
+                        </span>
+                      </td>
+                      <td className="px-2 py-2 text-right tabular-nums text-slate-300">{ev.type === 'refine' ? `×${fmt(ev.count)}` : '—'}</td>
+                      <td className="whitespace-nowrap px-2 py-2 text-right tabular-nums text-slate-400" title={new Date(ev.at).toLocaleString('th-TH')}>{relTime(ev.at, now)}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
+            <div className="flex items-center gap-2">
+              <span>แสดง</span>
+              <select value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1) }}
+                className="rounded-md border border-white/10 bg-white/[0.03] px-2 py-1 text-slate-200 [color-scheme:dark]">
+                {PAGE_SIZES.map((n) => <option key={n} value={n}>{n}</option>)}
+              </select>
+              <span>รายการ · ทั้งหมด {fmt(all.length)}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={safePage <= 1}
+                className="rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1 transition-colors hover:text-slate-200 disabled:opacity-40">ก่อนหน้า</button>
+              <span>หน้า {safePage}/{totalPages}</span>
+              <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={safePage >= totalPages}
+                className="rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1 transition-colors hover:text-slate-200 disabled:opacity-40">ถัดไป</button>
+            </div>
+          </div>
+          </>
+          )}
+        </>
+      )}
+    </Panel>
+  )
+}
+
+/* ─── Usage stats (social proof): KPI + กราฟรายวัน + calendar + toggle ─── */
+const USAGE_METRICS = [
+  { id: 'refine',           label: 'ตีบวก',     color: '#818cf8' },
+  { id: 'stone',            label: 'ใช้แร่',     color: '#34d399' },
+  { id: 'bsb',              label: 'ใช้ BSB',    color: '#fbbf24' },
+  { id: 'auto',             label: 'เริ่ม Auto', color: '#f59e0b' },
+  { id: 'simulate',         label: 'รันจำลอง',   color: '#4ade80' },
+  { id: 'visits',           label: 'คนเข้าเว็บ', color: '#f472b6' },
+  { id: 'visits_new',       label: 'คนใหม่',     color: '#22d3ee' },
+  { id: 'visits_returning', label: 'กลับมาซ้ำ',  color: '#a78bfa' },
+]
+const usageToday = () => new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10)
+const usageDaysAgo = (n) => new Date(Date.now() + 7 * 3600 * 1000 - n * 86400000).toISOString().slice(0, 10)
+
+function UsageContent({ session }) {
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [from, setFrom] = useState(usageDaysAgo(29))
+  const [to, setTo] = useState(usageToday())
+  const [metric, setMetric] = useState('refine')
+
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      setLoading(true); setError('')
+      try {
+        const res = await fetch(`/api/stats?from=${from}&to=${to}`)
+        if (!res.ok) throw new Error(`โหลดข้อมูลไม่สำเร็จ (${res.status})`)
+        const json = await res.json()
+        if (!cancelled) setData(json)
+      } catch (err) {
+        if (!cancelled) setError(err.message)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [from, to])
+
+  const toggleShow = async () => {
+    if (!data || saving) return
+    const next = !data.showStats
+    setSaving(true); setError('')
+    try {
+      const token = session?.access_token
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify({ key: 'show_stats', value: next }),
+      })
+      if (!res.ok) {
+        const b = await res.json().catch(() => ({}))
+        throw new Error(b.error || `บันทึกไม่สำเร็จ (${res.status})`)
+      }
+      setData((d) => ({ ...d, showStats: next }))
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const today = usageToday()
+  const daily = data?.daily || []
+  const activeMetric = USAGE_METRICS.find((m) => m.id === metric) || USAGE_METRICS[0]
+  const rangeTotal = daily.reduce((s, d) => s + (d[metric] || 0), 0)
+  const setQuickRange = (n) => { setFrom(usageDaysAgo(n - 1)); setTo(usageToday()) }
+
+  if (loading && !data) return <LoadingState />
+
+  return (
+    <div className="space-y-6">
+      {error && (
+        <div className="rounded-xl border border-rose-900/50 bg-rose-950/40 p-3 text-sm text-rose-300">{error}</div>
+      )}
+
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <KpiCard icon={Icon.session} label="ตีบวกรวม (ครั้ง)" value={fmt(data?.refine)}      color="#818cf8" />
+        <KpiCard icon={Icon.eye}     label="ใช้แร่รวม (ก้อน)" value={fmt(data?.stone)}        color="#34d399" />
+        <KpiCard icon={Icon.users}   label="ผู้ใช้ไม่ซ้ำทั้งหมด" value={fmt(data?.totalVisitors)} color="#a78bfa" />
+        <KpiCard icon={Icon.users}   label="คนใช้วันนี้"      value={fmt(data?.visitsToday)}  color="#f472b6" />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        {[
+          { label: 'คนใหม่วันนี้',    value: data?.newToday,       color: '#22d3ee' },
+          { label: 'กลับมาซ้ำวันนี้', value: data?.returningToday, color: '#a78bfa' },
+          { label: 'เริ่ม Auto วันนี้', value: data?.autoToday,    color: '#f59e0b' },
+          { label: 'รันจำลองวันนี้',  value: data?.simToday,       color: '#4ade80' },
+          { label: 'ใช้ BSB รวม',     value: data?.bsb,            color: '#fbbf24' },
+        ].map((s) => (
+          <div key={s.label} className="rounded-xl border border-white/5 bg-white/[0.03] px-3 py-2.5">
+            <div className="text-lg font-bold tabular-nums" style={{ color: s.color }}>{fmt(s.value)}</div>
+            <div className="mt-0.5 text-[11px] text-slate-500">{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      <Panel
+        title="แนวโน้มรายวัน"
+        subtitle={`${from} → ${to} · รวม ${fmt(rangeTotal)} ${activeMetric.label}`}
+        action={
+          <div className="flex flex-wrap items-center gap-1">
+            {[7, 30, 90].map((n) => (
+              <button key={n} onClick={() => setQuickRange(n)}
+                className="rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs font-medium text-slate-400 transition-colors hover:text-slate-200">
+                {n} วัน
+              </button>
+            ))}
+          </div>
+        }
+      >
+        <div className="mb-4 flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 text-xs text-slate-400">
+            <input type="date" value={from} max={to}
+              onChange={(e) => e.target.value && setFrom(e.target.value)}
+              className="rounded-lg border border-white/10 bg-white/[0.03] px-2 py-1 text-slate-200 [color-scheme:dark]" />
+            <span>ถึง</span>
+            <input type="date" value={to} min={from} max={today}
+              onChange={(e) => e.target.value && setTo(e.target.value)}
+              className="rounded-lg border border-white/10 bg-white/[0.03] px-2 py-1 text-slate-200 [color-scheme:dark]" />
+          </div>
+          <div className="inline-flex flex-wrap rounded-lg border border-white/10 bg-white/[0.03] p-0.5">
+            {USAGE_METRICS.map((m) => (
+              <button key={m.id} onClick={() => setMetric(m.id)}
+                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${metric === m.id ? 'text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                style={metric === m.id ? { background: `${m.color}33` } : undefined}>
+                {m.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {daily.length === 0 ? (
+          <p className="py-12 text-center text-sm text-slate-500">ไม่มีข้อมูลในช่วงนี้</p>
+        ) : (
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={daily} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+              <XAxis dataKey="day" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} minTickGap={24} />
+              <YAxis tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} width={44} allowDecimals={false} />
+              <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
+              <Bar dataKey={metric} name={activeMetric.label} fill={activeMetric.color} radius={[3, 3, 0, 0]} isAnimationActive={false} />
+            </BarChart>
+          </ResponsiveContainer>
+        )}
+      </Panel>
+
+      <ActivityFeed />
+
+      <Panel title="แสดงสถิติบนหน้าเว็บ" subtitle="เปิด/ปิด section ตัวเลขใต้แบนเนอร์ที่ผู้เล่นเห็น">
+        <div className="flex items-center justify-between gap-4">
+          <div className="text-sm text-slate-300">
+            สถานะปัจจุบัน:{' '}
+            <span className={data?.showStats ? 'font-semibold text-emerald-400' : 'font-semibold text-slate-500'}>
+              {data?.showStats ? 'กำลังแสดง' : 'ซ่อนอยู่'}
+            </span>
+          </div>
+          <Toggle
+            checked={!!data?.showStats}
+            onChange={toggleShow}
+            disabled={saving}
+            activeColor="bg-emerald-500"
+            ariaLabel="แสดงสถิติบนหน้าเว็บ"
+          />
+        </div>
+        <p className="mt-3 text-xs text-slate-500">
+          ปิดไว้ได้ตอนตัวเลขยังน้อย แล้วค่อยเปิดเมื่อดูน่าเชื่อถือ — มีผลกับผู้ใช้ภายใน ~1 นาที (cache)
+        </p>
+      </Panel>
+    </div>
+  )
+}
+
 /* ─── shell with side nav ─── */
 export default function DashboardView({ session }) {
   const [activeTab, setActiveTab] = useState('analytics')
@@ -495,6 +890,7 @@ export default function DashboardView({ session }) {
         {/* page content */}
         <main className="px-4 py-6 sm:px-6 sm:py-8">
           {activeTab === 'analytics' && <AnalyticsContent session={session} />}
+          {activeTab === 'usage'     && <UsageContent     session={session} />}
           {activeTab === 'monitor'   && <MonitorView      session={session} />}
         </main>
       </div>

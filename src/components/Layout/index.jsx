@@ -18,6 +18,8 @@ import { ITEM_TYPE_LABELS, ITEM_TYPE_SHORT, ORE_COLORS, ORE_IMAGES, getOreName, 
 import { frameCount, WAITING_FRAMES, PROCESSING_FRAMES, SUCCESS_FRAMES, FAIL_FRAMES, ALL_FRAMES } from '../../constants/frames';
 import { useLang } from '../../contexts/LangContext';
 import { trackEvent } from '../../utils/analytics';
+import { recordRefine, recordAction } from '../../utils/usageStats';
+import UsageStats from '../UsageStats';
 
 // ค้นไอเทมจาก ID ผ่าน serverless proxy /api/item (ซ่อน divine-pride API key ไว้ฝั่ง server)
 
@@ -199,6 +201,8 @@ const Container = () => {
 
   const handleRefine = () => {
     if (isPlaying) return;
+    // นับยอดรวมการใช้งานเว็บ (social proof) — ทุกครั้งที่ตี รวม auto, 1 ครั้ง = ใช้แร่ 1 ก้อน
+    recordRefine();
     // track เฉพาะกดตีเอง (auto นับครั้งเดียวตอน auto_start ไม่งั้น event ท่วม)
     if (!autoRunning) {
       trackEvent('refine_attempt', {
@@ -395,6 +399,7 @@ const Container = () => {
   const handleStartAuto = () => {
     if (autoRunning || isPlaying) return;
     if (autoStart >= autoTarget) return;
+    recordAction('auto');
     trackEvent('auto_start', {
       item_type: itemType,
       start: autoStart,
@@ -640,6 +645,7 @@ const Container = () => {
       {/* Hero Banner + ปุ่มเปลี่ยนภาษา ซ้อนมุมขวาบน (ตำแหน่งมาตรฐานของ language switch) */}
       <div className="relative">
         <HeroBanner />
+        <UsageStats />
         <div
           role="group"
           aria-label={t('lang_toggle_label')}

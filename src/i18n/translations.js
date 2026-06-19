@@ -204,6 +204,12 @@ export const TRANSLATIONS = {
     seo_title: 'จำลองตีบวก Ragnarok Online GGT Class 4 | RO Refine Simulator',
     seo_description: 'เว็บจำลองระบบตีบวก (refine) ของ Ragnarok Online GGT Class 4 คำนวณอัตราสำเร็จแต่ละระดับ วางแผนใช้หิน HD / Enriched / BSB และโหมด Auto ตีบวกถึงเป้าหมาย ฟรี ใช้งานง่าย',
     seo_og_description: 'จำลองระบบตีบวก Ragnarok Online GGT Class 4 คำนวณอัตราสำเร็จ วางแผนใช้หิน HD / Enriched / BSB และโหมด Auto ตีบวก',
+
+    // Usage stats (social proof)
+    usage_stats_title: 'สถิติการใช้งานเว็บ',
+    usage_refine: 'ตีบวกไปแล้ว (ครั้ง)',
+    usage_stone: 'ใช้แร่ไปแล้ว (ก้อน)',
+    usage_today: 'คนใช้วันนี้',
   },
 
   en: {
@@ -411,5 +417,11 @@ export const TRANSLATIONS = {
     seo_title: 'Ragnarok Online GGT Class 4 Refine Simulator | RO Refine Simulator',
     seo_description: 'Free refine simulator for Ragnarok Online GGT Class 4. Calculate success rates for every refine level, plan HD / Enriched / BSB stones, and auto-refine to your target level. Free and easy to use.',
     seo_og_description: 'Ragnarok Online GGT Class 4 refine simulator — success rates, HD / Enriched / BSB stone planning, and auto refine mode.',
+
+    // Usage stats (social proof)
+    usage_stats_title: 'Website usage stats',
+    usage_refine: 'Refines simulated',
+    usage_stone: 'Ores used',
+    usage_today: 'Users today',
   },
 };
