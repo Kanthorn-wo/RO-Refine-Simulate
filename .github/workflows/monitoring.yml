@@ -59,6 +59,13 @@ jobs:
             echo "ℹ️ ไม่มีการเปลี่ยนแปลงของ report — ข้ามการ commit"
           else
             git commit -m "chore(monitor): daily report $(date -u +%Y-%m-%d)"
-            git push
-            echo "✅ commit report สำเร็จ"
+            # กัน race: ถ้ามี push อื่นแทรกระหว่าง run (push คนหรือ workflow อื่น)
+            # ให้ rebase report ทับ remote ล่าสุดแล้วลองใหม่ (reports/ ไม่ชนกับโค้ด)
+            for i in 1 2 3 4 5; do
+              git pull --rebase origin master && git push && { echo "✅ commit report สำเร็จ"; exit 0; }
+              echo "⚠️ push ชน remote — rebase แล้วลองใหม่ ($i/5)"
+              sleep 5
+            done
+            echo "❌ push report ไม่สำเร็จหลังลอง 5 ครั้ง"
+            exit 1
           fi
