@@ -228,6 +228,18 @@ function ChartTooltip({ active, payload, label }) {
   )
 }
 
+function LiveBadge() {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
+      <span className="relative flex h-2 w-2">
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+      </span>
+      Live
+    </span>
+  )
+}
+
 function Skeleton({ className = '' }) {
   return <div className={`animate-pulse rounded-2xl bg-white/[0.04] ${className}`} />
 }
@@ -536,15 +548,7 @@ function ActivityFeed() {
       subtitle="เรียลไทม์ — กิจกรรมใหม่เด้งทันทีผ่าน Supabase Realtime"
       action={
         <div className="flex items-center gap-2">
-          {live && (
-            <span className="inline-flex items-center gap-1.5 text-xs text-emerald-400">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-              </span>
-              Live
-            </span>
-          )}
+          {live && <LiveBadge />}
           <button onClick={load} disabled={refreshing}
             className="inline-flex items-center gap-1 rounded-md border border-white/10 bg-white/[0.03] px-2 py-1 text-xs text-slate-400 transition-colors hover:text-slate-200 disabled:opacity-50">
             {refreshing
@@ -650,31 +654,36 @@ function ActivityFeed() {
   )
 }
 
-/* ─── Usage stats (social proof): KPI + กราฟรายวัน + calendar + toggle ─── */
-const USAGE_METRICS = [
-  { id: 'refine',           label: 'ตีบวก',     color: '#818cf8' },
-  { id: 'stone',            label: 'ใช้แร่',     color: '#34d399' },
-  { id: 'bsb',              label: 'ใช้ BSB',    color: '#fbbf24' },
-  { id: 'auto',             label: 'เริ่ม Auto', color: '#f59e0b' },
-  { id: 'simulate',         label: 'รันจำลอง',   color: '#4ade80' },
+/* ─── Usage: 3 sub-tabs ─── */
+const TRAFFIC_METRICS = [
   { id: 'visits',           label: 'คนเข้าเว็บ', color: '#f472b6' },
   { id: 'visits_new',       label: 'คนใหม่',     color: '#22d3ee' },
   { id: 'visits_returning', label: 'กลับมาซ้ำ',  color: '#a78bfa' },
+  { id: 'auto',             label: 'เริ่ม Auto', color: '#f59e0b' },
+  { id: 'simulate',         label: 'รันจำลอง',   color: '#4ade80' },
 ]
+
+const USAGE_SUB_TABS = [
+  { id: 'traffic',  label: 'ทราฟฟิก',    sub: 'ผู้เข้าชม / กิจกรรม' },
+  { id: 'refine',   label: 'การตีบวก',   sub: 'สถิติ / ประวัติ' },
+  { id: 'settings', label: 'ตั้งค่า',    sub: 'การแสดงผลหน้าเว็บ' },
+]
+
 const usageToday = () => new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10)
 const usageDaysAgo = (n) => new Date(Date.now() + 7 * 3600 * 1000 - n * 86400000).toISOString().slice(0, 10)
 
 function UsageContent({ session }) {
+  const [usageTab, setUsageTab] = useState('traffic')
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [savingKey, setSavingKey] = useState(null)
   const [from, setFrom] = useState(usageDaysAgo(29))
   const [to, setTo] = useState(usageToday())
-  const [metric, setMetric] = useState('refine')
+  const [metric, setMetric] = useState('visits')
   const [reloadTick, setReloadTick] = useState(0)
   const refresh = () => setReloadTick((t) => t + 1)
-  const online = useOnlineCount({ track: false }) // ไม่นับ admin เอง
+  const online = useOnlineCount({ track: false })
 
   useEffect(() => {
     let cancelled = false
@@ -695,7 +704,6 @@ function UsageContent({ session }) {
     return () => { cancelled = true }
   }, [from, to, reloadTick])
 
-  // toggle feature flag ใด ๆ (show_stats / show_online) — key = ค่าใน DB, field = ค่าใน payload
   const toggleSetting = async (key, field) => {
     if (!data || savingKey) return
     const next = !data[field]
@@ -721,215 +729,224 @@ function UsageContent({ session }) {
 
   const today = usageToday()
   const daily = data?.daily || []
-  const activeMetric = USAGE_METRICS.find((m) => m.id === metric) || USAGE_METRICS[0]
+  const activeMetric = TRAFFIC_METRICS.find((m) => m.id === metric) || TRAFFIC_METRICS[0]
   const rangeTotal = daily.reduce((s, d) => s + (d[metric] || 0), 0)
   const setQuickRange = (n) => { setFrom(usageDaysAgo(n - 1)); setTo(usageToday()) }
-  // insight: ตีเฉลี่ยต่อผู้ใช้ไม่ซ้ำ (all-time)
-  const avgPerUser = data && data.totalVisitors ? data.refine / data.totalVisitors : 0
-  // สัดส่วนคนใหม่ vs กลับมาซ้ำ ในช่วงที่เลือก
   const rangeNew = daily.reduce((s, d) => s + (d.visits_new || 0), 0)
   const rangeReturning = daily.reduce((s, d) => s + (d.visits_returning || 0), 0)
   const rangeVisits = rangeNew + rangeReturning
   const newPct = rangeVisits ? Math.round((rangeNew / rangeVisits) * 100) : 0
 
-  if (loading && !data) return <LoadingState />
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h2 className="text-base font-semibold text-slate-200">ภาพรวมการใช้งาน</h2>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-              </span>
-              <span className="tabular-nums">{fmt(online)}</span> ออนไลน์
-            </span>
-          </div>
-          <p className="text-xs text-slate-500">รีเฟรชเพื่อโหลดตัวเลขล่าสุด (กิจกรรมล่าสุดอัปเดตเองอยู่แล้ว)</p>
-        </div>
+  const headerBar = (
+    <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center gap-2.5 flex-wrap">
+        <h2 className="text-base font-semibold text-slate-200">Usage</h2>
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+          </span>
+          <span className="tabular-nums">{fmt(online)}</span> ออนไลน์
+        </span>
+      </div>
+      {usageTab !== 'refine' && (
         <button onClick={refresh} disabled={loading}
           className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:text-slate-100 disabled:opacity-50">
           {loading
             ? <Spinner size={14} />
             : <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 4v6h-6M1 20v-6h6" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></svg>}
-          รีเฟรชข้อมูล
+          รีเฟรช
         </button>
-      </div>
-
-      {error && (
-        <div className="rounded-xl border border-rose-900/50 bg-rose-950/40 p-3 text-sm text-rose-300">{error}</div>
       )}
+    </div>
+  )
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <KpiCard icon={Icon.session} label="ตีบวกรวม (ครั้ง)" value={fmt(data?.refine)}      color="#818cf8" />
-        <KpiCard icon={Icon.users}   label="ผู้ใช้ไม่ซ้ำทั้งหมด" value={fmt(data?.totalVisitors)} color="#a78bfa" />
-        <KpiCard icon={Icon.eye}     label="เฉลี่ยตี/คน"      value={avgPerUser.toFixed(1)}   color="#34d399" />
-        <KpiCard icon={Icon.session} label="ใช้ BSB รวม"      value={fmt(data?.bsb)}          color="#fbbf24" />
-      </div>
+  // sub-tab pills
+  const subTabs = (
+    <div className="inline-flex rounded-xl border border-white/10 bg-white/[0.03] p-1 gap-0.5">
+      {USAGE_SUB_TABS.map((t) => (
+        <button key={t.id} onClick={() => setUsageTab(t.id)}
+          className={`rounded-lg px-3.5 py-2 text-left transition-all ${
+            usageTab === t.id
+              ? 'bg-indigo-500/20 text-indigo-200'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}>
+          <span className="block text-xs font-semibold leading-tight">{t.label}</span>
+          <span className="block text-[10px] text-slate-500 leading-tight">{t.sub}</span>
+        </button>
+      ))}
+    </div>
+  )
 
-      <div>
-        <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">วันนี้ · {today}</h3>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {[
-            { label: 'ตีบวกวันนี้',     value: data?.refineToday,    color: '#818cf8' },
-            { label: 'ใช้แร่วันนี้',     value: data?.stoneToday,     color: '#34d399' },
-            { label: 'คนเข้าวันนี้',     value: data?.visitsToday,    color: '#f472b6' },
-            { label: 'คนใหม่วันนี้',    value: data?.newToday,       color: '#22d3ee' },
-            { label: 'กลับมาซ้ำวันนี้', value: data?.returningToday, color: '#a78bfa' },
-            { label: 'เริ่ม Auto วันนี้', value: data?.autoToday,    color: '#f59e0b' },
-            { label: 'รันจำลองวันนี้',  value: data?.simToday,       color: '#4ade80' },
-            { label: 'ใช้ BSB วันนี้',   value: data?.bsbToday,       color: '#fbbf24' },
-          ].map((s) => (
-            <div key={s.label} className="rounded-xl border border-white/5 bg-white/[0.03] px-3 py-2.5">
-              <div className="text-lg font-bold tabular-nums" style={{ color: s.color }}>{fmt(s.value)}</div>
-              <div className="mt-0.5 text-[11px] text-slate-500">{s.label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
+  return (
+    <div className="space-y-5">
+      {headerBar}
+      {error && <div className="rounded-xl border border-rose-900/50 bg-rose-950/40 p-3 text-sm text-rose-300">{error}</div>}
+      {subTabs}
 
-      <Panel
-        title="แนวโน้มรายวัน"
-        subtitle={`${from} → ${to} · รวม ${fmt(rangeTotal)} ${activeMetric.label}`}
-        action={
-          <div className="flex flex-wrap items-center gap-1">
-            {[7, 30, 90].map((n) => (
-              <button key={n} onClick={() => setQuickRange(n)}
-                className="rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs font-medium text-slate-400 transition-colors hover:text-slate-200">
-                {n} วัน
-              </button>
-            ))}
-          </div>
-        }
-      >
-        <div className="mb-4 flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 text-xs text-slate-400">
-            <input type="date" value={from} max={to}
-              onChange={(e) => e.target.value && setFrom(e.target.value)}
-              className="rounded-lg border border-white/10 bg-white/[0.03] px-2 py-1 text-slate-200 [color-scheme:dark]" />
-            <span>ถึง</span>
-            <input type="date" value={to} min={from} max={today}
-              onChange={(e) => e.target.value && setTo(e.target.value)}
-              className="rounded-lg border border-white/10 bg-white/[0.03] px-2 py-1 text-slate-200 [color-scheme:dark]" />
-          </div>
-          <div className="inline-flex flex-wrap rounded-lg border border-white/10 bg-white/[0.03] p-0.5">
-            {USAGE_METRICS.map((m) => (
-              <button key={m.id} onClick={() => setMetric(m.id)}
-                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${metric === m.id ? 'text-white' : 'text-slate-400 hover:text-slate-200'}`}
-                style={metric === m.id ? { background: `${m.color}33` } : undefined}>
-                {m.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {daily.length === 0 ? (
-          <p className="py-12 text-center text-sm text-slate-500">ไม่มีข้อมูลในช่วงนี้</p>
-        ) : (
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={daily} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-              <XAxis dataKey="day" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} minTickGap={24} />
-              <YAxis tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} width={44} allowDecimals={false} />
-              <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
-              <Bar dataKey={metric} name={activeMetric.label} fill={activeMetric.color} radius={[3, 3, 0, 0]} isAnimationActive={false} />
-            </BarChart>
-          </ResponsiveContainer>
-        )}
-      </Panel>
-
-      <Panel
-        title="สรุปรายช่วง"
-        subtitle={`${from} → ${to} · ${daily.length} วัน · คนใหม่ ${newPct}% · กลับมาซ้ำ ${100 - newPct}%`}
-      >
-        {daily.length === 0 ? (
-          <p className="py-8 text-center text-sm text-slate-500">ไม่มีข้อมูลในช่วงนี้</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-white/10 text-left text-xs text-slate-500">
-                  <th className="px-2 py-2 font-medium">ตัวชี้วัด</th>
-                  <th className="px-2 py-2 text-right font-medium">รวมในช่วง</th>
-                  <th className="px-2 py-2 text-right font-medium">เฉลี่ย/วัน</th>
-                </tr>
-              </thead>
-              <tbody>
-                {USAGE_METRICS.map((m) => {
-                  const total = daily.reduce((s, d) => s + (d[m.id] || 0), 0)
-                  const avg = daily.length ? total / daily.length : 0
-                  return (
-                    <tr key={m.id} className="border-b border-white/5 last:border-0">
-                      <td className="px-2 py-2">
-                        <span className="inline-flex items-center gap-2 text-slate-200">
-                          <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: m.color }} />
-                          {m.label}
-                        </span>
-                      </td>
-                      <td className="px-2 py-2 text-right tabular-nums text-slate-200">{fmt(total)}</td>
-                      <td className="px-2 py-2 text-right tabular-nums text-slate-400">{avg.toFixed(1)}</td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Panel>
-
-      <ActivityFeed />
-
-      {/* สถิติการตีบวกแบบละเอียด (leaderboard/breakdown/list) */}
-      <RefineAnalytics session={session} />
-
-      <Panel title="การแสดงผลบนหน้าเว็บ" subtitle="ควบคุมสิ่งที่ผู้เล่นเห็นใต้แบนเนอร์">
-        <div className="space-y-3">
-          {[
-            { key: 'show_stats', field: 'showStats', icon: Icon.eye, title: 'ตัวเลขสถิติรวม', desc: 'แถบ ตีบวก / ใช้แร่ / คนใช้วันนี้ ใต้แบนเนอร์' },
-            { key: 'show_online', field: 'showOnline', icon: Icon.users, title: 'จำนวนคนออนไลน์', desc: 'badge "● N กำลังออนไลน์" แบบเรียลไทม์' },
-          ].map((s) => {
-            const on = !!data?.[s.field]
-            const busy = savingKey === s.key
-            return (
-              <div
-                key={s.key}
-                className={`flex items-center justify-between gap-4 rounded-xl border p-4 transition-colors ${on ? 'border-emerald-500/25 bg-emerald-500/[0.04]' : 'border-white/5 bg-white/[0.02]'}`}
-              >
-                <div className="flex items-start gap-3">
-                  <span
-                    className="grid h-9 w-9 shrink-0 place-items-center rounded-xl transition-colors"
-                    style={{ background: on ? 'rgba(16,185,129,0.14)' : 'rgba(255,255,255,0.05)', color: on ? '#34d399' : '#94a3b8' }}
-                  >
-                    {s.icon({ width: 18, height: 18 })}
-                  </span>
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-sm font-medium text-slate-200">{s.title}</span>
-                      <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${on ? 'bg-emerald-500/15 text-emerald-400' : 'bg-white/5 text-slate-500'}`}>
-                        {on ? 'แสดงอยู่' : 'ซ่อนอยู่'}
-                      </span>
+      {/* ── Traffic ── */}
+      {usageTab === 'traffic' && (
+        <div className="space-y-6">
+          {loading && !data ? <LoadingState /> : (
+            <>
+              {/* KPI วันนี้ */}
+              <div>
+                <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">วันนี้ · {today}</h3>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  {[
+                    { label: 'คนเข้าวันนี้',     value: data?.visitsToday,    color: '#f472b6' },
+                    { label: 'คนใหม่วันนี้',      value: data?.newToday,       color: '#22d3ee' },
+                    { label: 'กลับมาซ้ำวันนี้',   value: data?.returningToday, color: '#a78bfa' },
+                    { label: 'ผู้ใช้ไม่ซ้ำทั้งหมด', value: data?.totalVisitors,  color: '#818cf8' },
+                    { label: 'เริ่ม Auto วันนี้',  value: data?.autoToday,      color: '#f59e0b' },
+                    { label: 'รันจำลองวันนี้',     value: data?.simToday,       color: '#4ade80' },
+                  ].map((s) => (
+                    <div key={s.label} className="rounded-xl border border-white/5 bg-white/[0.03] px-3 py-2.5">
+                      <div className="text-lg font-bold tabular-nums" style={{ color: s.color }}>{fmt(s.value)}</div>
+                      <div className="mt-0.5 text-[11px] text-slate-500">{s.label}</div>
                     </div>
-                    <p className="mt-0.5 text-xs text-slate-500">{s.desc}</p>
+                  ))}
+                </div>
+              </div>
+
+              {/* กราฟแนวโน้ม ผู้เข้าชม */}
+              <Panel
+                title="แนวโน้มผู้เข้าชม"
+                subtitle={`${from} → ${to} · รวม ${fmt(rangeTotal)} ${activeMetric.label}`}
+                action={
+                  <div className="flex flex-wrap items-center gap-1">
+                    {[7, 30, 90].map((n) => (
+                      <button key={n} onClick={() => setQuickRange(n)}
+                        className="rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs font-medium text-slate-400 transition-colors hover:text-slate-200">
+                        {n} วัน
+                      </button>
+                    ))}
+                  </div>
+                }
+              >
+                <div className="mb-3 flex flex-wrap items-center gap-2">
+                  <div className="flex items-center gap-2 text-xs text-slate-400">
+                    <input type="date" value={from} max={to}
+                      onChange={(e) => e.target.value && setFrom(e.target.value)}
+                      className="rounded-lg border border-white/10 bg-white/[0.03] px-2 py-1 text-slate-200 [color-scheme:dark]" />
+                    <span>ถึง</span>
+                    <input type="date" value={to} min={from} max={today}
+                      onChange={(e) => e.target.value && setTo(e.target.value)}
+                      className="rounded-lg border border-white/10 bg-white/[0.03] px-2 py-1 text-slate-200 [color-scheme:dark]" />
+                  </div>
+                  <div className="inline-flex flex-wrap rounded-lg border border-white/10 bg-white/[0.03] p-0.5">
+                    {TRAFFIC_METRICS.map((m) => (
+                      <button key={m.id} onClick={() => setMetric(m.id)}
+                        className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${metric === m.id ? 'text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                        style={metric === m.id ? { background: `${m.color}33` } : undefined}>
+                        {m.label}
+                      </button>
+                    ))}
                   </div>
                 </div>
-                <Toggle
-                  checked={on}
-                  onChange={() => toggleSetting(s.key, s.field)}
-                  disabled={busy}
-                  activeColor="bg-emerald-500"
-                  ariaLabel={s.title}
-                />
-              </div>
-            )
-          })}
+                {daily.length === 0 ? (
+                  <p className="py-12 text-center text-sm text-slate-500">ไม่มีข้อมูลในช่วงนี้</p>
+                ) : (
+                  <ResponsiveContainer width="100%" height={280}>
+                    <BarChart data={daily} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                      <XAxis dataKey="day" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} minTickGap={24} />
+                      <YAxis tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} width={44} allowDecimals={false} />
+                      <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
+                      <Bar dataKey={metric} name={activeMetric.label} fill={activeMetric.color} radius={[3, 3, 0, 0]} isAnimationActive={false} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+                {daily.length > 0 && (
+                  <p className="mt-2 text-xs text-slate-500">
+                    {daily.length} วัน · คนใหม่ {newPct}% · กลับมาซ้ำ {100 - newPct}%
+                  </p>
+                )}
+              </Panel>
+
+              <ActivityFeed />
+            </>
+          )}
         </div>
-        <p className="mt-3 text-xs text-slate-500">
-          ปิดไว้ได้ตอนตัวเลขยังน้อย แล้วค่อยเปิดเมื่อดูน่าเชื่อถือ — การเปลี่ยนมีผลกับผู้เล่นภายใน ~1 นาที (cache)
-        </p>
-      </Panel>
+      )}
+
+      {/* ── การตีบวก ── */}
+      {usageTab === 'refine' && (
+        <RefineAnalytics session={session} />
+      )}
+
+      {/* ── ตั้งค่า ── */}
+      {usageTab === 'settings' && (
+        <Panel title="การแสดงผลบนหน้าเว็บ" subtitle="ควบคุมสิ่งที่ผู้เล่นเห็นใต้แบนเนอร์">
+          {loading && !data ? (
+            <div className="space-y-3">{Array.from({ length: 2 }).map((_, i) => <div key={i} className="h-16 animate-pulse rounded-xl bg-white/[0.04]" />)}</div>
+          ) : (
+            <div className="space-y-3">
+              {/* ── ตัวเลขสถิติ ── */}
+              {[{ key: 'show_stats', field: 'showStats', icon: Icon.eye, title: 'ตัวเลขสถิติรวม', desc: 'แถบ ตีบวก / ใช้แร่ / คนใช้วันนี้ ใต้แบนเนอร์', onLabel: 'แสดงอยู่', offLabel: 'ซ่อนอยู่' }].map((s) => {
+                const on = !!data?.[s.field]
+                return (
+                  <div key={s.key} className={`flex items-center justify-between gap-4 rounded-xl border p-4 transition-colors ${on ? 'border-emerald-500/25 bg-emerald-500/[0.04]' : 'border-white/5 bg-white/[0.02]'}`}>
+                    <div className="flex items-start gap-3">
+                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl transition-colors"
+                        style={{ background: on ? 'rgba(16,185,129,0.14)' : 'rgba(255,255,255,0.05)', color: on ? '#34d399' : '#94a3b8' }}>
+                        {s.icon({ width: 18, height: 18 })}
+                      </span>
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-sm font-medium text-slate-200">{s.title}</span>
+                          <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${on ? 'bg-emerald-500/15 text-emerald-400' : 'bg-white/5 text-slate-500'}`}>{on ? s.onLabel : s.offLabel}</span>
+                        </div>
+                        <p className="mt-0.5 text-xs text-slate-500">{s.desc}</p>
+                      </div>
+                    </div>
+                    <Toggle checked={on} onChange={() => toggleSetting(s.key, s.field)} disabled={savingKey === s.key} activeColor="bg-emerald-500" ariaLabel={s.title} />
+                  </div>
+                )
+              })}
+
+              {/* ── กลุ่ม: คนออนไลน์ ── */}
+              {(() => {
+                const anyOn = !!(data?.trackOnline || data?.showOnline)
+                return (
+              <div className={`rounded-xl border transition-colors ${anyOn ? 'border-emerald-500/25' : 'border-white/5'} bg-white/[0.02]`}>
+                {/* header กลุ่ม */}
+                <div className="flex items-center gap-2.5 border-b border-white/5 px-4 py-3">
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-white/5 text-slate-400">
+                    {Icon.users({ width: 15, height: 15 })}
+                  </span>
+                  <span className="text-sm font-medium text-slate-300">คนออนไลน์</span>
+                </div>
+                {/* sub-toggles */}
+                {[
+                  { key: 'track_online', field: 'trackOnline', title: 'ระบบนับ (WebSocket)', desc: 'เปิด Presence — ปิด = ไม่มีข้อมูลออนไลน์เลย', onLabel: 'ทำงาน', offLabel: 'ปิดอยู่' },
+                  { key: 'show_online',  field: 'showOnline',  title: 'แสดงให้ผู้เล่นเห็น',   desc: 'badge "● N กำลังออนไลน์" ในหน้าเว็บ',         onLabel: 'แสดงอยู่', offLabel: 'ซ่อนอยู่' },
+                ].map((s, idx, arr) => {
+                  const on = !!data?.[s.field]
+                  return (
+                    <div key={s.key}
+                      className={`flex items-center justify-between gap-4 px-4 py-3 transition-colors ${on ? 'bg-emerald-500/[0.04]' : ''} ${idx < arr.length - 1 ? 'border-b border-white/5' : ''}`}>
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-sm text-slate-200">{s.title}</span>
+                          <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${on ? 'bg-emerald-500/15 text-emerald-400' : 'bg-white/5 text-slate-500'}`}>{on ? s.onLabel : s.offLabel}</span>
+                        </div>
+                        <p className="mt-0.5 text-xs text-slate-500">{s.desc}</p>
+                      </div>
+                      <Toggle checked={on} onChange={() => toggleSetting(s.key, s.field)} disabled={savingKey === s.key} activeColor="bg-emerald-500" ariaLabel={s.title} />
+                    </div>
+                  )
+                })}
+              </div>
+                )
+              })()}
+            </div>
+          )}
+          <p className="mt-3 text-xs text-slate-500">
+            ปิดไว้ได้ตอนตัวเลขยังน้อย แล้วค่อยเปิดเมื่อดูน่าเชื่อถือ — การเปลี่ยนมีผลกับผู้เล่นภายใน ~1 นาที (cache)
+          </p>
+        </Panel>
+      )}
     </div>
   )
 }

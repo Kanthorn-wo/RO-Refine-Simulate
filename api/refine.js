@@ -1,12 +1,13 @@
-// Vercel Serverless: Refine analytics
-//   POST → บันทึก batch รายละเอียดการตีบวก (public, anonymous) ผ่าน RPC record_refine_batch
-//   GET  → อ่าน leaderboard + breakdown + detail ล่าสุด (เฉพาะเจ้าของเว็บ — verify token + allowlist)
+// Vercel Serverless: Refine analytics v2
+//   POST → บันทึก batch (public, anonymous) ผ่าน RPC record_refine_batch
+//   GET  → อ่านสถิติ (เฉพาะเจ้าของ) + pagination + level×result breakdown
 // ENV: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_ANON_KEY, DASHBOARD_ALLOWED_EMAILS
 
 const ITEM_TYPES = ['weapon1', 'weapon2', 'weapon3', 'weapon4', 'weapon5', 'armor1', 'armor2']
 const STONES = ['normal', 'enriched', 'hd']
 const RESULTS = ['success', 'fail', 'lost', 'drop']
-const MAX_ROWS = 200 // cap ต่อ request กัน abuse
+const MODES = ['manual', 'auto']
+const MAX_ROWS = 200
 
 function sbFetch(pathAndQuery, init) {
   const base = process.env.SUPABASE_URL
@@ -17,6 +18,7 @@ function sbFetch(pathAndQuery, init) {
       apikey: key,
       Authorization: `Bearer ${key}`,
       'Content-Type': 'application/json',
+      Prefer: 'count=exact',
       ...(init && init.headers),
     },
   })
@@ -33,7 +35,6 @@ async function readBody(req) {
   })
 }
 
-// sanitize 1 แถว — คืน null ถ้าไม่ผ่าน (ทิ้งทั้งแถว กันข้อมูลขยะ)
 function cleanRow(r) {
   if (!r || typeof r !== 'object') return null
   if (!ITEM_TYPES.includes(r.item_type)) return null
@@ -41,12 +42,38 @@ function cleanRow(r) {
   if (!RESULTS.includes(r.result)) return null
   const level = Math.floor(Number(r.level))
   if (!Number.isFinite(level) || level < 0 || level > 25) return null
+
   let itemId = null
   if (r.item_id != null) {
     const n = Math.floor(Number(r.item_id))
     if (Number.isFinite(n) && n > 0 && n < 100000000) itemId = n
   }
-  return { item_type: r.item_type, item_id: itemId, level, stone: r.stone, bsb: !!r.bsb, result: r.result }
+  let refineAfter = null
+  if (r.refine_after != null) {
+    const n = Math.floor(Number(r.refine_after))
+    if (Number.isFinite(n) && n >= 0 && n <= 25) refineAfter = n
+  }
+
+  let rollPct = null
+  if (r.roll_pct != null) {
+    const n = parseFloat(r.roll_pct)
+    if (Number.isFinite(n) && n >= 0 && n <= 100) rollPct = Math.round(n * 100) / 100
+  }
+
+  return {
+    item_type:    r.item_type,
+    item_id:      itemId,
+    item_name:    typeof r.item_name === 'string' ? r.item_name.slice(0, 120) : null,
+    level,
+    refine_after: refineAfter,
+    stone:        r.stone,
+    bsb:          !!r.bsb,
+    bsb_amount:   Math.min(999, Math.max(0, Math.floor(Number(r.bsb_amount) || 0))),
+    result:       r.result,
+    event_buff:   !!r.event_buff,
+    mode:         MODES.includes(r.mode) ? r.mode : null,
+    roll_pct:     rollPct,
+  }
 }
 
 async function getUser(req) {
@@ -59,9 +86,7 @@ async function getUser(req) {
     })
     if (!r.ok) return null
     return await r.json()
-  } catch {
-    return null
-  }
+  } catch { return null }
 }
 
 function isOwner(user) {
@@ -100,22 +125,74 @@ export default async function handler(req, res) {
     const user = await getUser(req)
     if (!user) return res.status(401).json({ error: 'unauthorized' })
     if (!isOwner(user)) return res.status(403).json({ error: 'ไม่มีสิทธิ์เข้าถึง' })
+
+    // pagination + filter params
+    const url = new URL(req.url || '/', `http://x`)
+    const page  = Math.max(1, parseInt(url.searchParams.get('page')  || '1', 10))
+    const limit = Math.min(100, Math.max(10, parseInt(url.searchParams.get('limit') || '50', 10)))
+    const filterResult    = url.searchParams.get('result') || ''
+    const filterStone     = url.searchParams.get('stone') || ''
+    const filterItemType  = url.searchParams.get('item_type') || ''
+    const filterMode      = url.searchParams.get('mode') || ''
+    const offset = (page - 1) * limit
+
     try {
-      const [lbRes, bdRes, logRes] = await Promise.all([
+      // build log query with optional filters
+      let logQ = 'refine_log?select=id,created_at,vid,item_type,item_id,item_name,level,refine_after,stone,bsb,bsb_amount,result,event_buff,mode,roll_pct&order=created_at.desc'
+      if (RESULTS.includes(filterResult))   logQ += `&result=eq.${filterResult}`
+      if (STONES.includes(filterStone))     logQ += `&stone=eq.${filterStone}`
+      if (ITEM_TYPES.includes(filterItemType)) logQ += `&item_type=eq.${filterItemType}`
+      if (MODES.includes(filterMode))       logQ += `&mode=eq.${filterMode}`
+      logQ += `&offset=${offset}&limit=${limit}`
+
+      const [lbRes, bdRes, logRes, lrRes, dailyRes] = await Promise.all([
         sbFetch('refine_item_stats?select=item_type,item_id,attempts,success,fail&order=attempts.desc&limit=100'),
-        sbFetch('refine_breakdown?select=dim,key,count'),
-        sbFetch('refine_log?select=created_at,vid,item_type,item_id,level,stone,bsb,result&order=created_at.desc&limit=500'),
+        sbFetch('refine_breakdown?select=scope,dim,key,count,success&scope=eq.global'),
+        sbFetch(logQ),
+        // level×result cross-tab จาก ring buffer 2000 รายการล่าสุด
+        sbFetch('refine_log?select=level,result,item_type&order=id.desc&limit=2000'),
+        sbFetch('refine_daily?select=day,dim,key,count,success&order=day.desc&limit=180'),
       ])
-      const leaderboard = lbRes.ok ? await lbRes.json() : []
-      const breakdownRows = bdRes.ok ? await bdRes.json() : []
-      const log = logRes.ok ? await logRes.json() : []
-      // group breakdown เป็น { dim: { key: count } }
+
+      const leaderboard   = lbRes.ok   ? await lbRes.json()   : []
+      const breakdownRows = bdRes.ok   ? await bdRes.json()   : []
+      const log           = logRes.ok  ? await logRes.json()  : []
+      const lrRows        = lrRes.ok   ? await lrRes.json()   : []
+      const dailyRows     = dailyRes.ok ? await dailyRes.json() : []
+
+      // total count จาก Content-Range header (Prefer: count=exact)
+      const cr = logRes.headers?.get?.('content-range') || ''
+      const total = cr ? parseInt(cr.split('/')[1] || '0', 10) || log.length : log.length
+
+      // group breakdown เป็น { dim: { key: { count, success } } }
       const breakdown = {}
       for (const b of breakdownRows) {
-        (breakdown[b.dim] || (breakdown[b.dim] = {}))[b.key] = Number(b.count || 0)
+        if (!breakdown[b.dim]) breakdown[b.dim] = {}
+        breakdown[b.dim][b.key] = { count: Number(b.count || 0), success: Number(b.success || 0) }
       }
+
+      // level×result จาก ring buffer — สำหรับ stacked bar chart
+      const lrMap = {}
+      for (const r of lrRows) {
+        const l = r.level ?? 0
+        const t = r.item_type || ''
+        const isWeapon = t.startsWith('weapon')
+        if (!lrMap[l]) lrMap[l] = { level: l, success: 0, fail: 0, drop: 0, lost: 0, weapon: 0, armor: 0 }
+        lrMap[l][r.result] = (lrMap[l][r.result] || 0) + 1
+        if (isWeapon) lrMap[l].weapon++ ; else lrMap[l].armor++
+      }
+      const levelResult = Object.values(lrMap).sort((a, b) => a.level - b.level)
+
+      // daily trend เป็น { dim: { key: [{ day, count, success }] } }
+      const daily = {}
+      for (const d of dailyRows) {
+        if (!daily[d.dim]) daily[d.dim] = {}
+        if (!daily[d.dim][d.key]) daily[d.dim][d.key] = []
+        daily[d.dim][d.key].push({ day: d.day, count: Number(d.count), success: Number(d.success) })
+      }
+
       res.setHeader('cache-control', 'no-store')
-      return res.status(200).json({ leaderboard, breakdown, log })
+      return res.status(200).json({ leaderboard, breakdown, log, total, page, limit, levelResult, daily })
     } catch {
       return res.status(502).json({ error: 'read failed' })
     }

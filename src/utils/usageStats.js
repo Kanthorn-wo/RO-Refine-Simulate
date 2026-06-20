@@ -51,9 +51,28 @@ function scheduleDetailFlush() {
 }
 
 // เรียกทุกครั้งที่ตีบวก (รวม auto) — เก็บรายละเอียดครบ 1 attempt
-export function recordRefineDetail({ itemType, itemId = null, level, stone, bsb = false, result }) {
+export function recordRefineDetail({
+  itemType, itemId = null, itemName = null,
+  level, refineAfter = null,
+  stone, bsb = false, bsbAmount = 0,
+  result, eventBuff = false, mode = 'manual',
+  rollPct = null,
+}) {
   if (!itemType || !stone || !result) return
-  pendingDetail.push({ item_type: itemType, item_id: itemId, level, stone, bsb: !!bsb, result })
+  pendingDetail.push({
+    item_type:    itemType,
+    item_id:      itemId,
+    item_name:    itemName ?? null,
+    level,
+    refine_after: refineAfter,
+    stone,
+    bsb:          !!bsb,
+    bsb_amount:   bsbAmount || 0,
+    result,
+    event_buff:   !!eventBuff,
+    mode,
+    roll_pct:     rollPct != null ? Math.round(rollPct * 100) / 100 : null,
+  })
   if (pendingDetail.length >= CAP - 10) flushRefineDetail()
   else scheduleDetailFlush()
 }

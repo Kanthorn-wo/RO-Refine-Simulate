@@ -84,7 +84,9 @@ export default function UsageStats() {
   }, [])
 
   const showOnline = !!(data && data.showOnline !== false)
-  const online = useOnlineCount({ track: true, enabled: showOnline })
+  const trackOnline = !!(data && data.trackOnline !== false)
+  // trackOnline คุม WebSocket — showOnline คุมแค่การแสดง card ให้ผู้เล่นเห็น
+  const online = useOnlineCount({ track: true, enabled: trackOnline })
 
   if (!data) return null
 

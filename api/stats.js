@@ -118,7 +118,7 @@ export default async function handler(req, res) {
       const reqs = [
         sbFetch('usage_counters?select=metric,count&metric=in.(refine_total,stone_total,bsb_total)'),
         sbFetch(`usage_daily?select=metric,count&day=eq.${today}&metric=in.(refine,stone,bsb,visits,visits_new,visits_returning,auto,simulate)`),
-        sbFetch('site_settings?select=key,value&key=in.(show_stats,show_online)'),
+        sbFetch('site_settings?select=key,value&key=in.(show_stats,show_online,track_online)'),
         sbFetch('usage_visitors?select=vid&limit=1', { headers: { Prefer: 'count=exact' } }),
       ]
       let dailyIdx = -1
@@ -138,6 +138,8 @@ export default async function handler(req, res) {
       const showStats = showRow ? showRow.value !== false : true // default = แสดง
       const onlineRow = settings.find((x) => x.key === 'show_online')
       const showOnline = onlineRow ? onlineRow.value !== false : true // default = แสดง
+      const trackRow = settings.find((x) => x.key === 'track_online')
+      const trackOnline = trackRow ? trackRow.value !== false : true // default = track
       // จำนวนผู้ใช้ไม่ซ้ำทั้งหมด (all-time) จาก content-range header ของ count=exact
       const visCR = visRes && visRes.ok ? (visRes.headers.get('content-range') || '') : ''
       const totalVisitors = Number((visCR.split('/')[1]) || 0)
@@ -157,6 +159,7 @@ export default async function handler(req, res) {
         totalVisitors,
         showStats,
         showOnline,
+        trackOnline,
       }
 
       if (range) {

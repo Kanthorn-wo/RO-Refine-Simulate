@@ -302,17 +302,23 @@ const Container = () => {
     }]);
     setIsFail(!isSuccess);
 
-    // analytics ละเอียด: เก็บ 1 attempt (itemType/itemId/level/หิน/BSB/ผล) — map resultType → result
+    // analytics ละเอียด: เก็บ 1 attempt ครบทุก field
     recordRefineDetail({
       itemType,
-      itemId: apiItem?.id ?? null,
-      level: stack.length,
-      stone: useEnriched ? 'enriched' : useCash ? 'hd' : 'normal',
-      bsb: canUseBSB,
-      result: resultType === 'success' ? 'success'
-        : resultType === 'item_lost' ? 'lost'
-        : resultType === 'level_drop' ? 'drop'
-        : 'fail',
+      itemId:      apiItem?.id ?? null,
+      itemName:    apiItem?.name ?? null,
+      level:       stack.length,
+      refineAfter: newStack.length,
+      stone:       useEnriched ? 'enriched' : useCash ? 'hd' : 'normal',
+      bsb:         canUseBSB,
+      bsbAmount:   canUseBSB ? bsbUsed : 0,
+      result:      resultType === 'success'    ? 'success'
+                 : resultType === 'item_lost'  ? 'lost'
+                 : resultType === 'level_drop' ? 'drop'
+                 : 'fail',
+      eventBuff:   isEventRate,
+      mode:        autoRunning ? 'auto' : 'manual',
+      rollPct:     rollData?.rollPct ?? null,
     });
 
     if (playFailSound) {

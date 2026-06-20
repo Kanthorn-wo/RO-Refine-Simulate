@@ -4,7 +4,7 @@
 // verify Supabase token + เช็ค email ใน DASHBOARD_ALLOWED_EMAILS (เหมือน api/ga.js)
 // ENV: SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, DASHBOARD_ALLOWED_EMAILS
 
-const ALLOWED_KEYS = ['show_stats', 'show_online']
+const ALLOWED_KEYS = ['show_stats', 'show_online', 'track_online']
 
 async function getUser(req) {
   const auth = req.headers.authorization || ''
