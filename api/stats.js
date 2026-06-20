@@ -118,13 +118,13 @@ export default async function handler(req, res) {
       const reqs = [
         sbFetch('usage_counters?select=metric,count&metric=in.(refine_total,stone_total,bsb_total)'),
         sbFetch(`usage_daily?select=metric,count&day=eq.${today}&metric=in.(refine,stone,bsb,visits,visits_new,visits_returning,auto,simulate)`),
-        sbFetch('site_settings?select=key,value&key=eq.show_stats'),
+        sbFetch('site_settings?select=key,value&key=in.(show_stats,show_online)'),
         sbFetch('usage_visitors?select=vid&limit=1', { headers: { Prefer: 'count=exact' } }),
       ]
       let dailyIdx = -1
       let eventsIdx = -1
       if (range) { dailyIdx = reqs.length; reqs.push(sbFetch(`usage_daily?select=day,metric,count&day=gte.${range.from}&day=lte.${range.to}&order=day`)) }
-      if (evN)   { eventsIdx = reqs.length; reqs.push(sbFetch(`usage_events?select=created_at,type,count,vid&order=created_at.desc&limit=${evN}`)) }
+      if (evN)   { eventsIdx = reqs.length; reqs.push(sbFetch(`usage_events?select=created_at,type,count,vid,visitor_status&order=created_at.desc&limit=${evN}`)) }
       const results = await Promise.all(reqs)
       const [cRes, vRes, sRes, visRes] = results
       const dRes = dailyIdx >= 0 ? results[dailyIdx] : null
@@ -136,6 +136,8 @@ export default async function handler(req, res) {
       const todayOf = (m) => Number((todayRows.find((x) => x.metric === m) || {}).count || 0)
       const showRow = settings.find((x) => x.key === 'show_stats')
       const showStats = showRow ? showRow.value !== false : true // default = แสดง
+      const onlineRow = settings.find((x) => x.key === 'show_online')
+      const showOnline = onlineRow ? onlineRow.value !== false : true // default = แสดง
       // จำนวนผู้ใช้ไม่ซ้ำทั้งหมด (all-time) จาก content-range header ของ count=exact
       const visCR = visRes && visRes.ok ? (visRes.headers.get('content-range') || '') : ''
       const totalVisitors = Number((visCR.split('/')[1]) || 0)
@@ -154,6 +156,7 @@ export default async function handler(req, res) {
         simToday: todayOf('simulate'),
         totalVisitors,
         showStats,
+        showOnline,
       }
 
       if (range) {
@@ -181,7 +184,7 @@ export default async function handler(req, res) {
 
       if (eventsIdx >= 0) {
         const rows = eRes && eRes.ok ? await eRes.json() : []
-        payload.events = rows.map((r) => ({ at: r.created_at, type: r.type, count: Number(r.count || 1), vid: r.vid || null }))
+        payload.events = rows.map((r) => ({ at: r.created_at, type: r.type, count: Number(r.count || 1), vid: r.vid || null, status: r.visitor_status || null }))
       }
 
       // ขอ events (feed) = อยาก realtime → ไม่ cache; อย่างอื่น cache 60 วิ
@@ -207,8 +210,17 @@ export default async function handler(req, res) {
       const vid = typeof body.vid === 'string' && /^[\w-]{8,64}$/.test(body.vid) ? body.vid : null
 
       // visit: ถ้ามี vid ใช้ record_visit (แยกคนใหม่/กลับมาซ้ำ), ไม่มีก็นับรวมเฉย ๆ
+      // เช็คก่อน recordVisit จะสร้าง row: ไม่เคยมี = 'new', มีแล้ว = 'returning' (เก็บลง event เพื่อโชว์ใน feed)
+      let visitorStatus = null
       if (body.visit) {
-        tasks.push(vid ? recordVisit(vid, today) : bumpDaily(today, 'visits', 1))
+        if (vid) {
+          const vr = await sbFetch(`usage_visitors?select=vid&vid=eq.${encodeURIComponent(vid)}&limit=1`)
+          const existed = vr.ok ? ((await vr.json()).length > 0) : false
+          visitorStatus = existed ? 'returning' : 'new'
+          tasks.push(recordVisit(vid, today))
+        } else {
+          tasks.push(bumpDaily(today, 'visits', 1))
+        }
       }
 
       // discrete action event (auto / simulate)
@@ -218,7 +230,7 @@ export default async function handler(req, res) {
       // activity feed: 1 event ต่อ 1 batch (ตี = รวบทั้ง batch กัน row บวมจาก auto) — แนบ vid ของผู้ใช้
       const events = []
       if (refine) events.push({ type: 'refine', count: refine, vid })
-      if (body.visit) events.push({ type: 'visit', count: 1, vid })
+      if (body.visit) events.push({ type: 'visit', count: 1, vid, visitor_status: visitorStatus })
       if (action) events.push({ type: action, count: 1, vid })
       if (events.length) {
         tasks.push(sbFetch('usage_events', {

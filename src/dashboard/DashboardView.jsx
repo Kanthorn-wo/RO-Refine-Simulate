@@ -4,7 +4,9 @@ import {
   PieChart, Pie, XAxis, YAxis, CartesianGrid, Tooltip,
 } from 'recharts'
 import { supabase } from '../lib/supabase'
+import { useOnlineCount } from '../utils/useOnlineCount'
 import MonitorView from './MonitorView'
+import RefineAnalytics from './RefineAnalytics'
 import Toggle from '../components/Toggle'
 
 const ACCENT = '#818cf8'
@@ -491,7 +493,7 @@ function ActivityFeed() {
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'usage_events' }, (payload) => {
         if (!mountedRef.current) return
         const r = payload.new
-        const ev = { at: r.created_at, type: r.type, count: Number(r.count || 1), vid: r.vid || null }
+        const ev = { at: r.created_at, type: r.type, count: Number(r.count || 1), vid: r.vid || null, status: r.visitor_status || null }
         setEvents((prev) => [ev, ...(prev || [])].slice(0, 200))
       })
       .subscribe((status) => { if (mountedRef.current) setLive(status === 'SUBSCRIBED') })
@@ -604,6 +606,11 @@ function ActivityFeed() {
                         <span className="inline-flex items-center gap-2 text-slate-200">
                           <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: meta.dot }} />
                           <span className="truncate">{meta.label}</span>
+                          {ev.type === 'visit' && ev.status && (
+                            <span className={ev.status === 'new' ? 'shrink-0 text-xs text-cyan-400' : 'shrink-0 text-xs text-violet-400'}>
+                              ({ev.status === 'new' ? 'คนใหม่' : 'คนเก่า'})
+                            </span>
+                          )}
                         </span>
                       </td>
                       <td className="px-2 py-2 font-mono text-xs text-slate-400">
@@ -661,12 +668,13 @@ function UsageContent({ session }) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [saving, setSaving] = useState(false)
+  const [savingKey, setSavingKey] = useState(null)
   const [from, setFrom] = useState(usageDaysAgo(29))
   const [to, setTo] = useState(usageToday())
   const [metric, setMetric] = useState('refine')
   const [reloadTick, setReloadTick] = useState(0)
   const refresh = () => setReloadTick((t) => t + 1)
+  const online = useOnlineCount({ track: false }) // ไม่นับ admin เอง
 
   useEffect(() => {
     let cancelled = false
@@ -687,26 +695,27 @@ function UsageContent({ session }) {
     return () => { cancelled = true }
   }, [from, to, reloadTick])
 
-  const toggleShow = async () => {
-    if (!data || saving) return
-    const next = !data.showStats
-    setSaving(true); setError('')
+  // toggle feature flag ใด ๆ (show_stats / show_online) — key = ค่าใน DB, field = ค่าใน payload
+  const toggleSetting = async (key, field) => {
+    if (!data || savingKey) return
+    const next = !data[field]
+    setSavingKey(key); setError('')
     try {
       const token = session?.access_token
       const res = await fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: JSON.stringify({ key: 'show_stats', value: next }),
+        body: JSON.stringify({ key, value: next }),
       })
       if (!res.ok) {
         const b = await res.json().catch(() => ({}))
         throw new Error(b.error || `บันทึกไม่สำเร็จ (${res.status})`)
       }
-      setData((d) => ({ ...d, showStats: next }))
+      setData((d) => ({ ...d, [field]: next }))
     } catch (err) {
       setError(err.message)
     } finally {
-      setSaving(false)
+      setSavingKey(null)
     }
   }
 
@@ -729,7 +738,16 @@ function UsageContent({ session }) {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold text-slate-200">ภาพรวมการใช้งาน</h2>
+          <div className="flex items-center gap-2.5">
+            <h2 className="text-base font-semibold text-slate-200">ภาพรวมการใช้งาน</h2>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              </span>
+              <span className="tabular-nums">{fmt(online)}</span> ออนไลน์
+            </span>
+          </div>
           <p className="text-xs text-slate-500">รีเฟรชเพื่อโหลดตัวเลขล่าสุด (กิจกรรมล่าสุดอัปเดตเองอยู่แล้ว)</p>
         </div>
         <button onClick={refresh} disabled={loading}
@@ -864,24 +882,52 @@ function UsageContent({ session }) {
 
       <ActivityFeed />
 
-      <Panel title="แสดงสถิติบนหน้าเว็บ" subtitle="เปิด/ปิด section ตัวเลขใต้แบนเนอร์ที่ผู้เล่นเห็น">
-        <div className="flex items-center justify-between gap-4">
-          <div className="text-sm text-slate-300">
-            สถานะปัจจุบัน:{' '}
-            <span className={data?.showStats ? 'font-semibold text-emerald-400' : 'font-semibold text-slate-500'}>
-              {data?.showStats ? 'กำลังแสดง' : 'ซ่อนอยู่'}
-            </span>
-          </div>
-          <Toggle
-            checked={!!data?.showStats}
-            onChange={toggleShow}
-            disabled={saving}
-            activeColor="bg-emerald-500"
-            ariaLabel="แสดงสถิติบนหน้าเว็บ"
-          />
+      {/* สถิติการตีบวกแบบละเอียด (leaderboard/breakdown/list) */}
+      <RefineAnalytics session={session} />
+
+      <Panel title="การแสดงผลบนหน้าเว็บ" subtitle="ควบคุมสิ่งที่ผู้เล่นเห็นใต้แบนเนอร์">
+        <div className="space-y-3">
+          {[
+            { key: 'show_stats', field: 'showStats', icon: Icon.eye, title: 'ตัวเลขสถิติรวม', desc: 'แถบ ตีบวก / ใช้แร่ / คนใช้วันนี้ ใต้แบนเนอร์' },
+            { key: 'show_online', field: 'showOnline', icon: Icon.users, title: 'จำนวนคนออนไลน์', desc: 'badge "● N กำลังออนไลน์" แบบเรียลไทม์' },
+          ].map((s) => {
+            const on = !!data?.[s.field]
+            const busy = savingKey === s.key
+            return (
+              <div
+                key={s.key}
+                className={`flex items-center justify-between gap-4 rounded-xl border p-4 transition-colors ${on ? 'border-emerald-500/25 bg-emerald-500/[0.04]' : 'border-white/5 bg-white/[0.02]'}`}
+              >
+                <div className="flex items-start gap-3">
+                  <span
+                    className="grid h-9 w-9 shrink-0 place-items-center rounded-xl transition-colors"
+                    style={{ background: on ? 'rgba(16,185,129,0.14)' : 'rgba(255,255,255,0.05)', color: on ? '#34d399' : '#94a3b8' }}
+                  >
+                    {s.icon({ width: 18, height: 18 })}
+                  </span>
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-sm font-medium text-slate-200">{s.title}</span>
+                      <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${on ? 'bg-emerald-500/15 text-emerald-400' : 'bg-white/5 text-slate-500'}`}>
+                        {on ? 'แสดงอยู่' : 'ซ่อนอยู่'}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 text-xs text-slate-500">{s.desc}</p>
+                  </div>
+                </div>
+                <Toggle
+                  checked={on}
+                  onChange={() => toggleSetting(s.key, s.field)}
+                  disabled={busy}
+                  activeColor="bg-emerald-500"
+                  ariaLabel={s.title}
+                />
+              </div>
+            )
+          })}
         </div>
         <p className="mt-3 text-xs text-slate-500">
-          ปิดไว้ได้ตอนตัวเลขยังน้อย แล้วค่อยเปิดเมื่อดูน่าเชื่อถือ — มีผลกับผู้ใช้ภายใน ~1 นาที (cache)
+          ปิดไว้ได้ตอนตัวเลขยังน้อย แล้วค่อยเปิดเมื่อดูน่าเชื่อถือ — การเปลี่ยนมีผลกับผู้เล่นภายใน ~1 นาที (cache)
         </p>
       </Panel>
     </div>

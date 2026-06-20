@@ -210,6 +210,7 @@ export const TRANSLATIONS = {
     usage_refine: 'ตีบวกไปแล้ว (ครั้ง)',
     usage_stone: 'ใช้แร่ไปแล้ว (ก้อน)',
     usage_today: 'คนใช้วันนี้',
+    online_now: 'กำลังออนไลน์',
   },
 
   en: {
@@ -423,5 +424,6 @@ export const TRANSLATIONS = {
     usage_refine: 'Refines simulated',
     usage_stone: 'Ores used',
     usage_today: 'Users today',
+    online_now: 'online now',
   },
 };

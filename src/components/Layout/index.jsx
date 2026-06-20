@@ -18,7 +18,7 @@ import { ITEM_TYPE_LABELS, ITEM_TYPE_SHORT, ORE_COLORS, ORE_IMAGES, getOreName, 
 import { frameCount, WAITING_FRAMES, PROCESSING_FRAMES, SUCCESS_FRAMES, FAIL_FRAMES, ALL_FRAMES } from '../../constants/frames';
 import { useLang } from '../../contexts/LangContext';
 import { trackEvent } from '../../utils/analytics';
-import { recordRefine, recordAction } from '../../utils/usageStats';
+import { recordRefine, recordAction, recordRefineDetail } from '../../utils/usageStats';
 import UsageStats from '../UsageStats';
 
 // ค้นไอเทมจาก ID ผ่าน serverless proxy /api/item (ซ่อน divine-pride API key ไว้ฝั่ง server)
@@ -301,6 +301,19 @@ const Container = () => {
       oreName: oreName || null,
     }]);
     setIsFail(!isSuccess);
+
+    // analytics ละเอียด: เก็บ 1 attempt (itemType/itemId/level/หิน/BSB/ผล) — map resultType → result
+    recordRefineDetail({
+      itemType,
+      itemId: apiItem?.id ?? null,
+      level: stack.length,
+      stone: useEnriched ? 'enriched' : useCash ? 'hd' : 'normal',
+      bsb: canUseBSB,
+      result: resultType === 'success' ? 'success'
+        : resultType === 'item_lost' ? 'lost'
+        : resultType === 'level_drop' ? 'drop'
+        : 'fail',
+    });
 
     if (playFailSound) {
       const soundEffectFailOnly = new Audio(souneEffectFail);
@@ -645,7 +658,6 @@ const Container = () => {
       {/* Hero Banner + ปุ่มเปลี่ยนภาษา ซ้อนมุมขวาบน (ตำแหน่งมาตรฐานของ language switch) */}
       <div className="relative">
         <HeroBanner />
-        <UsageStats />
         <div
           role="group"
           aria-label={t('lang_toggle_label')}
@@ -677,6 +689,9 @@ const Container = () => {
           </button>
         </div>
       </div>
+
+      {/* กล่องสถิติรวม + คนออนไลน์ (รวมเป็นการ์ดเดียวกัน) — sibling ของ hero ใช้ gap-5 ของ parent */}
+      <UsageStats />
 
       {/* ตารางอัตราสำเร็จ */}
       <Reveal>

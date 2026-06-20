@@ -10,7 +10,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // (production ใช้ Vercel function จริง — plugin นี้ apply: 'serve' เท่านั้น ไม่กระทบ build)
 function devApiPlugin() {
   const apiDir = path.resolve(process.cwd(), 'api')
-  const routes = { '/api/ga': `${apiDir}/ga.js`, '/api/item': `${apiDir}/item.js`, '/api/monitor': `${apiDir}/monitor.js`, '/api/stats': `${apiDir}/stats.js`, '/api/settings': `${apiDir}/settings.js` };
+  const routes = { '/api/ga': `${apiDir}/ga.js`, '/api/item': `${apiDir}/item.js`, '/api/monitor': `${apiDir}/monitor.js`, '/api/stats': `${apiDir}/stats.js`, '/api/settings': `${apiDir}/settings.js`, '/api/refine': `${apiDir}/refine.js` };
   return {
     name: 'dev-api',
     apply: 'serve',
