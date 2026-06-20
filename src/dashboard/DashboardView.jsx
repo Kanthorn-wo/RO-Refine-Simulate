@@ -1047,10 +1047,17 @@ export default function DashboardView({ session }) {
           <button onClick={() => { setSideOpen(true); setDeskOpen(true) }} className={`${deskOpen ? 'lg:hidden' : ''} rounded-lg p-1.5 text-slate-400 hover:bg-white/[0.06] hover:text-slate-200 transition-colors`}>
             <NavIc.menu width={20} height={20} />
           </button>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <h1 className="text-base font-semibold leading-tight text-slate-100">{activeItem?.label}</h1>
             <p className="text-xs text-slate-500">{activeItem?.sub}</p>
           </div>
+          <a href="https://ro-refine.com" target="_blank" rel="noopener noreferrer"
+            className="ml-auto flex shrink-0 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-white/[0.08] hover:text-slate-100">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+            ro-refine.com
+          </a>
         </header>
 
         {/* page content */}
