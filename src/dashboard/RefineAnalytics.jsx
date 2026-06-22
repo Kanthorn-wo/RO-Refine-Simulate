@@ -625,10 +625,14 @@ export default function RefineAnalytics({ session }) {
                         </span>
                       )}
                     </div>
-                    {rate != null && <RollBar rate={rate} rollPct={rollPct} />}
-                    <span className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold"
-                      style={{ background: rm.bg, color: rm.color }}>
-                      {rm.label}{rollPct != null && <span className="opacity-80"> ({rollPct.toFixed(2)}%)</span>}
+                    <span className="flex w-[116px] shrink-0 justify-end">
+                      {rate != null && <RollBar rate={rate} rollPct={rollPct} />}
+                    </span>
+                    <span className="flex w-[128px] shrink-0 justify-center">
+                      <span className="rounded-full px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap"
+                        style={{ background: rm.bg, color: rm.color }}>
+                        {rm.label}{rollPct != null && <span className="opacity-80"> ({rollPct.toFixed(2)}%)</span>}
+                      </span>
                     </span>
                     <span className="hidden w-12 shrink-0 text-right text-[11px] text-slate-500 sm:block">{relTime(r.created_at, now)}</span>
                   </div>
