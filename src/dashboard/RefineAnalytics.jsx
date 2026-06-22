@@ -66,27 +66,22 @@ function RollBar({ rate, rollPct }) {
   const fail = 100 - rate
   const tip = `ติด ${rate}% / แตก ${fail}%${rollPct != null ? ` | ผลออกที่ ${rollPct.toFixed(2)}%` : ''}`
   return (
-    <span className="inline-flex shrink-0 items-center gap-1" title={tip}>
-      {/* เลขฝั่งติด */}
-      <span className="w-7 shrink-0 text-right tabular-nums text-[10px] font-semibold text-emerald-400">{rate}%</span>
-      {/* bar */}
-      <span className="relative flex h-2 w-16 shrink-0 overflow-visible rounded-sm">
-        {/* ฝั่งติด */}
-        <span className="h-full rounded-l-sm bg-emerald-500" style={{ width: `${rate}%` }} />
-        {/* ฝั่งแตก */}
-        <span className="h-full rounded-r-sm bg-rose-500/70" style={{ width: `${fail}%` }} />
+    <span className="inline-flex shrink-0 items-center gap-1.5" title={tip}>
+      <span className="w-6 shrink-0 text-right tabular-nums text-[10px] font-semibold text-emerald-400">{rate}%</span>
+      <span className="relative h-2 w-14 shrink-0">
+        {/* track + fill — overflow-hidden กัน fill ล้นขอบ */}
+        <span className="absolute inset-0 overflow-hidden rounded-sm bg-rose-500/50">
+          <span className="absolute inset-y-0 left-0 rounded-l-sm bg-emerald-500/90" style={{ width: `${rate}%` }} />
+        </span>
         {/* เส้นแบ่งโซน */}
-        <span className="absolute inset-y-[-2px] w-px bg-white/60" style={{ left: `${rate}%` }} />
-        {/* marker ผลออก (สีฟ้า กว้าง 2px ยื่นพ้น bar นิด) */}
+        <span className="absolute inset-y-[-2px] w-px bg-white/50" style={{ left: `${rate}%`, transform: 'translateX(-50%)' }} />
+        {/* marker ผลออก (สีฟ้า ยื่นเกิน bar) */}
         {rollPct != null && (
-          <span
-            className="absolute rounded-full bg-sky-300"
-            style={{ left: `${rollPct}%`, top: -3, bottom: -3, width: 2, transform: 'translateX(-50%)', boxShadow: '0 0 5px #7dd3fc' }}
-          />
+          <span className="absolute rounded-full bg-sky-300"
+            style={{ left: `${rollPct}%`, top: -3, bottom: -3, width: 2, transform: 'translateX(-50%)', boxShadow: '0 0 5px #7dd3fc' }} />
         )}
       </span>
-      {/* เลขฝั่งแตก */}
-      <span className="w-7 shrink-0 tabular-nums text-[10px] font-semibold text-rose-400">{fail}%</span>
+      <span className="w-6 shrink-0 tabular-nums text-[10px] font-semibold text-rose-400">{fail}%</span>
     </span>
   )
 }
