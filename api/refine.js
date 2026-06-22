@@ -134,6 +134,8 @@ export default async function handler(req, res) {
     const filterStone     = url.searchParams.get('stone') || ''
     const filterItemType  = url.searchParams.get('item_type') || ''
     const filterMode      = url.searchParams.get('mode') || ''
+    const rawQ = url.searchParams.get('q') || ''
+    const filterQ = rawQ.trim().replace(/[,()*%]/g, ' ').trim().slice(0, 60)
     const offset = (page - 1) * limit
 
     try {
@@ -143,6 +145,10 @@ export default async function handler(req, res) {
       if (STONES.includes(filterStone))     logQ += `&stone=eq.${filterStone}`
       if (ITEM_TYPES.includes(filterItemType)) logQ += `&item_type=eq.${filterItemType}`
       if (MODES.includes(filterMode))       logQ += `&mode=eq.${filterMode}`
+      if (filterQ) {
+        const enc = encodeURIComponent(`*${filterQ}*`)
+        logQ += `&or=(item_name.ilike.${enc},vid.ilike.${enc})`
+      }
       logQ += `&offset=${offset}&limit=${limit}`
 
       const [lbRes, bdRes, logRes, lrRes, dailyRes] = await Promise.all([

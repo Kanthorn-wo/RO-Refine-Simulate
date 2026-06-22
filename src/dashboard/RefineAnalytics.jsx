@@ -239,8 +239,17 @@ export default function RefineAnalytics({ session }) {
   const [filterStone, setFilterStone] = useState('all')
   const [filterMode, setFilterMode] = useState('all')
   const [page, setPage] = useState(1)
+  const [search, setSearch] = useState('')
+  const [searchQ, setSearchQ] = useState('')
+  const [lbExpanded, setLbExpanded] = useState(false)
   const PAGE_SIZE = 50
   const mountedRef = useRef(true)
+
+  // debounce search input → searchQ (delay 350ms)
+  useEffect(() => {
+    const t = setTimeout(() => setSearchQ(search.trim()), 350)
+    return () => clearTimeout(t)
+  }, [search])
 
   // Realtime subscription — รับ INSERT ใหม่จาก refine_log ทันที
   useEffect(() => {
@@ -250,7 +259,12 @@ export default function RefineAnalytics({ session }) {
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'refine_log' }, (payload) => {
         if (!mountedRef.current) return
         const r = payload.new
+        const qMatch = !searchQ || (
+          (r.item_name && r.item_name.toLowerCase().includes(searchQ.toLowerCase())) ||
+          (r.vid && r.vid.toLowerCase().includes(searchQ.toLowerCase()))
+        )
         const matchFilter =
+          qMatch &&
           (filterResult === 'all' || r.result === filterResult) &&
           (filterStone === 'all' || r.stone === filterStone) &&
           (filterMode === 'all' || r.mode === filterMode)
@@ -273,7 +287,7 @@ export default function RefineAnalytics({ session }) {
       mountedRef.current = false
       supabase.removeChannel(channel)
     }
-  }, [filterResult, filterStone, filterMode, page])
+  }, [filterResult, filterStone, filterMode, searchQ, page])
 
   // ticker อัปเดตเวลา relative ทุก 2 วิ (เหมือน ActivityFeed)
   useEffect(() => {
@@ -289,6 +303,7 @@ export default function RefineAnalytics({ session }) {
       if (filterResult !== 'all') params.set('result', filterResult)
       if (filterStone  !== 'all') params.set('stone',  filterStone)
       if (filterMode   !== 'all') params.set('mode',   filterMode)
+      if (searchQ)                params.set('q',      searchQ)
       const r = await fetch(`/api/refine?${params}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
       if (!r.ok) throw new Error(`โหลดไม่สำเร็จ (${r.status})`)
       const j = await r.json()
@@ -302,7 +317,7 @@ export default function RefineAnalytics({ session }) {
   }
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { load(1) }, [session, tick, filterResult, filterStone, filterMode])
+  useEffect(() => { load(1) }, [session, tick, filterResult, filterStone, filterMode, searchQ])
 
   const leaderboard   = useMemo(() => data?.leaderboard || [], [data])
   const breakdown     = useMemo(() => data?.breakdown || {}, [data])
@@ -459,36 +474,66 @@ export default function RefineAnalytics({ session }) {
       <Panel title="อันดับไอเทมที่ตีบ่อยสุด" subtitle="แยกตามไอเทม — Fixed type หรือค้นจาก divine-pride">
         {leaderboard.length === 0 ? (
           <p className="py-8 text-center text-sm text-slate-500">ยังไม่มีข้อมูล</p>
-        ) : (
-          <div className="space-y-2">
-            {leaderboard.slice(0, 15).map((r, i) => {
-              const sr = pct(r.success, r.attempts)
-              const name = r.item_id && names[r.item_id] ? names[r.item_id].name : TYPE_LABEL[r.item_type] || r.item_type
-              return (
-                <div key={`${r.item_type}-${r.item_id}`}
-                  className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/[0.02] p-2.5">
-                  <span className="w-5 shrink-0 text-center text-sm font-bold tabular-nums text-slate-600">{i + 1}</span>
-                  <ItemIcon id={r.item_id || null} type={r.item_type} size={32} />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <span className="truncate text-sm font-medium text-slate-200">{name}</span>
-                      <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${isWeapon(r.item_type) ? 'bg-rose-500/15 text-rose-300' : 'bg-sky-500/15 text-sky-300'}`}>
-                        {TYPE_SHORT[r.item_type] || ''}
-                      </span>
-                    </div>
-                    <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/5">
-                      <div className="h-full rounded-full bg-emerald-500/70" style={{ width: `${sr}%` }} />
-                    </div>
+        ) : (() => {
+          const renderLbRow = (r, i) => {
+            const sr = pct(r.success, r.attempts)
+            const name = r.item_id && names[r.item_id] ? names[r.item_id].name : TYPE_LABEL[r.item_type] || r.item_type
+            return (
+              <div key={`${r.item_type}-${r.item_id}`}
+                className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/[0.02] p-2.5">
+                <span className="w-5 shrink-0 text-center text-sm font-bold tabular-nums text-slate-600">{i + 1}</span>
+                <ItemIcon id={r.item_id || null} type={r.item_type} size={32} />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="truncate text-sm font-medium text-slate-200">{name}</span>
+                    <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${isWeapon(r.item_type) ? 'bg-rose-500/15 text-rose-300' : 'bg-sky-500/15 text-sky-300'}`}>
+                      {TYPE_SHORT[r.item_type] || ''}
+                    </span>
                   </div>
-                  <div className="shrink-0 text-right">
-                    <div className="text-sm font-bold tabular-nums text-slate-200">{fmt(r.attempts)}</div>
-                    <div className="text-[10px] text-slate-500">ติด {sr}%</div>
+                  <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/5">
+                    <div className="h-full rounded-full bg-emerald-500/70" style={{ width: `${sr}%` }} />
                   </div>
                 </div>
-              )
-            })}
-          </div>
-        )}
+                <div className="shrink-0 text-right">
+                  <div className="text-sm font-bold tabular-nums text-slate-200">{fmt(r.attempts)}</div>
+                  <div className="text-[10px] text-slate-500">ติด {sr}%</div>
+                </div>
+              </div>
+            )
+          }
+          const top3 = leaderboard.slice(0, 3)
+          const rest = leaderboard.slice(3, 15)
+          return (
+            <div className="space-y-2">
+              {top3.map((r, i) => renderLbRow(r, i))}
+              {rest.length > 0 && (
+                <div className={`grid transition-all duration-300 ${lbExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                  <div className="overflow-hidden" style={{ minHeight: 0 }}>
+                    <div className="space-y-2 pt-2">
+                      {rest.map((r, i) => renderLbRow(r, i + 3))}
+                    </div>
+                  </div>
+                </div>
+              )}
+              {rest.length > 0 && (
+                <button onClick={() => setLbExpanded(v => !v)}
+                  className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] py-1.5 text-xs text-slate-400 transition-colors hover:bg-white/[0.06] hover:text-slate-200">
+                  {lbExpanded ? (
+                    <>
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+                      ย่อ
+                    </>
+                  ) : (
+                    <>
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                      ดูเพิ่ม {rest.length} รายการ
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          )
+        })()}
       </Panel>
 
       {/* ── History (paginated) ── */}
@@ -506,6 +551,26 @@ export default function RefineAnalytics({ session }) {
           </div>
         }
       >
+        {/* search box */}
+        <div className="relative mb-3">
+          <svg className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="ค้นชื่อไอเทม / visitor id..."
+            className="w-full rounded-lg border border-white/10 bg-white/[0.03] py-1.5 pl-7 pr-7 text-xs text-slate-200 placeholder-slate-600 outline-none focus:border-white/20 focus:bg-white/[0.05]"
+          />
+          {search && (
+            <button onClick={() => setSearch('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          )}
+        </div>
+
         {/* sub-filters */}
         <div className="mb-3 flex flex-wrap gap-2">
           <div className="inline-flex rounded-lg border border-white/10 bg-white/[0.03] p-0.5">
@@ -531,7 +596,9 @@ export default function RefineAnalytics({ session }) {
             <Spinner /> กำลังโหลด…
           </div>
         ) : log.length === 0 ? (
-          <p className="py-8 text-center text-sm text-slate-500">ไม่มีรายการ</p>
+          <p className="py-8 text-center text-sm text-slate-500">
+            {searchQ ? `ไม่พบรายการที่ตรงกับ "${searchQ}"` : 'ไม่มีรายการ'}
+          </p>
         ) : (
           <>
             <div className="space-y-1.5">
