@@ -591,17 +591,13 @@ export default function RefineAnalytics({ session }) {
           </div>
         </div>
 
-        {loading ? (
-          <div className="flex items-center justify-center gap-2 py-12 text-sm text-slate-500">
-            <Spinner /> กำลังโหลด…
-          </div>
-        ) : log.length === 0 ? (
+        {log.length === 0 ? (
           <p className="py-8 text-center text-sm text-slate-500">
-            {searchQ ? `ไม่พบรายการที่ตรงกับ "${searchQ}"` : 'ไม่มีรายการ'}
+            {loading ? 'กำลังโหลด…' : (searchQ ? `ไม่พบรายการที่ตรงกับ "${searchQ}"` : 'ไม่มีรายการ')}
           </p>
         ) : (
           <>
-            <div className="space-y-1.5">
+            <div className={`space-y-1.5 transition-opacity duration-150 ${loading ? 'opacity-40 pointer-events-none' : 'opacity-100'}`}>
               {log.map((r, i) => {
                 const rm = RESULT_META[r.result] || RESULT_META.fail
                 const sm = STONE_META[r.stone] || STONE_META.normal
