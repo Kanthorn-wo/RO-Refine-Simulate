@@ -83,8 +83,9 @@ export default function UsageStats() {
     return () => { cancelled = true }
   }, [])
 
-  const showOnline = !!(data && data.showOnline !== false)
   const trackOnline = !!(data && data.trackOnline !== false)
+  // showOnline ต้องมี trackOnline ด้วย — ปิดระบบนับ = ไม่มีข้อมูล ห้ามโชว์การ์ด (กัน spinner ค้าง)
+  const showOnline = !!(data && data.showOnline !== false) && trackOnline
   // trackOnline คุม WebSocket — showOnline คุมแค่การแสดง card ให้ผู้เล่นเห็น
   const online = useOnlineCount({ track: true, enabled: trackOnline })
 

@@ -712,16 +712,25 @@ function UsageContent({ session }) {
     setSavingKey(key); setError('')
     try {
       const token = session?.access_token
-      const res = await fetch('/api/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: JSON.stringify({ key, value: next }),
-      })
-      if (!res.ok) {
-        const b = await res.json().catch(() => ({}))
-        throw new Error(b.error || `บันทึกไม่สำเร็จ (${res.status})`)
+      const post = async (k, v) => {
+        const res = await fetch('/api/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+          body: JSON.stringify({ key: k, value: v }),
+        })
+        if (!res.ok) {
+          const b = await res.json().catch(() => ({}))
+          throw new Error(b.error || `บันทึกไม่สำเร็จ (${res.status})`)
+        }
       }
-      setData((d) => ({ ...d, [field]: next }))
+      await post(key, next)
+      const patch = { [field]: next }
+      // ปิดระบบนับ = ปิด "แสดงให้ผู้เล่นเห็น" ตามด้วย (cascade) — เปิดระบบนับไม่ดึงกลับ ต้องเปิด show เอง
+      if (key === 'track_online' && next === false && data.showOnline !== false) {
+        await post('show_online', false)
+        patch.showOnline = false
+      }
+      setData((d) => ({ ...d, ...patch }))
     } catch (err) {
       setError(err.message)
     } finally {
@@ -938,19 +947,21 @@ function UsageContent({ session }) {
                   { key: 'show_online',  field: 'showOnline',  title: 'แสดงให้ผู้เล่นเห็น',   desc: 'badge "● N กำลังออนไลน์" ในหน้าเว็บ',         onLabel: 'แสดงอยู่', offLabel: 'ซ่อนอยู่' },
                 ].map((s, idx, arr) => {
                   const on = !!data?.[s.field]
-                  // "แสดงให้ผู้เล่นเห็น" ต้องมีระบบนับก่อน — ปิดระบบนับ = ไม่มีข้อมูลจะแสดง จึงล็อก toggle นี้ไว้
+                  // "แสดงให้ผู้เล่นเห็น" ต้องมีระบบนับก่อน — ปิดระบบนับ = ไม่มีข้อมูลจะแสดง จึงล็อก toggle นี้ไว้ (ค่าเดิมยังถูกเก็บ)
                   const locked = s.key === 'show_online' && !data?.trackOnline
+                  // ผลจริงที่ผู้เล่นเห็น: ถูกล็อก = ไม่ทำงานชั่วคราว แม้ค่าที่บันทึกจะเปิดอยู่ก็ตาม
+                  const effectiveOn = on && !locked
                   return (
                     <div key={s.key}
-                      className={`flex items-center justify-between gap-4 px-4 py-3 transition-colors ${on && !locked ? 'bg-emerald-500/[0.04]' : ''} ${locked ? 'opacity-50' : ''} ${idx < arr.length - 1 ? 'border-b border-white/5' : ''}`}>
+                      className={`flex items-center justify-between gap-4 px-4 py-3 transition-colors ${effectiveOn ? 'bg-emerald-500/[0.04]' : ''} ${locked ? 'opacity-60' : ''} ${idx < arr.length - 1 ? 'border-b border-white/5' : ''}`}>
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="text-sm text-slate-200">{s.title}</span>
-                          <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${on ? 'bg-emerald-500/15 text-emerald-400' : 'bg-white/5 text-slate-500'}`}>{on ? s.onLabel : s.offLabel}</span>
+                          <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${effectiveOn ? 'bg-emerald-500/15 text-emerald-400' : 'bg-white/5 text-slate-500'}`}>{effectiveOn ? s.onLabel : s.offLabel}</span>
                         </div>
                         <p className="mt-0.5 text-xs text-slate-500">{locked ? 'ต้องเปิด “ระบบนับ” ด้านบนก่อน' : s.desc}</p>
                       </div>
-                      <Toggle checked={on} onChange={() => toggleSetting(s.key, s.field)} disabled={savingKey === s.key || locked} activeColor="bg-emerald-500" ariaLabel={s.title} />
+                      <Toggle checked={effectiveOn} onChange={() => toggleSetting(s.key, s.field)} disabled={savingKey === s.key || locked} activeColor="bg-emerald-500" ariaLabel={s.title} />
                     </div>
                   )
                 })}
