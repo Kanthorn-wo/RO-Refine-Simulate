@@ -105,6 +105,12 @@ html.light {
   color-scheme: light;
 }
 
+/* จอง gutter ของ scrollbar ไว้ตลอด กัน layout shift ตอนสลับหน้า/แท็บที่เนื้อหาสูงไม่เท่ากัน
+   (scrollbar โผล่/หายแล้วเนื้อหา reflow แนวนอน) */
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   margin: 0;
   min-width: 320px;

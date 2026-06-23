@@ -683,7 +683,9 @@ function UsageContent({ session }) {
   const [metric, setMetric] = useState('visits')
   const [reloadTick, setReloadTick] = useState(0)
   const refresh = () => setReloadTick((t) => t + 1)
-  const online = useOnlineCount({ track: false })
+  // badge ออนไลน์ผูกกับ flag ระบบนับ — ปิดอยู่ก็ไม่ต้องต่อ WebSocket และโชว์สถานะ "ปิด" แทนเลข 0
+  const trackingOn = !!data?.trackOnline
+  const online = useOnlineCount({ track: false, enabled: trackingOn })
 
   useEffect(() => {
     let cancelled = false
@@ -741,23 +743,36 @@ function UsageContent({ session }) {
     <div className="flex items-center justify-between gap-3">
       <div className="flex items-center gap-2.5 flex-wrap">
         <h2 className="text-base font-semibold text-slate-200">Usage</h2>
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+        {data == null ? (
+          // กำลังโหลด — placeholder ขนาดเท่ากัน กัน flicker "ปิด → เลข"
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-2 py-0.5 text-xs font-medium text-slate-500">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-slate-700" />
+            <span className="tabular-nums">—</span> ออนไลน์
           </span>
-          <span className="tabular-nums">{fmt(online)}</span> ออนไลน์
-        </span>
+        ) : trackingOn ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+            </span>
+            <span className="tabular-nums">{fmt(online)}</span> ออนไลน์
+          </span>
+        ) : (
+          // ระบบนับปิดอยู่ — ไม่ใช่ "0 คนออนไลน์"
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-2 py-0.5 text-xs font-medium text-slate-500">
+            <span className="h-2 w-2 rounded-full bg-slate-600" />
+            ระบบนับปิด
+          </span>
+        )}
       </div>
-      {usageTab !== 'refine' && (
-        <button onClick={refresh} disabled={loading}
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:text-slate-100 disabled:opacity-50">
-          {loading
-            ? <Spinner size={14} />
-            : <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 4v6h-6M1 20v-6h6" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></svg>}
-          รีเฟรช
-        </button>
-      )}
+      {/* tab refine ไม่ใช้ refresh นี้ — ซ่อนด้วย invisible (คงพื้นที่ไว้) กันความสูงแถว header เปลี่ยน = layout shift */}
+      <button onClick={refresh} disabled={loading || usageTab === 'refine'}
+        className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:text-slate-100 disabled:opacity-50 ${usageTab === 'refine' ? 'invisible' : ''}`}>
+        {loading
+          ? <Spinner size={14} />
+          : <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 4v6h-6M1 20v-6h6" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></svg>}
+        รีเฟรช
+      </button>
     </div>
   )
 
@@ -923,17 +938,19 @@ function UsageContent({ session }) {
                   { key: 'show_online',  field: 'showOnline',  title: 'แสดงให้ผู้เล่นเห็น',   desc: 'badge "● N กำลังออนไลน์" ในหน้าเว็บ',         onLabel: 'แสดงอยู่', offLabel: 'ซ่อนอยู่' },
                 ].map((s, idx, arr) => {
                   const on = !!data?.[s.field]
+                  // "แสดงให้ผู้เล่นเห็น" ต้องมีระบบนับก่อน — ปิดระบบนับ = ไม่มีข้อมูลจะแสดง จึงล็อก toggle นี้ไว้
+                  const locked = s.key === 'show_online' && !data?.trackOnline
                   return (
                     <div key={s.key}
-                      className={`flex items-center justify-between gap-4 px-4 py-3 transition-colors ${on ? 'bg-emerald-500/[0.04]' : ''} ${idx < arr.length - 1 ? 'border-b border-white/5' : ''}`}>
+                      className={`flex items-center justify-between gap-4 px-4 py-3 transition-colors ${on && !locked ? 'bg-emerald-500/[0.04]' : ''} ${locked ? 'opacity-50' : ''} ${idx < arr.length - 1 ? 'border-b border-white/5' : ''}`}>
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="text-sm text-slate-200">{s.title}</span>
                           <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${on ? 'bg-emerald-500/15 text-emerald-400' : 'bg-white/5 text-slate-500'}`}>{on ? s.onLabel : s.offLabel}</span>
                         </div>
-                        <p className="mt-0.5 text-xs text-slate-500">{s.desc}</p>
+                        <p className="mt-0.5 text-xs text-slate-500">{locked ? 'ต้องเปิด “ระบบนับ” ด้านบนก่อน' : s.desc}</p>
                       </div>
-                      <Toggle checked={on} onChange={() => toggleSetting(s.key, s.field)} disabled={savingKey === s.key} activeColor="bg-emerald-500" ariaLabel={s.title} />
+                      <Toggle checked={on} onChange={() => toggleSetting(s.key, s.field)} disabled={savingKey === s.key || locked} activeColor="bg-emerald-500" ariaLabel={s.title} />
                     </div>
                   )
                 })}
