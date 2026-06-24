@@ -1,93 +1,16 @@
--- Refine analytics v2 — migration script (safe to re-run)
--- รันใน Supabase SQL editor ทีละครั้ง ลำดับสำคัญ: เพิ่มคอลัมน์ → PK → daily table → trim → RPC
+-- ──────────────────────────────────────────────────────────────────────────
+-- Migration: เพิ่ม aggregate joint แบบ all-time ให้กราฟ "ภาพรวมการตีบวก" + legend หินที่ใช้
+--   dim ใหม่ใน refine_breakdown:
+--     - 'level_result'  key = "<level>:<result>"            → กราฟ 4 สี ต่อระดับ
+--     - 'stone_combo'   key = "<item_type>|<level>|<stone>" → หินที่ใช้ + weapon/armor ต่อระดับ
+--
+-- วิธีรัน (Supabase SQL editor): รันทั้งไฟล์นี้ครั้งเดียว
+--   ส่วนที่ 1 = อัปเดต RPC (idempotent, รันซ้ำได้)
+--   ส่วนที่ 2 = backfill จาก refine_log ที่มีอยู่ (≤500) — **รันครั้งเดียวเท่านั้น** (รันซ้ำจะนับซ้ำ)
+-- หมายเหตุ: ข้อมูลก่อน migration ที่หลุดออกจาก ring buffer ไปแล้ว backfill กลับไม่ได้
+-- ──────────────────────────────────────────────────────────────────────────
 
--- ── 1) refine_log: เพิ่มคอลัมน์ใหม่ ──
-create table if not exists public.refine_log (
-  id           bigint generated always as identity primary key,
-  created_at   timestamptz not null default now(),
-  vid          text,
-  item_type    text,
-  item_id      integer,
-  level        integer,
-  stone        text,
-  bsb          boolean not null default false,
-  result       text
-);
-alter table public.refine_log enable row level security;
-create index if not exists refine_log_created_idx on public.refine_log (created_at desc);
-
-alter table public.refine_log
-  add column if not exists item_name    text,
-  add column if not exists refine_after integer,
-  add column if not exists event_buff   boolean not null default false,
-  add column if not exists bsb_amount   integer not null default 0,
-  add column if not exists mode         text,
-  add column if not exists roll_pct     numeric;
-
--- ── 2) leaderboard ──
-create table if not exists public.refine_item_stats (
-  item_type text    not null,
-  item_id   integer not null default 0,
-  attempts  bigint  not null default 0,
-  success   bigint  not null default 0,
-  fail      bigint  not null default 0,
-  primary key (item_type, item_id)
-);
-alter table public.refine_item_stats enable row level security;
-
--- ── 3) breakdown: เพิ่ม scope + success แล้วเปลี่ยน PK ──
-create table if not exists public.refine_breakdown (
-  dim   text   not null,
-  key   text   not null,
-  count bigint not null default 0
-);
-alter table public.refine_breakdown enable row level security;
-
-alter table public.refine_breakdown
-  add column if not exists scope   text   not null default 'global',
-  add column if not exists success bigint not null default 0;
-
--- เปลี่ยน primary key (dim,key) → (scope,dim,key) — ทำใน DO block กัน error ถ้า run ซ้ำ
-do $$
-begin
-  alter table public.refine_breakdown drop constraint if exists refine_breakdown_pkey;
-  if not exists (
-    select 1 from pg_constraint
-    where conname = 'refine_breakdown_scope_dim_key_key'
-       or conname = 'refine_breakdown_pkey'
-  ) then
-    alter table public.refine_breakdown add primary key (scope, dim, key);
-  end if;
-exception when others then
-  raise notice 'PK already set or conflict: %', sqlerrm;
-end $$;
-
--- ── 4) refine_daily: trend รายวัน ──
-create table if not exists public.refine_daily (
-  day     text   not null,
-  dim     text   not null,
-  key     text   not null,
-  count   bigint not null default 0,
-  success bigint not null default 0,
-  primary key (day, dim, key)
-);
-alter table public.refine_daily enable row level security;
-create index if not exists refine_daily_day_idx on public.refine_daily (day desc);
-
--- ── 5) trim: ขยาย 500 → 2000 ──
-create or replace function public.trim_refine_log()
-returns trigger language plpgsql as $$
-begin
-  delete from public.refine_log
-  where id < (select min(id) from (select id from public.refine_log order by id desc limit 2000) t);
-  return null;
-end $$;
-drop trigger if exists trg_trim_refine_log on public.refine_log;
-create trigger trg_trim_refine_log
-  after insert on public.refine_log
-  for each statement execute function public.trim_refine_log();
-
--- ── 6) RPC: record_refine_batch v2 ──
+-- ── ส่วนที่ 1: อัปเดต record_refine_batch (เพิ่ม 2 dim ใหม่ในบล็อก breakdown global) ──
 create or replace function public.record_refine_batch(p_vid text, p_rows jsonb)
 returns void language plpgsql as $$
 declare
@@ -191,3 +114,26 @@ end $$;
 
 revoke execute on function public.record_refine_batch(text, jsonb) from public, anon, authenticated;
 grant  execute on function public.record_refine_batch(text, jsonb) to service_role;
+
+-- ── ส่วนที่ 2: backfill จาก refine_log ที่มีอยู่ (รันครั้งเดียว!) ──
+-- seed สองdim ใหม่จากที่ค้างใน ring buffer เพื่อไม่ให้กราฟว่างหลัง migration
+insert into public.refine_breakdown (scope, dim, key, count, success)
+select 'global', 'level_result', level::text || ':' || result,
+  count(*), count(*) filter (where result = 'success')
+from public.refine_log
+where level is not null and result is not null
+group by level, result
+on conflict (scope, dim, key) do update set
+  count   = public.refine_breakdown.count   + excluded.count,
+  success = public.refine_breakdown.success + excluded.success;
+
+insert into public.refine_breakdown (scope, dim, key, count, success)
+select 'global', 'stone_combo',
+  coalesce(item_type, '') || '|' || level::text || '|' || coalesce(stone, 'normal'),
+  count(*), count(*) filter (where result = 'success')
+from public.refine_log
+where level is not null
+group by item_type, level, stone
+on conflict (scope, dim, key) do update set
+  count   = public.refine_breakdown.count   + excluded.count,
+  success = public.refine_breakdown.success + excluded.success;

@@ -263,19 +263,32 @@ export default function RefineAnalytics({ session }) {
           (filterResult === 'all' || r.result === filterResult) &&
           (filterStone === 'all' || r.stone === filterStone) &&
           (filterMode === 'all' || r.mode === filterMode)
-        if (matchFilter && page === 1) {
-          setData((prev) => {
-            if (!prev) return prev
-            return {
-              ...prev,
-              log: [r, ...prev.log].slice(0, PAGE_SIZE),
-              total: (prev.total || 0) + 1,
-            }
-          })
-        } else if (!matchFilter) {
-          // นับยอดรวมแม้ไม่ตรง filter
-          setData((prev) => prev ? { ...prev, total: (prev.total || 0) + 1 } : prev)
-        }
+        setData((prev) => {
+          if (!prev) return prev
+          // stoneUsage + levelResult เป็น global all-time — เพิ่มทุก insert ไม่ผูกกับ filter/page (panel ยัง live + สอดคล้องกัน)
+          const st = r.stone || 'normal'
+          const su = Array.isArray(prev.stoneUsage) ? prev.stoneUsage.slice() : []
+          const i = su.findIndex((x) => x.item_type === r.item_type && x.level === r.level && x.stone === st)
+          if (i >= 0) su[i] = { ...su[i], count: (su[i].count || 0) + 1 }
+          else su.push({ item_type: r.item_type || '', level: r.level ?? 0, stone: st, count: 1 })
+          // กราฟ level×result (4 สี) + weapon/armor ต่อระดับ
+          const lr = Array.isArray(prev.levelResult) ? prev.levelResult.map((x) => ({ ...x })) : []
+          const isWeapon = typeof r.item_type === 'string' && r.item_type.startsWith('weapon')
+          let row = lr.find((x) => x.level === r.level)
+          if (!row) { row = { level: r.level ?? 0, success: 0, fail: 0, drop: 0, lost: 0, weapon: 0, armor: 0 }; lr.push(row); lr.sort((a, b) => a.level - b.level) }
+          if (r.result) row[r.result] = (row[r.result] || 0) + 1
+          if (isWeapon) row.weapon += 1; else row.armor += 1
+          const next = {
+            ...prev,
+            stoneUsage: su,
+            levelResult: lr,
+            stoneUsageTotal: (prev.stoneUsageTotal || 0) + 1,
+            total: (prev.total || 0) + 1,
+          }
+          // ตารางประวัติ (log) อัปเดตเฉพาะหน้าแรกและตรง filter
+          if (matchFilter && page === 1) next.log = [r, ...prev.log].slice(0, PAGE_SIZE)
+          return next
+        })
       })
       .subscribe((status) => { if (mountedRef.current) setLive(status === 'SUBSCRIBED') })
     return () => {
@@ -338,30 +351,33 @@ export default function RefineAnalytics({ session }) {
   const successCount = (breakdown.result?.success?.count) || 0
   const bsbYes = (breakdown.bsb?.yes?.count) || 0
 
-  // stone legend: คำนวณชื่อแร่จริงจาก log (item_type + level + stone → ore name)
+  // stone usage all-time (จาก breakdown dim 'stone_combo') — global ไม่ผูกกับหน้า/ตัวกรองของตารางประวัติ
+  const stoneUsage = useMemo(() => data?.stoneUsage || [], [data])
+
+  // stone legend: คำนวณชื่อแร่จริงจาก stoneUsage (item_type + level + stone → ore name)
   const stoneLegend = useMemo(() => {
     const counts = {}
-    for (const r of log) {
+    for (const r of stoneUsage) {
       const useCash = r.stone === 'hd'
       const useEnriched = r.stone === 'enriched'
       const ore = getOreName(r.item_type, r.level, useCash, useEnriched)
-      if (ore) counts[ore] = (counts[ore] || 0) + 1
+      if (ore) counts[ore] = (counts[ore] || 0) + (r.count || 0)
     }
     return Object.entries(counts).sort((a, b) => b[1] - a[1])
-  }, [log])
+  }, [stoneUsage])
 
   // ore lookup ต่อ level สำหรับ tooltip
   const logByLevel = useMemo(() => {
     const m = {}
-    for (const r of log) {
+    for (const r of stoneUsage) {
       const useCash = r.stone === 'hd'
       const useEnriched = r.stone === 'enriched'
       const ore = getOreName(r.item_type, r.level, useCash, useEnriched)
       if (!m[r.level]) m[r.level] = {}
-      if (ore) m[r.level][ore] = (m[r.level][ore] || 0) + 1
+      if (ore) m[r.level][ore] = (m[r.level][ore] || 0) + (r.count || 0)
     }
     return m
-  }, [log])
+  }, [stoneUsage])
 
   const itemLabel = (r) => {
     if (r.item_name) return r.item_name
@@ -442,7 +458,7 @@ export default function RefineAnalytics({ session }) {
         {/* stone legend: ชื่อแร่จริงพร้อมจำนวน */}
         {stoneLegend.length > 0 && (
           <div className="mt-4 border-t border-white/5 pt-4">
-            <div className="mb-2 text-xs font-medium text-slate-500">หินที่ใช้ (จากประวัติ {fmt(log.length)} ครั้งล่าสุด)</div>
+            <div className="mb-2 text-xs font-medium text-slate-500">หินที่ใช้ (ทั้งหมด {fmt(data?.stoneUsageTotal || 0)} ครั้ง)</div>
             <div className="flex flex-wrap gap-2">
               {stoneLegend.map(([ore, cnt]) => (
                 <span key={ore} className="inline-flex items-center gap-1.5 rounded-lg border border-white/5 bg-white/[0.03] px-2.5 py-1 text-xs">

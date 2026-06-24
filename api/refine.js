@@ -151,19 +151,16 @@ export default async function handler(req, res) {
       }
       logQ += `&offset=${offset}&limit=${limit}`
 
-      const [lbRes, bdRes, logRes, lrRes, dailyRes] = await Promise.all([
+      const [lbRes, bdRes, logRes, dailyRes] = await Promise.all([
         sbFetch('refine_item_stats?select=item_type,item_id,attempts,success,fail&order=attempts.desc&limit=100'),
         sbFetch('refine_breakdown?select=scope,dim,key,count,success&scope=eq.global'),
         sbFetch(logQ),
-        // level×result cross-tab จาก ring buffer 2000 รายการล่าสุด
-        sbFetch('refine_log?select=level,result,item_type&order=id.desc&limit=2000'),
         sbFetch('refine_daily?select=day,dim,key,count,success&order=day.desc&limit=180'),
       ])
 
       const leaderboard   = lbRes.ok   ? await lbRes.json()   : []
       const breakdownRows = bdRes.ok   ? await bdRes.json()   : []
       const log           = logRes.ok  ? await logRes.json()  : []
-      const lrRows        = lrRes.ok   ? await lrRes.json()   : []
       const dailyRows     = dailyRes.ok ? await dailyRes.json() : []
 
       // total count จาก Content-Range header (Prefer: count=exact)
@@ -177,15 +174,29 @@ export default async function handler(req, res) {
         breakdown[b.dim][b.key] = { count: Number(b.count || 0), success: Number(b.success || 0) }
       }
 
-      // level×result จาก ring buffer — สำหรับ stacked bar chart
+      // level×result (all-time) จาก breakdown dim 'level_result' (key = "<level>:<result>")
       const lrMap = {}
-      for (const r of lrRows) {
-        const l = r.level ?? 0
-        const t = r.item_type || ''
-        const isWeapon = t.startsWith('weapon')
-        if (!lrMap[l]) lrMap[l] = { level: l, success: 0, fail: 0, drop: 0, lost: 0, weapon: 0, armor: 0 }
-        lrMap[l][r.result] = (lrMap[l][r.result] || 0) + 1
-        if (isWeapon) lrMap[l].weapon++ ; else lrMap[l].armor++
+      const ensureLevel = (l) => (lrMap[l] || (lrMap[l] = { level: l, success: 0, fail: 0, drop: 0, lost: 0, weapon: 0, armor: 0 }))
+      for (const [k, v] of Object.entries(breakdown.level_result || {})) {
+        const idx = k.indexOf(':')
+        const l = Number(k.slice(0, idx)) || 0
+        const result = k.slice(idx + 1)
+        const row = ensureLevel(l)
+        if (result) row[result] = (row[result] || 0) + v.count
+      }
+
+      // stone usage (all-time) จาก breakdown dim 'stone_combo' (key = "<item_type>|<level>|<stone>")
+      // ส่งเป็น aggregate ให้ client map เป็นชื่อแร่จริง (getOreName) เอง + เก็บ weapon/armor ต่อระดับ
+      const stoneUsage = []
+      let stoneUsageTotal = 0
+      for (const [k, v] of Object.entries(breakdown.stone_combo || {})) {
+        const [item_type, levelStr, stone] = k.split('|')
+        const level = Number(levelStr) || 0
+        stoneUsage.push({ item_type, level, stone, count: v.count })
+        stoneUsageTotal += v.count
+        const row = ensureLevel(level)
+        if (item_type && item_type.startsWith('weapon')) row.weapon += v.count
+        else row.armor += v.count
       }
       const levelResult = Object.values(lrMap).sort((a, b) => a.level - b.level)
 
@@ -198,7 +209,7 @@ export default async function handler(req, res) {
       }
 
       res.setHeader('cache-control', 'no-store')
-      return res.status(200).json({ leaderboard, breakdown, log, total, page, limit, levelResult, daily })
+      return res.status(200).json({ leaderboard, breakdown, log, total, page, limit, levelResult, daily, stoneUsage, stoneUsageTotal })
     } catch {
       return res.status(502).json({ error: 'read failed' })
     }
