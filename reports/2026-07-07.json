@@ -1,0 +1,80 @@
+{
+  "date": "2026-07-07",
+  "site": "https://ro-refine.com",
+  "startedAt": "2026-07-07T00:37:41.042Z",
+  "finishedAt": "2026-07-07T00:38:28.623Z",
+  "trigger": "schedule",
+  "gitSha": "2912428",
+  "status": "passed",
+  "summary": {
+    "pagesTotal": 4,
+    "pagesPassed": 4,
+    "pagesFailed": 0,
+    "passed": [
+      "home-th",
+      "home-en",
+      "dashboard",
+      "api-item"
+    ],
+    "failed": []
+  },
+  "lighthouse": [
+    {
+      "label": "home-th",
+      "performance": 52,
+      "seo": 100,
+      "accessibility": 99,
+      "bestPractices": 100
+    },
+    {
+      "label": "home-en",
+      "performance": 95,
+      "seo": 100,
+      "accessibility": 99,
+      "bestPractices": 100
+    }
+  ],
+  "pages": [
+    {
+      "label": "home-th",
+      "url": "https://ro-refine.com/",
+      "httpStatus": 200,
+      "ok": true,
+      "responseTimeMs": 4432,
+      "pageSizeBytes": 1347749,
+      "failedRequests": 0,
+      "jsErrors": 0
+    },
+    {
+      "label": "home-en",
+      "url": "https://ro-refine.com/en/",
+      "httpStatus": 200,
+      "ok": true,
+      "responseTimeMs": 2002,
+      "pageSizeBytes": 1347757,
+      "failedRequests": 0,
+      "jsErrors": 0
+    },
+    {
+      "label": "dashboard",
+      "url": "https://ro-refine.com/dashboard",
+      "httpStatus": 200,
+      "ok": true,
+      "responseTimeMs": 1022,
+      "pageSizeBytes": 257732,
+      "failedRequests": 0,
+      "jsErrors": 0
+    },
+    {
+      "label": "api-item",
+      "url": "https://ro-refine.com/api/item?id=1101",
+      "httpStatus": 200,
+      "ok": true,
+      "responseTimeMs": 1101,
+      "pageSizeBytes": 2937,
+      "failedRequests": 0,
+      "jsErrors": 0
+    }
+  ],
+  "issues": []
+}
