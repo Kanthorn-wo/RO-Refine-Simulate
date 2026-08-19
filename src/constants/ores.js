@@ -21,7 +21,7 @@ export const ITEM_TYPE_SHORT = {
 
 // แร่ที่ใช้ตีบวกตามประเภทไอเท็ม (ประเภททั่วไป): low = +1-10, high = +11-20
 // แยกตามชนิดหิน: normal = หินปกติ (ล้มหาย), cash = HD (ล้มลดระดับ), enriched = Enriched (Cash ล้มหาย+โอกาสสูง, ใช้ +1-10 เท่านั้น)
-export const ORE_BY_TYPE = {
+const ORE_BY_TYPE = {
   armor1:  { normal: { low: 'Elunium',      high: 'Carnium' }, cash: { low: 'HD Elunium',  high: 'HD Carnium' }, enriched: { low: 'Enriched Elunium' } },
   weapon1: { normal: { low: 'Phracon',      high: 'Bradium' }, cash: { low: 'HD Oridecon', high: 'HD Bradium' }, enriched: { low: 'Enriched Oridecon' } },
   weapon2: { normal: { low: 'Emveretarcon', high: 'Bradium' }, cash: { low: 'HD Oridecon', high: 'HD Bradium' }, enriched: { low: 'Enriched Oridecon' } },
@@ -33,7 +33,7 @@ export const ORE_BY_TYPE = {
 // low  (level 0~9,  ตี +1~+10):  normal(-3), enriched(-1), hd=ไม่มี
 // high (level 10~14, ตี +11~+15): normal=แตก, enriched=ไม่มี, hd=แตก (HD Etherdeocon/HD Ethernium — เรทสูงขึ้นแต่ล้มแล้วของแตก)
 // top  (level 15+,  ตี +16~+20): normal=แตก, enriched=ไม่มี, hd=แตก (HD Etel Bradium/HD Etel Carnium)
-export const SPECIAL_ORE = {
+const SPECIAL_ORE = {
   weapon5: {
     low:  { normal: 'Etherdeocon',    enriched: 'Enriched Etherdeocon', hd: null },
     high: { normal: 'Etel Bradium',   enriched: null,                   hd: 'HD Etherdeocon' },
@@ -141,7 +141,7 @@ export const STONE_REFERENCE = [
   { ore: 'Emveretarcon',         for: 'Weapon Lv.2',   range: '+1~+10',  fail: 'ไอเทมหาย',  note: '',        img: '/images/ores/emveretarcon.png' },
   { ore: 'Oridecon',             for: 'Weapon Lv.3~4', range: '+1~+10',  fail: 'ไอเทมหาย',  note: '',        img: '/images/ores/oridecon.png' },
   { ore: 'Enriched Oridecon',    for: 'Weapon Lv.1~4', range: '+1~+10',  fail: 'ไอเทมหาย',  note: '+โอกาส', img: '/images/ores/enriched-oridecon.png' },
-  { ore: 'HD Oridecon',          for: 'Weapon Lv.1~4', range: '+7~+10',  fail: 'ลดระดับ −1', note: '',        img: '/images/ores/hd-oridecon.png' },
+  { ore: 'HD Oridecon',          for: 'Weapon Lv.1~4', range: '+8~+10',  fail: 'ลดระดับ −1', note: '',        img: '/images/ores/hd-oridecon.png' },
   { ore: 'Bradium',              for: 'Weapon Lv.1~4', range: '+11~+20', fail: 'ไอเทมหาย',  note: '',        img: '/images/ores/bradium.png' },
   { ore: 'HD Bradium',           for: 'Weapon Lv.1~4', range: '+11~+20', fail: 'ลดระดับ −1', note: '',        img: '/images/ores/hd-bradium.png' },
   { section: 'Weapon Lv.5' },
@@ -153,7 +153,7 @@ export const STONE_REFERENCE = [
   { section: 'Armor Lv.1' },
   { ore: 'Elunium',              for: 'Armor Lv.1',    range: '+1~+10',  fail: 'ไอเทมหาย',  note: '',        img: '/images/ores/elunium.png' },
   { ore: 'Enriched Elunium',     for: 'Armor Lv.1',    range: '+1~+10',  fail: 'ไอเทมหาย',  note: '+โอกาส', img: '/images/ores/enriched-elunium.png' },
-  { ore: 'HD Elunium',           for: 'Armor Lv.1',    range: '+7~+10',  fail: 'ลดระดับ −1', note: '',        img: '/images/ores/hd-elunium.png' },
+  { ore: 'HD Elunium',           for: 'Armor Lv.1',    range: '+8~+10',  fail: 'ลดระดับ −1', note: '',        img: '/images/ores/hd-elunium.png' },
   { ore: 'Carnium',              for: 'Armor Lv.1',    range: '+11~+20', fail: 'ไอเทมหาย',  note: '',        img: '/images/ores/carnium.png' },
   { ore: 'HD Carnium',           for: 'Armor Lv.1',    range: '+11~+20', fail: 'ลดระดับ −1', note: '',        img: '/images/ores/hd-carnium.png' },
   { section: 'Armor Lv.2' },

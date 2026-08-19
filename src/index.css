@@ -130,16 +130,6 @@ html.light body {
 }
 .fab-action { animation: fab-in 0.2s ease-out both; }
 
-/* เด้งเข้า (ใช้กับ badge ผลลัพธ์การตีบวก) */
-@keyframes pop-in {
-  0% { opacity: 0; transform: scale(0.8); }
-  60% { transform: scale(1.06); }
-  100% { opacity: 1; transform: scale(1); }
-}
-.animate-pop-in {
-  animation: pop-in 0.35s ease-out;
-}
-
 /* ===== Event Rate banner — realistic layered fire ===== */
 /* ฐานความร้อน: ร้อนด้านล่าง (ส้ม/เหลือง) ไล่เป็นแดงเข้ม/ดำด้านบน */
 .event-fire-bar {
@@ -269,11 +259,12 @@ html.light body {
   80% { opacity: 0.95; }
 }
 
-/* เคารพ prefers-reduced-motion — หยุดไฟ/ลูกไฟ/ไหว */
+/* เคารพ prefers-reduced-motion — หยุดไฟ/ลูกไฟ/ไหว
+   (event-flame-1/2 = div จริงที่แทน ::before/::after เดิม — ต้องอยู่ในลิสต์นี้ ไม่งั้นไม่หยุดไหว) */
 @media (prefers-reduced-motion: reduce) {
-  .event-fire-bar::before, .event-fire-bar::after, .event-fire-glow,
+  .event-flame-1, .event-flame-2, .event-fire-glow,
   .event-ember, .event-flame-icon, .rateup-arrow, .event-pill-mode,
-  .event-fire-edge, .event-fire-edge::after {
+  .event-fire-edge {
     animation: none !important;
   }
 }

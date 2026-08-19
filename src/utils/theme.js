@@ -5,7 +5,7 @@ const STORAGE_KEY = 'ro_refine_theme';
 export const getTheme = () =>
   document.documentElement.classList.contains('light') ? 'light' : 'dark';
 
-export const applyTheme = (theme) => {
+const applyTheme = (theme) => {
   document.documentElement.classList.toggle('light', theme === 'light');
   try {
     localStorage.setItem(STORAGE_KEY, theme);

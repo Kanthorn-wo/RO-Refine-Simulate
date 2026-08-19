@@ -9,7 +9,7 @@ export const frameCount = {
 // สร้าง path ของภาพแต่ละเฟรมแบบ dynamic
 // type: 'waiting' | 'processing' | 'success' | 'fail', index: 0-based
 // สังเกต: processing ใช้ prefix สองแบบสลับที่ index 9
-export const getFrameSrc = (type, index) => {
+const getFrameSrc = (type, index) => {
   let folder = '';
   let prefix = '';
   if (type === 'waiting') {
@@ -30,7 +30,7 @@ export const getFrameSrc = (type, index) => {
 };
 
 // สร้าง array ของ path รูปแต่ละประเภท
-export const getAllFrameSrcs = (type) =>
+const getAllFrameSrcs = (type) =>
   Array.from({ length: frameCount[type] }, (_, i) => getFrameSrc(type, i));
 
 // precompute ครั้งเดียวตอน module load — เฟรมเป็นค่าคงที่ ไม่ต้องคำนวณใหม่ทุก render

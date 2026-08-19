@@ -16,7 +16,7 @@ create table if not exists public.usage_counters (
 -- ── ตารางรายวัน (ดูย้อนหลัง/แนวโน้มได้) ─────────────────────────
 create table if not exists public.usage_daily (
   day    date   not null,
-  metric text   not null,             -- 'refine' | 'stone' | 'bsb' | 'visits'
+  metric text   not null,             -- 'refine' | 'stone' | 'bsb' | 'visits' | 'visits_new' | 'visits_returning' | 'auto' | 'simulate'
   count  bigint not null default 0,
   primary key (day, metric)
 );
@@ -92,6 +92,9 @@ drop trigger if exists trg_trim_usage_events on public.usage_events;
 create trigger trg_trim_usage_events
   after insert on public.usage_events
   for each statement execute function public.trim_usage_events();
+-- Postgres grant EXECUTE ให้ PUBLIC โดย default ตอนสร้าง function — ล็อกให้เหมือน RPC อื่นในไฟล์นี้ (defense-in-depth)
+revoke execute on function public.trim_usage_events() from public, anon, authenticated;
+grant  execute on function public.trim_usage_events() to service_role;
 
 -- ── ตาราง visitor (ID สุ่ม anonymous — นับ unique / new vs returning) ──
 -- vid = UUID สุ่มฝั่ง client (ไม่ผูกตัวตน) เก็บเพื่อแยกคนใหม่/คนกลับมาซ้ำข้ามวัน

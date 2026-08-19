@@ -1,16 +1,13 @@
 -- ──────────────────────────────────────────────────────────────────────────
--- Migration: เพิ่ม aggregate joint แบบ all-time ให้กราฟ "ภาพรวมการตีบวก" + legend หินที่ใช้
---   dim ใหม่ใน refine_breakdown:
---     - 'level_result'  key = "<level>:<result>"            → กราฟ 4 สี ต่อระดับ
---     - 'stone_combo'   key = "<item_type>|<level>|<stone>" → หินที่ใช้ + weapon/armor ต่อระดับ
+-- Cleanup: หยุดเขียน/query ตาราง refine_daily — ไม่มี frontend ไหนอ่าน data.daily เลย
+--   (เช็คแล้ว: RefineAnalytics.jsx / UserActivityModal.jsx ไม่ได้ใช้ field นี้)
+--   ตอนนี้ยังเขียนทุก batch ตีบวก + query ทุกครั้งที่เปิด dashboard โดยเปล่าประโยชน์
+--   ไฟล์นี้ re-apply record_refine_batch ตัดส่วน insert เข้า refine_daily ออก
+--   (ตาราง refine_daily เองยังไม่ลบ ข้อมูลเก่ายังอยู่ เผื่ออยากเอากลับมาใช้ทีหลัง)
 --
--- วิธีรัน (Supabase SQL editor): รันทั้งไฟล์นี้ครั้งเดียว
---   ส่วนที่ 1 = อัปเดต RPC (idempotent, รันซ้ำได้)
---   ส่วนที่ 2 = backfill จาก refine_log ที่มีอยู่ (≤500) — **รันครั้งเดียวเท่านั้น** (รันซ้ำจะนับซ้ำ)
--- หมายเหตุ: ข้อมูลก่อน migration ที่หลุดออกจาก ring buffer ไปแล้ว backfill กลับไม่ได้
+-- รันใน Supabase SQL editor ครั้งเดียว (idempotent — รันซ้ำได้ create or replace)
 -- ──────────────────────────────────────────────────────────────────────────
 
--- ── ส่วนที่ 1: อัปเดต record_refine_batch (เพิ่ม 2 dim ใหม่ในบล็อก breakdown global) ──
 create or replace function public.record_refine_batch(p_vid text, p_rows jsonb)
 returns void language plpgsql as $$
 begin
@@ -89,32 +86,8 @@ begin
     success = public.refine_breakdown.success + excluded.success;
 
   -- (เคยมี insert เข้า refine_daily ตรงนี้ — ตัดออกแล้ว ไม่มี frontend ไหนอ่าน data.daily
-  --  เลย เขียน/query ทุก batch/ทุกครั้งที่เปิด dashboard ไปเปล่า ๆ ตารางยังอยู่ ข้อมูลเก่าไม่ได้ลบ
-  --  ดู docs/sql/refine-daily-stop-writes.sql)
+  --  เลย เขียน/query ทุก batch/ทุกครั้งที่เปิด dashboard ไปเปล่า ๆ ตารางยังอยู่ ข้อมูลเก่าไม่ได้ลบ)
 end $$;
 
 revoke execute on function public.record_refine_batch(text, jsonb) from public, anon, authenticated;
 grant  execute on function public.record_refine_batch(text, jsonb) to service_role;
-
--- ── ส่วนที่ 2: backfill จาก refine_log ที่มีอยู่ (รันครั้งเดียว!) ──
--- seed สองdim ใหม่จากที่ค้างใน ring buffer เพื่อไม่ให้กราฟว่างหลัง migration
-insert into public.refine_breakdown (scope, dim, key, count, success)
-select 'global', 'level_result', level::text || ':' || result,
-  count(*), count(*) filter (where result = 'success')
-from public.refine_log
-where level is not null and result is not null
-group by level, result
-on conflict (scope, dim, key) do update set
-  count   = public.refine_breakdown.count   + excluded.count,
-  success = public.refine_breakdown.success + excluded.success;
-
-insert into public.refine_breakdown (scope, dim, key, count, success)
-select 'global', 'stone_combo',
-  coalesce(item_type, '') || '|' || level::text || '|' || coalesce(stone, 'normal'),
-  count(*), count(*) filter (where result = 'success')
-from public.refine_log
-where level is not null
-group by item_type, level, stone
-on conflict (scope, dim, key) do update set
-  count   = public.refine_breakdown.count   + excluded.count,
-  success = public.refine_breakdown.success + excluded.success;
