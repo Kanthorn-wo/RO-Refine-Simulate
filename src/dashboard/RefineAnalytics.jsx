@@ -5,6 +5,7 @@ import {
 import { getOreName, ORE_COLORS, ORE_IMAGES } from '../constants/ores'
 import { getRate } from '../constants/refineRates'
 import { supabase } from '../lib/supabase'
+import UserActivityModal from './UserActivityModal'
 
 /* ── helpers ── */
 const fmt = (n) => Number(n || 0).toLocaleString('th-TH')
@@ -237,6 +238,7 @@ export default function RefineAnalytics({ session }) {
   const [search, setSearch] = useState('')
   const [searchQ, setSearchQ] = useState('')
   const [lbExpanded, setLbExpanded] = useState(false)
+  const [openVid, setOpenVid] = useState(null)
   const PAGE_SIZE = 50
   const mountedRef = useRef(true)
 
@@ -432,7 +434,9 @@ export default function RefineAnalytics({ session }) {
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={levelResult} margin={{ top: 8, right: 8, bottom: 0, left: -20 }} barCategoryGap="25%">
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                <XAxis dataKey="level" tickFormatter={(v) => `+${v}`}
+                {/* แกนโชว์ระดับปลายทาง (level เก็บเป็นระดับ "ก่อน" ตี — +0 คือตีจาก +0 ไป +1 เลย tick ต้อง +1 ให้ตรงกับที่คนคุ้นเคย)
+                    type="category" ชัดเจน — กัน recharts ตีความ level (เป็นตัวเลข) เป็นแกน number แล้วสร้าง tick เกินขอบข้อมูลจริง */}
+                <XAxis dataKey="level" type="category" tickFormatter={(v) => `+${v + 1}`}
                   tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
                 <Tooltip content={<LevelTooltip logByLevel={logByLevel} />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
@@ -635,10 +639,11 @@ export default function RefineAnalytics({ session }) {
                       {r.event_buff && <span className="shrink-0 rounded bg-orange-500/15 px-1.5 py-0.5 text-[10px] font-medium text-orange-300">Event</span>}
                       {r.mode === 'auto' && <span className="shrink-0 rounded bg-sky-500/10 px-1.5 py-0.5 text-[10px] text-sky-400">Auto</span>}
                       {r.vid && (
-                        <span className="inline-flex shrink-0 items-center gap-1 rounded bg-white/5 px-1.5 py-0.5 text-[10px] text-slate-500" title={r.vid}>
+                        <button onClick={() => setOpenVid(r.vid)} title={`ดูกิจกรรมทั้งหมดของ ${r.vid}`}
+                          className="inline-flex shrink-0 items-center gap-1 rounded bg-white/5 px-1.5 py-0.5 text-[10px] text-slate-500 transition-colors hover:text-indigo-300">
                           <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
                           {r.vid.slice(0, 8)}
-                        </span>
+                        </button>
                       )}
                     </div>
                     <span className="flex w-[116px] shrink-0 justify-end">
@@ -667,6 +672,8 @@ export default function RefineAnalytics({ session }) {
           </>
         )}
       </Panel>
+
+      {openVid && <UserActivityModal vid={openVid} session={session} onClose={() => setOpenVid(null)} />}
     </div>
   )
 }

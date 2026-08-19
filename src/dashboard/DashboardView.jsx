@@ -8,6 +8,7 @@ import { useOnlineCount } from '../utils/useOnlineCount'
 import MonitorView from './MonitorView'
 import RefineAnalytics from './RefineAnalytics'
 import Toggle from '../components/Toggle'
+import UserActivityModal from './UserActivityModal'
 
 const ACCENT = '#818cf8'
 const ACCENT2 = '#34d399'
@@ -469,7 +470,7 @@ const EVENT_FILTERS = [
   { id: 'visit',    label: 'เข้าเว็บ' },
 ]
 
-function ActivityFeed() {
+function ActivityFeed({ session }) {
   const [events, setEvents] = useState(null)
   const [error, setError] = useState('')
   const [refreshing, setRefreshing] = useState(false)
@@ -480,6 +481,7 @@ function ActivityFeed() {
   const [sortKey, setSortKey] = useState('at')   // 'at' | 'type' | 'count'
   const [sortDir, setSortDir] = useState('desc')  // 'asc' | 'desc'
   const [live, setLive] = useState(false)
+  const [openVid, setOpenVid] = useState(null)
   const mountedRef = useRef(true)
 
   const load = async () => {
@@ -519,6 +521,8 @@ function ActivityFeed() {
   }, [])
 
   const all = events || []
+  // vid ที่มี action อื่นนอกจาก visit ในช่วงที่เห็น (feed เก็บ 200 รายการล่าสุดรวมทุกคน) — ใช้บอกว่า "เข้าเว็บ" คนนี้ไม่ได้เข้ามาเฉย ๆ
+  const activeVids = new Set(all.filter((e) => e.type !== 'visit' && e.vid).map((e) => e.vid))
   const filtered = filter === 'all' ? all : all.filter((e) => e.type === filter)
   const dir = sortDir === 'asc' ? 1 : -1
   const sorted = [...filtered].sort((a, b) => {
@@ -615,10 +619,24 @@ function ActivityFeed() {
                               ({ev.status === 'new' ? 'คนใหม่' : ev.status === 'bot' ? 'Bot' : 'คนเก่า'})
                             </span>
                           )}
+                          {ev.type === 'visit' && ev.vid && activeVids.has(ev.vid) && (
+                            <span title="ผู้ใช้นี้มี activity อื่นด้วย (ตีบวก/Auto/จำลอง) ในช่วงที่เห็น"
+                              className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-medium text-emerald-300">
+                              <svg viewBox="0 0 24 24" width="9" height="9" fill="currentColor"><path d="M13 2 3 14h7l-1 8 10-12h-7z" /></svg>
+                              มี activity
+                            </span>
+                          )}
                         </span>
                       </td>
                       <td className="px-2 py-2 font-mono text-xs text-slate-400">
-                        <span className="block truncate" title={ev.vid || ''}>{ev.vid || '—'}</span>
+                        {ev.vid ? (
+                          <button onClick={() => setOpenVid(ev.vid)} title={`ดูกิจกรรมทั้งหมดของ ${ev.vid}`}
+                            className="block max-w-full truncate text-left text-slate-400 underline decoration-dotted underline-offset-2 transition-colors hover:text-indigo-300">
+                            {ev.vid}
+                          </button>
+                        ) : (
+                          <span className="block truncate">—</span>
+                        )}
                       </td>
                       <td className="px-2 py-2 text-right tabular-nums text-slate-300">{ev.type === 'refine' ? `×${fmt(ev.count)}` : '—'}</td>
                       <td className="whitespace-nowrap px-2 py-2 text-right tabular-nums text-slate-400" title={new Date(ev.at).toLocaleString('th-TH')}>{relTime(ev.at, now)}</td>
@@ -650,6 +668,7 @@ function ActivityFeed() {
           )}
         </>
       )}
+      {openVid && <UserActivityModal vid={openVid} session={session} onClose={() => setOpenVid(null)} />}
     </Panel>
   )
 }
@@ -888,7 +907,7 @@ function UsageContent({ session }) {
                 )}
               </Panel>
 
-              <ActivityFeed />
+              <ActivityFeed session={session} />
             </>
           )}
         </div>
