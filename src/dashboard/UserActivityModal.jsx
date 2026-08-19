@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
 // รวม log กิจกรรมของผู้ใช้ 1 คน (vid) จาก 2 แหล่ง: usage_events (visit/auto/simulate) + refine_log (ตีบวกรายครั้ง)
-// ทั้งสองตารางเป็น ring buffer (usage_events 200 แถว, refine_log 500 แถว รวมทุกคน) — เห็นได้แค่เท่าที่ log ล่าสุดยังเก็บอยู่
+// usage_events เป็น ring buffer 200 แถวรวมทุกคน (เห็นแค่เท่าที่ยังไม่หลุดคิว) — refine_log ไม่จำกัดแล้ว แต่ query จำกัด 100 แถวล่าสุดต่อครั้ง
 
 const RESULT_META = {
   success: { label: 'สำเร็จ',    color: '#34d399', bg: '#34d39920' },

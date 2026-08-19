@@ -126,7 +126,8 @@ export default async function handler(req, res) {
       let dailyIdx = -1
       let eventsIdx = -1
       if (range) { dailyIdx = reqs.length; reqs.push(sbFetch(`usage_daily?select=day,metric,count&day=gte.${range.from}&day=lte.${range.to}&order=day`)) }
-      if (evN)   { eventsIdx = reqs.length; reqs.push(sbFetch(`usage_events?select=created_at,type,count,vid,visitor_status&order=created_at.desc&limit=${evN}`)) }
+      // order ต้องมี id.desc เป็น tiebreaker — batch insert หลายแถวได้ created_at เท่ากันเป๊ะ (ดูคอมเมนต์เดียวกันใน api/refine.js)
+      if (evN)   { eventsIdx = reqs.length; reqs.push(sbFetch(`usage_events?select=id,created_at,type,count,vid,visitor_status&order=created_at.desc,id.desc&limit=${evN}`)) }
       const results = await Promise.all(reqs)
       const [cRes, vRes, sRes, visRes] = results
       const dRes = dailyIdx >= 0 ? results[dailyIdx] : null

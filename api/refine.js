@@ -140,7 +140,9 @@ export default async function handler(req, res) {
 
     try {
       // build log query with optional filters
-      let logQ = 'refine_log?select=id,created_at,vid,item_type,item_id,item_name,level,refine_after,stone,bsb,bsb_amount,result,event_buff,mode,roll_pct&order=created_at.desc'
+      // order ต้องมี id.desc เป็น tiebreaker เสมอ — batch insert หลายแถวได้ created_at เท่ากันเป๊ะ (now() ค่าเดียวกันทั้ง statement)
+      // ถ้า sort แค่ created_at.desc ลำดับของแถวที่เวลาเท่ากันจะไม่ deterministic (Postgres ไม่การันตี) ลำดับใน log ดูสลับมั่ว
+      let logQ = 'refine_log?select=id,created_at,vid,item_type,item_id,item_name,level,refine_after,stone,bsb,bsb_amount,result,event_buff,mode,roll_pct&order=created_at.desc,id.desc'
       if (RESULTS.includes(filterResult))   logQ += `&result=eq.${filterResult}`
       if (STONES.includes(filterStone))     logQ += `&stone=eq.${filterStone}`
       if (ITEM_TYPES.includes(filterItemType)) logQ += `&item_type=eq.${filterItemType}`
