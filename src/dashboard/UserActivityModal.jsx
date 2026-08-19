@@ -29,6 +29,8 @@ function relTime(iso, now) {
 
 function RefineRow({ r, now }) {
   const rm = RESULT_META[r.result] || RESULT_META.fail
+  // จำนวนขั้นที่ลด (เฉพาะผล 'drop') — คำนวณจาก level (ก่อนตี) - refine_after (หลังตี)
+  const dropAmt = r.result === 'drop' && r.refine_after != null ? r.level - r.refine_after : null
   return (
     <div className="flex items-center gap-2.5 rounded-lg border border-white/5 bg-white/[0.02] p-2 text-sm">
       <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: '#818cf8' }} />
@@ -40,7 +42,9 @@ function RefineRow({ r, now }) {
         {r.bsb && <span className="shrink-0 rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-300">BSB</span>}
         {r.mode === 'auto' && <span className="shrink-0 rounded bg-sky-500/10 px-1.5 py-0.5 text-[10px] text-sky-400">Auto</span>}
       </div>
-      <span className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap" style={{ background: rm.bg, color: rm.color }}>{rm.label}</span>
+      <span className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap" style={{ background: rm.bg, color: rm.color }}>
+        {rm.label}{dropAmt > 0 && <span className="opacity-90"> (-{dropAmt})</span>}
+      </span>
       <span className="hidden w-16 shrink-0 text-right text-[11px] text-slate-500 sm:block">{relTime(r.at, now)}</span>
     </div>
   )

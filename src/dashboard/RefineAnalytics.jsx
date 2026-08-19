@@ -621,6 +621,8 @@ export default function RefineAnalytics({ session }) {
                 const oreName = getOreName(r.item_type, r.level, useCash, useEnriched)
                 const rate = r.item_type ? getRate(r.event_buff, useCash, useEnriched, r.item_type, r.level) : null
                 const rollPct = r.roll_pct != null ? Number(r.roll_pct) : null
+                // จำนวนขั้นที่ลด (เฉพาะผล 'drop') — คำนวณจาก level (ก่อนตี) - refine_after (หลังตี) ไม่ต้องเก็บ field แยก
+                const dropAmt = r.result === 'drop' && r.refine_after != null ? r.level - r.refine_after : null
                 return (
                   <div key={r.id ?? i} className="flex items-center gap-2.5 rounded-lg border border-white/5 bg-white/[0.02] p-2 text-sm">
                     <ItemIcon id={r.item_id || null} type={r.item_type} size={26} />
@@ -652,7 +654,7 @@ export default function RefineAnalytics({ session }) {
                     <span className="flex w-[128px] shrink-0 justify-center">
                       <span className="rounded-full px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap"
                         style={{ background: rm.bg, color: rm.color }}>
-                        {rm.label}{rollPct != null && <span className="opacity-80"> ({rollPct.toFixed(2)}%)</span>}
+                        {rm.label}{dropAmt > 0 && <span className="opacity-90"> (-{dropAmt})</span>}{rollPct != null && <span className="opacity-80"> ({rollPct.toFixed(2)}%)</span>}
                       </span>
                     </span>
                     <span className="hidden w-12 shrink-0 text-right text-[11px] text-slate-500 sm:block">{relTime(r.created_at, now)}</span>
