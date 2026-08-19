@@ -32,17 +32,19 @@ const CHANGE_TYPE_STYLE = {
   improve: 'bg-sky-500/15 text-info border-sky-500/30',
 };
 
-const PatchNotesModal = ({ openTrigger = 0 }) => {
+const PatchNotesModal = ({ openTrigger = 0, holdOpen = false }) => {
   const [open, setOpen] = useState(false);
   const [acknowledged, setAcknowledged] = useState(false);
   const { lang, t } = useLang();
 
+  // รอ cookie consent bar ตัดสินใจก่อน กัน 2 modal ซ้อนทับกันตอนเข้าเว็บครั้งแรก (holdOpen = cookie bar ยังโชว์อยู่)
   useEffect(() => {
+    if (holdOpen) return;
     if (!hasValidSuppression()) {
       setAcknowledged(false);
       setOpen(true);
     }
-  }, []);
+  }, [holdOpen]);
 
   useEffect(() => {
     if (openTrigger > 0) {
@@ -51,8 +53,10 @@ const PatchNotesModal = ({ openTrigger = 0 }) => {
     }
   }, [openTrigger]);
 
-  const dismiss = () => {
-    if (!acknowledged) {
+  // suppress=true เฉพาะปุ่มท้าย "ปิดหน้าต่างนี้ไม่แสดงใน 7 วัน" เท่านั้น — ปุ่ม X/คลิกนอกกล่อง
+  // แค่ปิดเฉย ๆ ไม่ suppress (เดิมทั้งคู่เรียก dismiss() ตัวเดียว ทำให้กด X ก็โดน suppress 7 วันไปด้วยทั้งที่ label ไม่ได้บอก)
+  const close = (suppress) => {
+    if (suppress && !acknowledged) {
       try {
         localStorage.setItem(
           STORAGE_KEY,
@@ -74,7 +78,7 @@ const PatchNotesModal = ({ openTrigger = 0 }) => {
   return (
     <div
       className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
-      onClick={dismiss}
+      onClick={() => close(false)}
     >
       <div
         className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-line-soft/60 bg-card shadow-2xl"
@@ -96,7 +100,7 @@ const PatchNotesModal = ({ openTrigger = 0 }) => {
           </div>
           <button
             type="button"
-            onClick={dismiss}
+            onClick={() => close(false)}
             aria-label={t('close_btn')}
             className="rounded-lg p-1.5 text-dim transition-colors hover:bg-line-soft/50 hover:text-body"
           >
@@ -145,7 +149,7 @@ const PatchNotesModal = ({ openTrigger = 0 }) => {
         <div className="border-t border-line-soft/60 px-5 py-3">
           <button
             type="button"
-            onClick={dismiss}
+            onClick={() => close(true)}
             className="w-full rounded-lg border border-amber-400/40 bg-amber-400/10 py-2.5 text-sm font-semibold text-warn transition-colors hover:bg-amber-400 hover:text-slate-900"
           >
             {acknowledged ? t('patch_close') : t('patch_acknowledge')}

@@ -6,7 +6,9 @@ const LangContext = createContext(null);
 export const LangProvider = ({ children }) => {
   const [lang, setLangState] = useState(() => {
     // URL decides language: /en/* → English, otherwise saved preference (default Thai)
-    if (window.location.pathname.startsWith('/en')) return 'en';
+    // ต้อง match ขอบเขต route จริง ๆ (ไม่ใช่ prefix เฉย ๆ) กัน path แปลก ๆ ที่ขึ้นต้นด้วย "en" เช่น /entry ถูกจัดเป็นอังกฤษผิด ๆ
+    const { pathname } = window.location;
+    if (pathname === '/en' || pathname.startsWith('/en/')) return 'en';
     try { return localStorage.getItem('ro_refine_lang') || 'th'; } catch { return 'th'; }
   });
 

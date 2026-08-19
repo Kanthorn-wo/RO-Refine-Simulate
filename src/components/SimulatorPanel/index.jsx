@@ -5,6 +5,7 @@ import { ORE_IMAGES, ORE_COLORS, ITEM_TYPE_LABELS } from '../../constants/ores';
 import { simulateRound, summarize, MAX_ATTEMPTS_PER_ROUND } from '../../utils/simulate';
 import { trackEvent } from '../../utils/analytics';
 import { recordAction } from '../../utils/usageStats';
+import { isBsbLevel } from '../../constants/refineConfig';
 
 // lazy load กราฟ (recharts) — โหลดเฉพาะตอนมีผลจำลองให้แสดง main bundle ไม่บวม
 const DistChart = lazy(() => import('./DistChart'));
@@ -43,20 +44,23 @@ const StatChip = ({ label, value }) => (
 );
 
 // การ์ดสรุป 1 metric: ค่าเฉลี่ยตัวใหญ่ + Min/Max แถวเล็กในการ์ดเดียว (ไม่แยก 3 แถวซ้ำซ้อน)
-const AvgCard = ({ label, value, unit, minValue, maxValue, accent }) => (
-  <div className={`rounded-xl border px-2 py-3 text-center ${accent}`}>
-    <div className="text-xs font-semibold text-dim">{label}</div>
-    <div className="text-xl font-bold">{value}</div>
-    <div className="text-[0.65rem] text-faint">{unit}</div>
-    <div className="mt-1.5 flex items-center justify-center gap-1 border-t border-line-soft pt-1.5 text-[0.65rem] leading-none">
-      <span className="text-faint">Min</span>
-      <b className="text-body">{minValue}</b>
-      <span className="text-faint">·</span>
-      <span className="text-faint">Max</span>
-      <b className="text-body">{maxValue}</b>
+const AvgCard = ({ label, value, unit, minValue, maxValue, accent }) => {
+  const { t } = useLang();
+  return (
+    <div className={`rounded-xl border px-2 py-3 text-center ${accent}`}>
+      <div className="text-xs font-semibold text-dim">{label}</div>
+      <div className="text-xl font-bold">{value}</div>
+      <div className="text-[0.65rem] text-faint">{unit}</div>
+      <div className="mt-1.5 flex items-center justify-center gap-1 border-t border-line-soft pt-1.5 text-[0.65rem] leading-none">
+        <span className="text-faint">{t('sim_stat_min')}</span>
+        <b className="text-body">{minValue}</b>
+        <span className="text-faint">·</span>
+        <span className="text-faint">{t('sim_stat_max')}</span>
+        <b className="text-body">{maxValue}</b>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const SimulatorPanel = ({ itemType, isEventRate, bsbTable, apiItem }) => {
   const { t } = useLang();
@@ -103,7 +107,7 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable, apiItem }) => {
   for (let lv = startLevel; lv < targetLevel; lv++) levelsInRange.push(lv);
   const stoneUsableCount = (s) => levelsInRange.filter((lv) => getEffectiveStone(s, itemType, lv) === s).length;
   const stonePartial = stoneUsableCount(stone) < levelsInRange.length && stoneUsableCount(stone) > 0;
-  const bsbRelevant = levelsInRange.some((lv) => lv >= 7 && lv <= 14 && (bsbTable[lv] || 0) > 0);
+  const bsbRelevant = levelsInRange.some((lv) => isBsbLevel(lv) && (bsbTable[lv] || 0) > 0);
 
   const handleStartChange = (v) => {
     setStartLevel(v);

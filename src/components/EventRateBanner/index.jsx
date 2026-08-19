@@ -110,7 +110,7 @@ const EventRateBanner = ({ active, collapsed, onToggle, onClose }) => {
           <RateUpIcon className="h-9 w-9 drop-shadow-[0_0_8px_rgba(253,224,71,0.85)] sm:h-13 sm:w-13" />
           <div className="text-center">
             <div className="text-base font-extrabold uppercase tracking-[0.2em] text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)] sm:text-2xl">
-              Event Rate Up
+              {t('event_rate_up')}
             </div>
             <div className="text-[0.62rem] font-semibold text-amber-100/90 sm:text-xs">
               {t('event_banner_sub')}
@@ -144,7 +144,7 @@ const EventRateBanner = ({ active, collapsed, onToggle, onClose }) => {
       {/* ชั้นเนื้อหา pill */}
       <div className={`absolute inset-0 z-[1] flex items-center justify-center gap-1.5 px-2 transition-opacity duration-300 ${collapsed ? 'opacity-100' : 'pointer-events-none opacity-0'}`}>
         <RateUpIcon className="h-5 w-5 shrink-0 drop-shadow-[0_0_5px_rgba(253,224,71,0.85)]" />
-        <span className="text-xs font-extrabold uppercase tracking-wider text-white drop-shadow">Rate Up</span>
+        <span className="text-xs font-extrabold uppercase tracking-wider text-white drop-shadow">{t('event_pill_label')}</span>
         {/* ปิด Event (เล็กในพิลล์) — กันไม่ให้คลิกทะลุไปขยาย */}
         <button
           type="button"

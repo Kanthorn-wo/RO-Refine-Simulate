@@ -48,11 +48,11 @@ const DistChart = ({ values, stats }) => {
         <Line yAxisId="right" type="monotone" dataKey="cdf" name={t('sim_tt_cdf')} stroke="#38bdf8"
           strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
         <ReferenceLine yAxisId="left" x={binNameOf(stats.mean)} stroke="#fbbf24" strokeDasharray="4 3"
-          label={{ value: `Mean ${stats.mean.toFixed(1)}`, position: 'top', fill: '#fbbf24', fontSize: 10, fontWeight: 700 }} />
+          label={{ value: `${t('sim_chart_mean')} ${stats.mean.toFixed(1)}`, position: 'top', fill: '#fbbf24', fontSize: 10, fontWeight: 700 }} />
         <ReferenceLine yAxisId="left" x={binNameOf(stats.median)} stroke="#34d399" strokeDasharray="2 2"
-          label={{ value: `P50 ${Math.round(stats.median)}`, position: 'insideTopLeft', fill: '#34d399', fontSize: 10, fontWeight: 700 }} />
+          label={{ value: `${t('sim_chart_p50')} ${Math.round(stats.median)}`, position: 'insideTopLeft', fill: '#34d399', fontSize: 10, fontWeight: 700 }} />
         <ReferenceLine yAxisId="left" x={binNameOf(stats.p90)} stroke="#fb7185" strokeDasharray="2 2"
-          label={{ value: `P90 ${Math.round(stats.p90)}`, position: 'insideTopRight', fill: '#fb7185', fontSize: 10, fontWeight: 700 }} />
+          label={{ value: `${t('sim_chart_p90')} ${Math.round(stats.p90)}`, position: 'insideTopRight', fill: '#fb7185', fontSize: 10, fontWeight: 700 }} />
       </ComposedChart>
     </ResponsiveContainer>
   );
