@@ -52,7 +52,7 @@ reports/
 ## ติดตั้ง Supabase (ครั้งเดียว)
 
 1. เปิด Supabase project เดิม → **SQL Editor**
-2. วางเนื้อหา `monitoring/sql/schema.sql` แล้ว Run
+2. วางเนื้อหา `docs/sql/monitoring-schema.sql` แล้ว Run
    - สร้าง 4 ตาราง (`monitor_test_runs`, `monitor_page_results`, `monitor_lighthouse_results`, `monitor_broken_links`)
    - เปิด RLS ทุกตาราง (อ่าน/เขียนได้เฉพาะ service_role) + สร้าง view `monitor_daily_uptime`, `monitor_lighthouse_trend`
 
@@ -70,7 +70,7 @@ reports/
 
 ## Deploy / เปิดใช้งาน
 
-1. รัน `monitoring/sql/schema.sql` ใน Supabase
+1. รัน `docs/sql/monitoring-schema.sql` ใน Supabase
 2. ตั้ง 2 secrets ข้างบน
 3. merge ไฟล์เข้า master — workflow `Website Monitoring` จะรันเองทุกคืน
 4. สั่งรันทดสอบทันทีได้ที่ **Actions → Website Monitoring → Run workflow** (workflow_dispatch)
