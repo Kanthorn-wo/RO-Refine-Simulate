@@ -62,7 +62,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **bump ครั้งเดียวเฉพาะตอนผู้ใช้สั่ง "push"** — 1 push = 1 version ใหม่
 - ขนาด bump ตาม SemVer ของการเปลี่ยนแปลง **รวมทั้งหมด** ของรอบนั้น: `PATCH` = bugfix/UI เล็กน้อย, `MINOR` = มีฟีเจอร์ใหม่, `MAJOR` = เปลี่ยน architecture/redesign ใหญ่
 
-version ปัจจุบัน: **1.11.9** (ประวัติ version ก่อนหน้าอยู่ใน `docs/architecture.md`)
+version ปัจจุบัน: **1.11.10** (ประวัติ version ก่อนหน้าอยู่ใน `docs/architecture.md`)
 
 ## Patch Notes (changelog)
 
