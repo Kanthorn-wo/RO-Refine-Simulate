@@ -556,13 +556,16 @@ export default function RefineAnalytics({ session }) {
         title="ประวัติการตีบวก"
         subtitle={`ทั้งหมด ${fmt(total)} ครั้ง · หน้า ${page}/${totalPages}`}
         action={
-          <div className="flex flex-wrap gap-1">
-            {RESULT_FILTERS.map((f) => (
-              <button key={f.id} onClick={() => setFilterResult(f.id)}
-                className={`rounded-md px-2 py-1 text-xs font-medium transition-colors ${filterResult === f.id ? 'bg-indigo-500/25 text-indigo-200' : 'text-slate-500 hover:text-slate-300'}`}>
-                {f.label}
-              </button>
-            ))}
+          <div className="flex flex-wrap items-center gap-1.5">
+            {live && <LiveBadge />}
+            <div className="flex flex-wrap gap-1">
+              {RESULT_FILTERS.map((f) => (
+                <button key={f.id} onClick={() => setFilterResult(f.id)}
+                  className={`rounded-md px-2 py-1 text-xs font-medium transition-colors ${filterResult === f.id ? 'bg-indigo-500/25 text-indigo-200' : 'text-slate-500 hover:text-slate-300'}`}>
+                  {f.label}
+                </button>
+              ))}
+            </div>
           </div>
         }
       >
@@ -629,7 +632,8 @@ export default function RefineAnalytics({ session }) {
                     <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
                       <span className="truncate font-medium text-slate-200">{itemLabel(r)}</span>
                       <span className="shrink-0 rounded bg-white/5 px-1.5 py-0.5 text-[10px] text-slate-400">{TYPE_SHORT[r.item_type] || r.item_type}</span>
-                      <span className="shrink-0 rounded bg-indigo-500/15 px-1.5 py-0.5 text-[10px] font-medium tabular-nums text-indigo-300">+{r.level}</span>
+                      {/* badge โชว์ระดับปลายทาง (r.level เก็บเป็นระดับ "ก่อน" ตี) — ให้ตรงกับกราฟ "ภาพรวมการตีบวก" */}
+                      <span className="shrink-0 rounded bg-indigo-500/15 px-1.5 py-0.5 text-[10px] font-medium tabular-nums text-indigo-300">+{r.level + 1}</span>
                       {/* ชื่อแร่จริง */}
                       <span className="inline-flex shrink-0 items-center gap-1 rounded bg-white/5 px-1.5 py-0.5 text-[10px] text-slate-300">
                         {oreName && ORE_IMAGES[oreName]
@@ -657,7 +661,7 @@ export default function RefineAnalytics({ session }) {
                         {rm.label}{dropAmt > 0 && <span className="opacity-90"> (-{dropAmt})</span>}{rollPct != null && <span className="opacity-80"> ({rollPct.toFixed(2)}%)</span>}
                       </span>
                     </span>
-                    <span className="hidden w-12 shrink-0 text-right text-[11px] text-slate-500 sm:block">{relTime(r.created_at, now)}</span>
+                    <span className="hidden w-24 shrink-0 whitespace-nowrap text-right text-[11px] text-slate-500 sm:block">{relTime(r.created_at, now)}</span>
                   </div>
                 )
               })}
