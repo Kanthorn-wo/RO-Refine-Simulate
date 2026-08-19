@@ -1,3 +1,5 @@
+import { isBotUA } from '../src/constants/botUA.js'
+
 // Vercel Serverless: ตัวนับการใช้งานรวม (social proof) — anonymous, ไม่เก็บข้อมูลส่วนตัว
 //   GET  → ตัวเลขรวมสะสม + คนใช้วันนี้ + flag show_stats (public, cache สั้น)
 //          ส่ง ?from=YYYY-MM-DD&to=YYYY-MM-DD หรือ ?history=N → แนบ daily[] รายวันสำหรับกราฟ
@@ -212,11 +214,16 @@ export default async function handler(req, res) {
       // vid = ID สุ่ม anonymous ต่อเบราว์เซอร์ (ไม่ผูกตัวตน) — ผูกกับ event เพื่อรู้ว่ามาจากคนเดียวกัน
       const vid = typeof body.vid === 'string' && /^[\w-]{8,64}$/.test(body.vid) ? body.vid : null
 
-      // visit: ถ้ามี vid ใช้ record_visit (แยกคนใหม่/กลับมาซ้ำ), ไม่มีก็นับรวมเฉย ๆ
+      // health-check bot (monitoring/run.js ผ่าน Playwright, UA เฉพาะ) — โชว์ใน feed แต่ไม่นับเข้าสถิติ/totalVisitors จริง
+      const isBot = isBotUA(req.headers['user-agent'])
+
+      // visit: bot ไม่นับเข้า usage_visitors/usage_daily, คนจริงใช้ record_visit (แยกคนใหม่/กลับมาซ้ำ), ไม่มี vid ก็นับรวมเฉย ๆ
       // เช็คก่อน recordVisit จะสร้าง row: ไม่เคยมี = 'new', มีแล้ว = 'returning' (เก็บลง event เพื่อโชว์ใน feed)
       let visitorStatus = null
       if (body.visit) {
-        if (vid) {
+        if (isBot) {
+          visitorStatus = 'bot'
+        } else if (vid) {
           const vr = await sbFetch(`usage_visitors?select=vid&vid=eq.${encodeURIComponent(vid)}&limit=1`)
           const existed = vr.ok ? ((await vr.json()).length > 0) : false
           visitorStatus = existed ? 'returning' : 'new'

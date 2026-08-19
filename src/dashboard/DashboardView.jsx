@@ -611,8 +611,8 @@ function ActivityFeed() {
                           <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: meta.dot }} />
                           <span className="truncate">{meta.label}</span>
                           {ev.type === 'visit' && ev.status && (
-                            <span className={ev.status === 'new' ? 'shrink-0 text-xs text-cyan-400' : 'shrink-0 text-xs text-violet-400'}>
-                              ({ev.status === 'new' ? 'คนใหม่' : 'คนเก่า'})
+                            <span className={`shrink-0 text-xs ${ev.status === 'new' ? 'text-cyan-400' : ev.status === 'bot' ? 'text-amber-400' : 'text-violet-400'}`}>
+                              ({ev.status === 'new' ? 'คนใหม่' : ev.status === 'bot' ? 'Bot' : 'คนเก่า'})
                             </span>
                           )}
                         </span>

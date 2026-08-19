@@ -2,13 +2,17 @@ import { chromium, request as pwRequest } from 'playwright';
 import { log } from '../lib/logger.js';
 import { withRetry } from '../lib/retry.js';
 import { url, NAV_TIMEOUT_MS, RETRY, THRESHOLDS } from '../config.js';
+import { BOT_UA_SIGNATURE } from '../../src/constants/botUA.js';
 
 const MAX_SAMPLES = 10; // จำกัดจำนวนตัวอย่าง error/failed request ที่เก็บ กัน payload บวม
+
+// UA เฉพาะของ bot นี้ — ให้ api/stats.js และ useOnlineCount.js แยกออกจากผู้ใช้จริงได้ (ไม่นับเข้าสถิติ)
+const BOT_USER_AGENT = `Mozilla/5.0 (compatible; ${BOT_UA_SIGNATURE}/1.0; +https://ro-refine.com)`;
 
 // ตรวจหน้าแบบ browser จริง: status, response time, page size, js error, failed request
 async function checkPage(browser, target) {
   const target_url = url(target.path);
-  const context = await browser.newContext({ ignoreHTTPSErrors: false });
+  const context = await browser.newContext({ ignoreHTTPSErrors: false, userAgent: BOT_USER_AGENT });
   const page = await context.newPage();
 
   const jsErrors = [];

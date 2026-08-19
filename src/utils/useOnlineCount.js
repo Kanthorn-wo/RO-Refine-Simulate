@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { isBotUA } from '../constants/botUA'
 
 // นับจำนวนผู้ใช้ที่ออนไลน์ "ตอนนี้" ผ่าน Supabase Realtime Presence
 // - track=true   → นับตัวเองด้วย (ฝั่งผู้เล่น)
@@ -10,6 +11,8 @@ export function useOnlineCount({ track = true, enabled = true } = {}) {
 
   useEffect(() => {
     if (!enabled) { setCount(0); return }
+    // health-check bot (monitoring/run.js) ไม่ต้อง track ตัวเองเข้า presence — กันตัวเลข "ออนไลน์" เพี้ยนตอน bot รันตอนกลางคืน
+    const isBot = typeof navigator !== 'undefined' && isBotUA(navigator.userAgent)
     let channel = null
     let client = null
     let cancelled = false
@@ -28,7 +31,7 @@ export function useOnlineCount({ track = true, enabled = true } = {}) {
         if (!cancelled) setCount(Object.keys(channel.presenceState()).length)
       })
       channel.subscribe((status) => {
-        if (status === 'SUBSCRIBED' && track) channel.track({ at: Date.now() })
+        if (status === 'SUBSCRIBED' && track && !isBot) channel.track({ at: Date.now() })
       })
     })()
 
