@@ -201,6 +201,7 @@ const Container = () => {
 
   const handleRefine = () => {
     if (isPlaying) return;
+    if (stack.length >= 20) return; // +20 คือ cap สูงสุดของเกมจริง ห้ามตีต่อ
     // นับยอดรวมการใช้งานเว็บ (social proof) — ทุกครั้งที่ตี รวม auto, 1 ครั้ง = ใช้แร่ 1 ก้อน
     recordRefine();
     // track เฉพาะกดตีเอง (auto นับครั้งเดียวตอน auto_start ไม่งั้น event ท่วม)
@@ -1434,7 +1435,7 @@ const Container = () => {
             )}
             {!autoRefine && (
               <button onClick={handleRefine}
-                disabled={isPlaying || stoneBlocksRefine || mode==='process' || (mode==='fail' && isItemLost)}
+                disabled={isPlaying || stoneBlocksRefine || mode==='process' || (mode==='fail' && isItemLost) || stack.length >= 20}
                 className="flex-1 cursor-pointer rounded font-bold transition-opacity hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-40"
                 style={{ background:'transparent', color:'#000', padding: (stack.length===0 && !(mode==='success' && isSuccessLoop)) ? '31px 0' : '19px 0', fontSize:'0.8rem' }}>
                 {stack.length===0 && !(mode==='success' && isSuccessLoop) ? t('upgrade_btn') : t('retry_btn')}

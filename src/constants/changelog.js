@@ -15,6 +15,13 @@
 
 export const CHANGELOG = [
   {
+    version: '1.11.9',
+    date: '2026-08-19',
+    items: [
+      { type: 'fix', text: 'ล็อกไม่ให้ตีบวกต่อเมื่อไอเทมถึง +20 (ระดับสูงสุดตามกติกาเกม) — เดิมกดตีต่อไปได้เรื่อย ๆ', textEn: 'Locked refining once an item reaches +20 (the game’s max level) — previously the refine button stayed clickable past that point' },
+    ],
+  },
+  {
     version: '1.11.7',
     date: '2026-06-19',
     items: [
