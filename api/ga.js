@@ -1,4 +1,5 @@
 import { BetaAnalyticsDataClient } from '@google-analytics/data'
+import { getUser, isOwner } from './_lib/auth.js'
 
 // Vercel Serverless Function: ดึงข้อมูลสรุปจาก GA4 Data API
 // ป้องกันด้วยการ verify Supabase access token ก่อน (ต้อง login ถึงเรียกได้)
@@ -18,31 +19,6 @@ const TREND_RANGE = { startDate: '90daysAgo', endDate: 'today' }
 // custom event ของเว็บ (ตรงกับ trackEvent ใน src/utils/analytics.js)
 const FEATURE_EVENTS = ['refine_attempt', 'auto_start', 'sim_open', 'sim_run']
 
-async function getUser(req) {
-  const auth = req.headers.authorization || ''
-  const token = auth.startsWith('Bearer ') ? auth.slice(7) : ''
-  if (!token || !process.env.SUPABASE_URL) return null
-  try {
-    const r = await fetch(`${process.env.SUPABASE_URL}/auth/v1/user`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        apikey: process.env.SUPABASE_ANON_KEY || '',
-      },
-    })
-    if (!r.ok) return null
-    return await r.json()
-  } catch {
-    return null
-  }
-}
-
-// เฉพาะอีเมลเจ้าของใน DASHBOARD_ALLOWED_EMAILS เท่านั้น — ไม่ตั้ง env = ปฏิเสธทุกคน (fail closed)
-function isOwner(user) {
-  const allow = (process.env.DASHBOARD_ALLOWED_EMAILS || '')
-    .split(',').map((s) => s.trim().toLowerCase()).filter(Boolean)
-  const email = ((user && user.email) || '').toLowerCase()
-  return allow.length > 0 && !!email && allow.includes(email)
-}
 
 // "20260518" -> "05/18"
 const fmtDate = (s) => (s && s.length === 8 ? `${s.slice(4, 6)}/${s.slice(6, 8)}` : s)

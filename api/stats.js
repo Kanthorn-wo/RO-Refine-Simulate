@@ -1,4 +1,7 @@
 import { isBotUA } from '../src/constants/botUA.js'
+import { getUser, isOwner } from './_lib/auth.js'
+import { bkkToday } from '../src/utils/date.js'
+import { POST_BATCH_CAP } from '../src/constants/limits.js'
 
 // Vercel Serverless: ตัวนับการใช้งานรวม (social proof) — anonymous, ไม่เก็บข้อมูลส่วนตัว
 //   GET  → ตัวเลขรวมสะสม + คนใช้วันนี้ + flag show_stats (public, cache สั้น)
@@ -8,14 +11,9 @@ import { isBotUA } from '../src/constants/botUA.js'
 // เขียน/อ่านผ่าน service_role (RLS ล็อก table ไว้)
 // ENV: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
 
-const CAP = 200          // cap delta สูงสุดต่อ request
+const CAP = POST_BATCH_CAP // cap delta สูงสุดต่อ request — ต้องตรงกับฝั่ง client (src/utils/usageStats.js) เสมอ
 const MAX_RANGE = 366    // เพดานช่วงวันที่ดึงรายวัน (กัน payload บวม)
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
-
-// วันที่ปัจจุบันโซนไทย (UTC+7, ไม่มี DST) เป็น 'YYYY-MM-DD'
-function bkkToday() {
-  return new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10)
-}
 
 // ไล่วันจาก from → to (รวมปลายทั้งสอง) เป็น array ของ 'YYYY-MM-DD'
 function eachDay(from, to) {
@@ -116,6 +114,13 @@ export default async function handler(req, res) {
       const q = (k) => (req.query && req.query[k]) ?? url.searchParams.get(k)
       const range = resolveRange(q, today)
       const evN = Math.min(Math.max(Math.floor(Number(q('events'))) || 0, 0), 200)
+
+      // ?events= คือ feed ระดับ per-vid (เหมือนที่ dashboard อื่นต้อง auth) — ต่างจากตัวเลขรวม/daily ที่ยังคง public
+      if (evN) {
+        const user = await getUser(req)
+        if (!user) return res.status(401).json({ error: 'unauthorized' })
+        if (!isOwner(user)) return res.status(403).json({ error: 'ไม่มีสิทธิ์เข้าถึง' })
+      }
 
       const reqs = [
         sbFetch('usage_counters?select=metric,count&metric=in.(refine_total,stone_total,bsb_total)'),

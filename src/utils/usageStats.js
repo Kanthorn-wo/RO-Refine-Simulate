@@ -2,9 +2,12 @@
 // นับ: ตีบวก (refine) / แร่ที่ใช้ (stone) / BSB ที่ใช้ (bsb) / คนใช้วันนี้ (visit)
 // ยิงเป็น batch ตอนปิด/ซ่อนแท็บ หรือสะสมถึงเพดาน — ไม่ยิงทุกครั้งกัน request ท่วม
 
+import { bkkToday } from './date.js'
+import { POST_BATCH_CAP } from '../constants/limits.js'
+
 const ENDPOINT = '/api/stats'
 const REFINE_ENDPOINT = '/api/refine'
-const CAP = 200 // ตรงกับ cap ฝั่ง server — flush ก่อนเกิน
+const CAP = POST_BATCH_CAP // ต้องตรงกับ cap ฝั่ง server (api/stats.js, api/refine.js) — flush ก่อนเกิน
 
 let pending = { refine: 0, stone: 0, bsb: 0 }
 let flushTimer = null
@@ -28,7 +31,7 @@ function post(url, body) {
   } catch { /* analytics ห้ามทำแอปพัง */ }
 }
 
-export function flushUsage() {
+function flushUsage() {
   const { refine, stone, bsb } = pending
   if (!refine && !stone && !bsb) return
   pending = { refine: 0, stone: 0, bsb: 0 }
@@ -37,7 +40,7 @@ export function flushUsage() {
 }
 
 // ── analytics ละเอียด: เก็บทุก attempt (itemType/itemId/level/stone/bsb/result) ส่ง batch ──
-export function flushRefineDetail() {
+function flushRefineDetail() {
   if (!pendingDetail.length) return
   const rows = pendingDetail
   pendingDetail = []
@@ -108,8 +111,7 @@ function getVisitorId() {
 // นับ "คนใช้วันนี้" 1 ครั้ง/เบราว์เซอร์/วัน — dedup ฝั่ง client ด้วย localStorage + ส่ง vid ให้แยก new/returning
 export function pingVisitOncePerDay() {
   try {
-    const today = new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10)
-    const key = `ro_stats_visit_${today}`
+    const key = `ro_stats_visit_${bkkToday()}`
     if (localStorage.getItem(key)) return
     localStorage.setItem(key, '1')
     post(ENDPOINT, { visit: true, vid: getVisitorId() })

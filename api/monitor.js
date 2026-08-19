@@ -1,35 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
+import { getUser, isOwner } from './_lib/auth.js'
 
 // Vercel Serverless Function: ดึงข้อมูล monitoring จาก Supabase
 // ป้องกันด้วย verify Supabase access token + email allowlist เหมือน api/ga.js
 //
 // ENV ที่ต้องตั้งบน Vercel (เพิ่มจากของเดิม):
 //   SUPABASE_SERVICE_ROLE_KEY — service_role key (bypass RLS — เขียน/อ่านได้ทุกตาราง)
-
-async function getUser(req) {
-  const auth = req.headers.authorization || ''
-  const token = auth.startsWith('Bearer ') ? auth.slice(7) : ''
-  if (!token || !process.env.SUPABASE_URL) return null
-  try {
-    const r = await fetch(`${process.env.SUPABASE_URL}/auth/v1/user`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        apikey: process.env.SUPABASE_ANON_KEY || '',
-      },
-    })
-    if (!r.ok) return null
-    return await r.json()
-  } catch {
-    return null
-  }
-}
-
-function isOwner(user) {
-  const allow = (process.env.DASHBOARD_ALLOWED_EMAILS || '')
-    .split(',').map((s) => s.trim().toLowerCase()).filter(Boolean)
-  const email = ((user && user.email) || '').toLowerCase()
-  return allow.length > 0 && !!email && allow.includes(email)
-}
 
 export default async function handler(req, res) {
   const user = await getUser(req)

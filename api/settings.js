@@ -4,29 +4,9 @@
 // verify Supabase token + เช็ค email ใน DASHBOARD_ALLOWED_EMAILS (เหมือน api/ga.js)
 // ENV: SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, DASHBOARD_ALLOWED_EMAILS
 
+import { getUser, isOwner } from './_lib/auth.js'
+
 const ALLOWED_KEYS = ['show_stats', 'show_online', 'track_online']
-
-async function getUser(req) {
-  const auth = req.headers.authorization || ''
-  const token = auth.startsWith('Bearer ') ? auth.slice(7) : ''
-  if (!token || !process.env.SUPABASE_URL) return null
-  try {
-    const r = await fetch(`${process.env.SUPABASE_URL}/auth/v1/user`, {
-      headers: { Authorization: `Bearer ${token}`, apikey: process.env.SUPABASE_ANON_KEY || '' },
-    })
-    if (!r.ok) return null
-    return await r.json()
-  } catch {
-    return null
-  }
-}
-
-function isOwner(user) {
-  const allow = (process.env.DASHBOARD_ALLOWED_EMAILS || '')
-    .split(',').map((s) => s.trim().toLowerCase()).filter(Boolean)
-  const email = ((user && user.email) || '').toLowerCase()
-  return allow.length > 0 && !!email && allow.includes(email)
-}
 
 async function readBody(req) {
   if (req.body && typeof req.body === 'object') return req.body

@@ -3,11 +3,16 @@
 //   GET  → อ่านสถิติ (เฉพาะเจ้าของ) + pagination + level×result breakdown
 // ENV: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_ANON_KEY, DASHBOARD_ALLOWED_EMAILS
 
+import { getRate } from '../src/constants/refineRates.js'
+import { BSB_REQUIRED_NORMAL, BSB_REQUIRED_EVENT, isBsbLevel } from '../src/constants/refineConfig.js'
+import { getUser, isOwner } from './_lib/auth.js'
+import { POST_BATCH_CAP } from '../src/constants/limits.js'
+
 const ITEM_TYPES = ['weapon1', 'weapon2', 'weapon3', 'weapon4', 'weapon5', 'armor1', 'armor2']
 const STONES = ['normal', 'enriched', 'hd']
 const RESULTS = ['success', 'fail', 'lost', 'drop']
 const MODES = ['manual', 'auto']
-const MAX_ROWS = 200
+const MAX_ROWS = POST_BATCH_CAP // ต้องตรงกับฝั่ง client (src/utils/usageStats.js CAP) และ api/stats.js
 
 function sbFetch(pathAndQuery, init) {
   const base = process.env.SUPABASE_URL
@@ -35,13 +40,30 @@ async function readBody(req) {
   })
 }
 
+// เช็คว่า result ที่ส่งมาเป็นไปได้จริงตามตาราง rate/กติกาเกม ไม่ใช่แค่ type/range ถูก
+// (กันเคสแบบ level=0 result='lost' ที่เจอมาแล้ว — rate 100% ที่ level ต่ำ ๆ ล้มไม่ได้เลย)
+function isPlausibleResult({ item_type, level, stone, bsb, result, event_buff }) {
+  if (result === 'success') return true // สำเร็จเป็นไปได้เสมอ (ไม่มี rate 0%)
+  const useCash = stone === 'hd'
+  const useEnriched = stone === 'enriched'
+  const rate = getRate(event_buff, useCash, useEnriched, item_type, level)
+  if (rate >= 100) return false // rate 100% ล้มไม่ได้เลย
+  const bsbTable = event_buff ? BSB_REQUIRED_EVENT : BSB_REQUIRED_NORMAL
+  const bsbActive = bsb && isBsbLevel(level) && (bsbTable[level] || 0) > 0
+  if (bsbActive) return result === 'fail' // BSB ป้องกัน ระดับไม่เปลี่ยน
+  const isSpecial = item_type === 'weapon5' || item_type === 'armor2'
+  if (isSpecial) return result === (level >= 10 ? 'lost' : 'drop')
+  return result === (useCash ? 'drop' : 'lost')
+}
+
 function cleanRow(r) {
   if (!r || typeof r !== 'object') return null
   if (!ITEM_TYPES.includes(r.item_type)) return null
   if (!STONES.includes(r.stone)) return null
   if (!RESULTS.includes(r.result)) return null
   const level = Math.floor(Number(r.level))
-  if (!Number.isFinite(level) || level < 0 || level > 25) return null
+  // level >= 20 เป็นไปไม่ได้แล้ว (ปุ่มตี manual ล็อกที่ +20 เหมือน Auto) — เดิมเผื่อไว้ถึง 25 ตอนยังไม่มี cap
+  if (!Number.isFinite(level) || level < 0 || level > 19) return null
 
   let itemId = null
   if (r.item_id != null) {
@@ -51,7 +73,7 @@ function cleanRow(r) {
   let refineAfter = null
   if (r.refine_after != null) {
     const n = Math.floor(Number(r.refine_after))
-    if (Number.isFinite(n) && n >= 0 && n <= 25) refineAfter = n
+    if (Number.isFinite(n) && n >= 0 && n <= 20) refineAfter = n
   }
 
   let rollPct = null
@@ -60,7 +82,7 @@ function cleanRow(r) {
     if (Number.isFinite(n) && n >= 0 && n <= 100) rollPct = Math.round(n * 100) / 100
   }
 
-  return {
+  const cleaned = {
     item_type:    r.item_type,
     item_id:      itemId,
     item_name:    typeof r.item_name === 'string' ? r.item_name.slice(0, 120) : null,
@@ -74,26 +96,8 @@ function cleanRow(r) {
     mode:         MODES.includes(r.mode) ? r.mode : null,
     roll_pct:     rollPct,
   }
-}
-
-async function getUser(req) {
-  const auth = req.headers.authorization || ''
-  const token = auth.startsWith('Bearer ') ? auth.slice(7) : ''
-  if (!token || !process.env.SUPABASE_URL) return null
-  try {
-    const r = await fetch(`${process.env.SUPABASE_URL}/auth/v1/user`, {
-      headers: { Authorization: `Bearer ${token}`, apikey: process.env.SUPABASE_ANON_KEY || '' },
-    })
-    if (!r.ok) return null
-    return await r.json()
-  } catch { return null }
-}
-
-function isOwner(user) {
-  const allow = (process.env.DASHBOARD_ALLOWED_EMAILS || '')
-    .split(',').map((s) => s.trim().toLowerCase()).filter(Boolean)
-  const email = ((user && user.email) || '').toLowerCase()
-  return allow.length > 0 && !!email && allow.includes(email)
+  if (!isPlausibleResult(cleaned)) return null
+  return cleaned
 }
 
 export default async function handler(req, res) {
@@ -153,17 +157,15 @@ export default async function handler(req, res) {
       }
       logQ += `&offset=${offset}&limit=${limit}`
 
-      const [lbRes, bdRes, logRes, dailyRes] = await Promise.all([
+      const [lbRes, bdRes, logRes] = await Promise.all([
         sbFetch('refine_item_stats?select=item_type,item_id,attempts,success,fail&order=attempts.desc&limit=100'),
         sbFetch('refine_breakdown?select=scope,dim,key,count,success&scope=eq.global'),
         sbFetch(logQ),
-        sbFetch('refine_daily?select=day,dim,key,count,success&order=day.desc&limit=180'),
       ])
 
       const leaderboard   = lbRes.ok   ? await lbRes.json()   : []
       const breakdownRows = bdRes.ok   ? await bdRes.json()   : []
       const log           = logRes.ok  ? await logRes.json()  : []
-      const dailyRows     = dailyRes.ok ? await dailyRes.json() : []
 
       // total count จาก Content-Range header (Prefer: count=exact)
       const cr = logRes.headers?.get?.('content-range') || ''
@@ -202,16 +204,8 @@ export default async function handler(req, res) {
       }
       const levelResult = Object.values(lrMap).sort((a, b) => a.level - b.level)
 
-      // daily trend เป็น { dim: { key: [{ day, count, success }] } }
-      const daily = {}
-      for (const d of dailyRows) {
-        if (!daily[d.dim]) daily[d.dim] = {}
-        if (!daily[d.dim][d.key]) daily[d.dim][d.key] = []
-        daily[d.dim][d.key].push({ day: d.day, count: Number(d.count), success: Number(d.success) })
-      }
-
       res.setHeader('cache-control', 'no-store')
-      return res.status(200).json({ leaderboard, breakdown, log, total, page, limit, levelResult, daily, stoneUsage, stoneUsageTotal })
+      return res.status(200).json({ leaderboard, breakdown, log, total, page, limit, levelResult, stoneUsage, stoneUsageTotal })
     } catch {
       return res.status(502).json({ error: 'read failed' })
     }
