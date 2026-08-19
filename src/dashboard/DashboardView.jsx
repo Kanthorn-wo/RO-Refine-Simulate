@@ -5,6 +5,7 @@ import {
 } from 'recharts'
 import { supabase } from '../lib/supabase'
 import { useOnlineCount } from '../utils/useOnlineCount'
+import { bkkToday, bkkDaysAgo } from '../utils/date'
 import MonitorView from './MonitorView'
 import RefineAnalytics from './RefineAnalytics'
 import Toggle from '../components/Toggle'
@@ -487,7 +488,8 @@ function ActivityFeed({ session }) {
   const load = async () => {
     if (mountedRef.current) { setRefreshing(true); setError('') }
     try {
-      const res = await fetch('/api/stats?events=200')
+      const token = session?.access_token
+      const res = await fetch('/api/stats?events=200', { headers: token ? { Authorization: `Bearer ${token}` } : {} })
       if (!res.ok) throw new Error(`โหลดไม่สำเร็จ (${res.status})`)
       const json = await res.json()
       if (mountedRef.current) setEvents(json.events || [])
@@ -512,6 +514,7 @@ function ActivityFeed({ session }) {
       })
       .subscribe((status) => { if (mountedRef.current) setLive(status === 'SUBSCRIBED') })
     return () => { mountedRef.current = false; supabase.removeChannel(channel) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // ticker อัปเดตเวลา relative ทุก 2 วิ
@@ -688,8 +691,8 @@ const USAGE_SUB_TABS = [
   { id: 'settings', label: 'ตั้งค่า',    sub: 'การแสดงผลหน้าเว็บ' },
 ]
 
-const usageToday = () => new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10)
-const usageDaysAgo = (n) => new Date(Date.now() + 7 * 3600 * 1000 - n * 86400000).toISOString().slice(0, 10)
+const usageToday = bkkToday
+const usageDaysAgo = bkkDaysAgo
 
 function UsageContent({ session }) {
   const [usageTab, setUsageTab] = useState('traffic')
@@ -743,13 +746,13 @@ function UsageContent({ session }) {
         }
       }
       await post(key, next)
-      const patch = { [field]: next }
+      // สะท้อนค่าที่เขียนสำเร็จทันที ก่อนลอง cascade ต่อ — กัน UI ค้างค่าเก่าถ้า cascade ล้มเหลวกลางทาง (server เขียนตัวแรกไปแล้วจริง)
+      setData((d) => ({ ...d, [field]: next }))
       // ปิดระบบนับ = ปิด "แสดงให้ผู้เล่นเห็น" ตามด้วย (cascade) — เปิดระบบนับไม่ดึงกลับ ต้องเปิด show เอง
       if (key === 'track_online' && next === false && data.showOnline !== false) {
         await post('show_online', false)
-        patch.showOnline = false
+        setData((d) => ({ ...d, showOnline: false }))
       }
-      setData((d) => ({ ...d, ...patch }))
     } catch (err) {
       setError(err.message)
     } finally {

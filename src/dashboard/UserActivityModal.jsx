@@ -82,12 +82,15 @@ export default function UserActivityModal({ vid, session, onClose }) {
     ;(async () => {
       try {
         const token = session?.access_token
+        const authHeader = token ? { Authorization: `Bearer ${token}` } : {}
         const [evRes, logRes] = await Promise.all([
-          fetch('/api/stats?events=200'),
-          fetch(`/api/refine?q=${encodeURIComponent(vid)}&limit=100`, { headers: token ? { Authorization: `Bearer ${token}` } : {} }),
+          fetch('/api/stats?events=200', { headers: authHeader }),
+          fetch(`/api/refine?q=${encodeURIComponent(vid)}&limit=100`, { headers: authHeader }),
         ])
-        const evJson = evRes.ok ? await evRes.json() : {}
-        const logJson = logRes.ok ? await logRes.json() : {}
+        if (!evRes.ok) throw new Error(`โหลดกิจกรรมไม่สำเร็จ (${evRes.status})`)
+        if (!logRes.ok) throw new Error(`โหลดประวัติตีบวกไม่สำเร็จ (${logRes.status})${logRes.status === 401 || logRes.status === 403 ? ' — session อาจหมดอายุ ลอง login ใหม่' : ''}`)
+        const evJson = await evRes.json()
+        const logJson = await logRes.json()
         const events = (evJson.events || [])
           .filter((e) => e.vid === vid && e.type !== 'refine')
           .map((e) => ({ kind: 'event', at: e.at, type: e.type, status: e.status }))

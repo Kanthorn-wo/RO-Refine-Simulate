@@ -197,8 +197,9 @@ export default function MonitorView({ session }) {
   const avgUptime = uptime.length
     ? Math.round(uptime.reduce((s, r) => s + (Number(r.uptime_pct) || 0), 0) / uptime.length)
     : null
-  const avgRespMs = data.latestPages.length
-    ? Math.round(data.latestPages.reduce((s, r) => s + (r.response_time_ms || 0), 0) / data.latestPages.filter(r => r.response_time_ms).length)
+  const pagesWithRespMs = data.latestPages.filter(r => r.response_time_ms).length
+  const avgRespMs = pagesWithRespMs
+    ? Math.round(data.latestPages.reduce((s, r) => s + (r.response_time_ms || 0), 0) / pagesWithRespMs)
     : null
   const lhLatest = data.latestLighthouse
   const avgSeo = lhLatest.length ? Math.round(lhLatest.reduce((s, r) => s + (r.seo || 0), 0) / lhLatest.length) : null

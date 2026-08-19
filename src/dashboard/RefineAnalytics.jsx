@@ -280,12 +280,24 @@ export default function RefineAnalytics({ session }) {
           if (!row) { row = { level: r.level ?? 0, success: 0, fail: 0, drop: 0, lost: 0, weapon: 0, armor: 0 }; lr.push(row); lr.sort((a, b) => a.level - b.level) }
           if (r.result) row[r.result] = (row[r.result] || 0) + 1
           if (isWeapon) row.weapon += 1; else row.armor += 1
+          // breakdown.result/bsb เป็นตัวขับ KPI card ด้านบน (ตีทั้งหมด/อัตราสำเร็จ/ใช้ BSB) — ต้องอัปเดตด้วย ไม่งั้น "Live" ที่หัว panel โกหก (ค้างค่าเดิมจนกว่าจะรีเฟรช)
+          const bd = { ...prev.breakdown }
+          const bump = (dim, key) => {
+            const d = { ...(bd[dim] || {}) }
+            const cur = d[key] || { count: 0, success: 0 }
+            d[key] = { count: cur.count + 1, success: cur.success + (r.result === 'success' ? 1 : 0) }
+            bd[dim] = d
+          }
+          if (r.result) bump('result', r.result)
+          bump('bsb', r.bsb ? 'yes' : 'no')
           const next = {
             ...prev,
+            breakdown: bd,
             stoneUsage: su,
             levelResult: lr,
             stoneUsageTotal: (prev.stoneUsageTotal || 0) + 1,
-            total: (prev.total || 0) + 1,
+            // total = จำนวนที่ตรง filter ปัจจุบัน (คำนวณจาก content-range ฝั่ง server ตอน GET) — บวกเพิ่มเฉพาะ event ที่ matchFilter ด้วย ไม่งั้นเลขหน้า/ทั้งหมดเพี้ยนตอนเปิด filter อยู่
+            total: matchFilter ? (prev.total || 0) + 1 : prev.total,
           }
           // ตารางประวัติ (log) อัปเดตเฉพาะหน้าแรกและตรง filter
           if (matchFilter && page === 1) next.log = [r, ...prev.log].slice(0, PAGE_SIZE)
