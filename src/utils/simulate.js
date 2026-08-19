@@ -1,13 +1,14 @@
 // Monte Carlo simulation engine — pure functions, no React state.
 // กติกาผลตี/ล้มเหลว mirror มาจาก handleRefine ใน Layout ทุกสาขา (อย่าแก้ฝั่งเดียว):
 //   - สำเร็จ → +1
-//   - ล้ม + BSB คุ้มกัน (destination +8..+15, bsbTable > 0) → ระดับเดิม, นับ BSB
+//   - ล้ม + BSB คุ้มกัน (level 7..14 ก่อนตี, bsbTable > 0) → ระดับเดิม, นับ BSB
 //   - weapon5/armor2: level >= 10 → ไอเทมหาย, ต่ำกว่า → ลด (enriched −1, อื่น −3, clamp 0)
 //   - ประเภทอื่น: HD → ลด 1 (ถ้า > 0), หินปกติ/Enriched → ไอเทมหาย
 // model เมื่อไอเทมหาย: เริ่มไอเทมใหม่ที่ startLevel แล้วนับต่อในรอบเดิม
 import { getRate } from '../constants/refineRates';
 import { getOreName } from '../constants/ores';
 import { getEffectiveStone } from './stones';
+import { isBsbLevel } from '../constants/refineConfig';
 
 // เพดานจำนวนตีต่อรอบ กัน loop ไม่จบ (เช่น เป้าสูง + rate ต่ำมาก)
 export const MAX_ATTEMPTS_PER_ROUND = 50000;
@@ -36,10 +37,9 @@ export const simulateRound = ({ itemType, startLevel, targetLevel, stone, useBSB
       oresTotal++;
     }
     // BSB ถูกใช้ทุกครั้งที่ตีในช่วงที่ active — ตีติดก็เสีย (ตามกติกาเกมจริง)
-    const currentLevel = level + 1;
     let bsbCost = 0;
-    if (useBSB && currentLevel >= 8 && currentLevel <= 15) {
-      bsbCost = bsbTable[currentLevel - 1] || 0;
+    if (useBSB && isBsbLevel(level)) {
+      bsbCost = bsbTable[level] || 0;
     }
     if (bsbCost > 0) bsbUsed += bsbCost;
     const rate = getRate(isEventRate, useCash, useEnriched, itemType, level) / 100;

@@ -1,4 +1,5 @@
 import { getRate } from '../constants/refineRates';
+import { isBsbLevel } from '../constants/refineConfig';
 
 // ป้ายชื่อ/สีของชนิดหิน (ใช้ในแผน auto)
 export const STONE_META = {
@@ -49,7 +50,7 @@ export const toggleHasMeaning = (stone, itemType, fromDest, toDest, isEventRate,
     if (!wouldLose) continue;
     if (getRate(isEventRate, wC, wE, itemType, stackLen) >= 100) continue;
     const bsbProtects = autoUseBSB && ruleBsb
-      && stackLen >= 7 && stackLen <= 14 && (bsbTable[stackLen] || 0) > 0;
+      && isBsbLevel(stackLen) && (bsbTable[stackLen] || 0) > 0;
     if (!bsbProtects) return true;
   }
   return false;

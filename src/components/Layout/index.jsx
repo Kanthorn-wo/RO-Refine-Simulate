@@ -9,7 +9,7 @@ import souneEffectSuccess from 'assets/sounds/bs_refine_success.wav';
 import souneEffectFail from 'assets/sounds/bs_refine_failed.wav';
 
 import bsbImg from 'assets/images/blacksmith_blessing.png';
-import { BSB_REQUIRED_NORMAL, BSB_REQUIRED_EVENT } from '../../constants/refineConfig';
+import { BSB_REQUIRED_NORMAL, BSB_REQUIRED_EVENT, isBsbLevel } from '../../constants/refineConfig';
 import Toggle from '../Toggle';
 import SimulatorPanel from '../SimulatorPanel';
 import { getRate } from '../../constants/refineRates';
@@ -92,7 +92,7 @@ const Container = () => {
   const intervalRef = useRef(null);
   const skipSuccessIntroRef = useRef(false);
 
-  const bsbInRange = stack.length >= 7 && stack.length <= 14 && (bsbTable[stack.length] || 0) > 0;
+  const bsbInRange = isBsbLevel(stack.length) && (bsbTable[stack.length] || 0) > 0;
 
   useEffect(() => {
     if (mode === 'wait') {
@@ -236,7 +236,7 @@ const Container = () => {
     let dropAmount = null;
 
     let canUseBSB = false;
-    if (useBSB && currentLevel >= 8 && currentLevel <= 15) {
+    if (useBSB && isBsbLevel(stack.length)) {
       bsbUsed = bsbTable[currentLevel - 1] || 0;
       canUseBSB = bsbUsed > 0;
     }
@@ -253,7 +253,10 @@ const Container = () => {
       logMsg = `+${stack.length} → +${stack.length + 1} : สำเร็จ`;
       resultType = 'success';
     } else if (canUseBSB) {
-      logMsg = `+${stack.length} → +${stack.length} : ล้มเหลว (ใช้ BSB ${bsbUsed} ชิ้น ป้องกัน${useCash ? 'ลดระดับ' : 'ไอเทมหาย'})`;
+      // ผลตอนล้มที่ BSB ป้องกันไว้ ขึ้นกับ isSpecial+ระดับ ไม่ใช่ชนิดหิน (ให้ตรงกับ branch ด้านล่างที่เป็น ground truth)
+      const isSpecialType = itemType === 'weapon5' || itemType === 'armor2';
+      const wouldLoseItem = isSpecialType ? stack.length >= 10 : !useCash;
+      logMsg = `+${stack.length} → +${stack.length} : ล้มเหลว (ใช้ BSB ${bsbUsed} ชิ้น ป้องกัน${wouldLoseItem ? 'ไอเทมหาย' : 'ลดระดับ'})`;
       resultType = 'bsb_protect';
     } else if (itemType === 'weapon5' || itemType === 'armor2') {
       if (stack.length >= 10) {
@@ -367,7 +370,7 @@ const Container = () => {
     }
     const applicableRule = [...autoStoneRules].sort((a, b) => b.from - a.from).find(r => r.from <= stack.length + 1);
     if (autoUseBSB) {
-      const wantBSB = !!applicableRule?.bsb && stack.length >= 7 && stack.length <= 14 && (bsbTable[stack.length] || 0) > 0;
+      const wantBSB = !!applicableRule?.bsb && isBsbLevel(stack.length) && (bsbTable[stack.length] || 0) > 0;
       if (wantBSB !== useBSB) {
         setUseBSB(wantBSB);
         return;
@@ -376,7 +379,7 @@ const Container = () => {
     if (applicableRule?.stopOnLoss) {
       const isSpecial = itemType === 'weapon5' || itemType === 'armor2';
       const wouldLoseOnFail = isSpecial ? stack.length >= 10 : !wantCash;
-      const bsbProtects = useBSB && stack.length >= 7 && stack.length <= 14 && (bsbTable[stack.length] || 0) > 0;
+      const bsbProtects = useBSB && isBsbLevel(stack.length) && (bsbTable[stack.length] || 0) > 0;
       const currentRate = getRate(isEventRate, wantCash, wantEnriched, itemType, stack.length);
       if (wouldLoseOnFail && !bsbProtects && currentRate < 100) {
         setAutoRunning(false);
@@ -709,7 +712,7 @@ const Container = () => {
             {t('rate_table_title')} — {isEventRate ? t('event_rate_up') : t('no_event')} · {useEnriched ? 'Enriched' : useCash ? 'HD' : t('stone_normal_label')}
           </h2>
           {/* สวิตช์โหมดเรท — ทำให้เห็นชัดว่ากดได้: ราง inset + ปุ่ม active นูน + hover เด้ง */}
-          <div role="group" aria-label="Rate mode" className="inline-flex gap-1 rounded-xl border border-line/80 bg-app/70 p-1 shadow-inner shadow-black/50">
+          <div role="group" aria-label={t('aria_rate_mode')} className="inline-flex gap-1 rounded-xl border border-line/80 bg-app/70 p-1 shadow-inner shadow-black/50">
             <button
               type="button"
               onClick={() => setIsEventRate(false)}
@@ -800,7 +803,7 @@ const Container = () => {
         {/* ประเภทไอเท็ม */}
         <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
           <label htmlFor="item-type" className="text-sm font-semibold text-body">{t('item_type_label')}</label>
-          <div role="group" aria-label="Item selection mode" className="inline-flex gap-1 rounded-xl border border-line/80 bg-app/70 p-1 shadow-inner shadow-black/50">
+          <div role="group" aria-label={t('aria_item_mode')} className="inline-flex gap-1 rounded-xl border border-line/80 bg-app/70 p-1 shadow-inner shadow-black/50">
             <button
               type="button"
               onClick={() => setInputMode('dropdown')}
@@ -1688,7 +1691,7 @@ const Container = () => {
               <b className="text-lg font-bold text-warn">{t('usage_title')}</b>
               {/* mobile (ตอน wrap ลงมาอยู่ชิดซ้าย) ให้ align ซ้ายตาม — ≥sm ค่อยชิดขวา */}
               <div className="flex flex-col items-start gap-1 sm:items-end">
-                <div role="group" aria-label="Currency" className="inline-flex gap-1 rounded-xl border border-line/80 bg-app/70 p-1 shadow-inner shadow-black/50">
+                <div role="group" aria-label={t('aria_currency')} className="inline-flex gap-1 rounded-xl border border-line/80 bg-app/70 p-1 shadow-inner shadow-black/50">
                   <button
                     type="button"
                     onClick={() => { setCurrency('zenny'); setRowCurrency({}); }}
@@ -1711,7 +1714,7 @@ const Container = () => {
                         : 'text-dim hover:-translate-y-px hover:bg-line-soft/70 hover:text-body active:translate-y-0 active:scale-95'
                     }`}
                   >
-                    ฿ {lang === 'th' ? 'บาท' : 'Baht'}
+                    ฿ {t('currency_baht')}
                   </button>
                 </div>
                 <span className="text-[0.65rem] text-faint">{t('set_all_hint')}</span>

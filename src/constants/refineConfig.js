@@ -22,3 +22,9 @@ export const BSB_REQUIRED_EVENT = [
   16, // 13 → 14
   22, // 14 → 15
 ];
+
+// ช่วง stack.length (ระดับก่อนตี) ที่ BSB ใช้ได้ — เดิมเขียนซ้ำเป็นเงื่อนไข >=7&&<=14 (บางที่ >=8&&<=15
+// แบบ destination level) กระจายอยู่หลายไฟล์ (Layout/index.jsx, stones.js, simulate.js) รวมไว้ที่เดียว
+export const BSB_MIN_LEVEL = 7
+export const BSB_MAX_LEVEL = 14
+export const isBsbLevel = (level) => level >= BSB_MIN_LEVEL && level <= BSB_MAX_LEVEL
