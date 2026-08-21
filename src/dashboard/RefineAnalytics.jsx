@@ -644,8 +644,8 @@ export default function RefineAnalytics({ session }) {
                     <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
                       <span className="truncate font-medium text-slate-200">{itemLabel(r)}</span>
                       <span className="shrink-0 rounded bg-white/5 px-1.5 py-0.5 text-[10px] text-slate-400">{TYPE_SHORT[r.item_type] || r.item_type}</span>
-                      {/* badge โชว์ระดับปลายทาง (r.level เก็บเป็นระดับ "ก่อน" ตี) — ให้ตรงกับกราฟ "ภาพรวมการตีบวก" */}
-                      <span className="shrink-0 rounded bg-indigo-500/15 px-1.5 py-0.5 text-[10px] font-medium tabular-nums text-indigo-300">+{r.level + 1}</span>
+                      {/* badge โชว์ "ก่อน -> ปลายทาง" กันงงว่าทำไม r.level (ก่อนตี) เดียวแสดงเป็นเลขปลายทาง */}
+                      <span className="shrink-0 rounded bg-indigo-500/15 px-1.5 py-0.5 text-[10px] font-medium tabular-nums text-indigo-300">+{r.level} → +{r.level + 1}</span>
                       {/* ชื่อแร่จริง */}
                       <span className="inline-flex shrink-0 items-center gap-1 rounded bg-white/5 px-1.5 py-0.5 text-[10px] text-slate-300">
                         {oreName && ORE_IMAGES[oreName]
