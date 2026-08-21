@@ -341,6 +341,13 @@ export default function RefineAnalytics({ session }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { load(1) }, [session, tick, filterResult, filterStone, filterMode, searchQ])
 
+  // resync เต็มเป็นระยะ (safety net) — กัน realtime patch หลุด sync ตอนเปิดแท็บค้างไว้นาน (เช่น relTime เพี้ยน)
+  useEffect(() => {
+    const id = setInterval(() => { if (!loading) load(page) }, 120000)
+    return () => clearInterval(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session, page, filterResult, filterStone, filterMode, searchQ])
+
   const leaderboard   = useMemo(() => data?.leaderboard || [], [data])
   const breakdown     = useMemo(() => data?.breakdown || {}, [data])
   const log           = useMemo(() => data?.log || [], [data])
