@@ -32,9 +32,9 @@ function Skeleton({ h = 'h-40' }) {
   return <div className={`animate-pulse rounded-2xl bg-white/[0.04] ${h}`} />
 }
 
-function Panel({ title, hint, children, className = '' }) {
+function Panel({ id, title, hint, children, className = '' }) {
   return (
-    <div className={`rounded-2xl border border-white/5 bg-white/[0.03] p-5 backdrop-blur-sm ${className}`}>
+    <div id={id} className={`scroll-mt-20 rounded-2xl border border-white/5 bg-white/[0.03] p-5 backdrop-blur-sm ${className}`}>
       <div className="mb-4">
         <h2 className="text-sm font-semibold text-slate-100">{title}</h2>
         {hint && <p className="mt-0.5 text-[11px] text-slate-500">{hint}</p>}
@@ -140,11 +140,17 @@ function pivotRespTrend(rows) {
 }
 
 /* ─── main ─── */
-export default function MonitorView({ session }) {
+export default function MonitorView({ session, scrollTo }) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [lhMetric, setLhMetric] = useState('performance')
+
+  // anchor จาก side nav — เลื่อนไปหา section ที่เลือก
+  useEffect(() => {
+    if (!scrollTo?.id) return
+    document.getElementById(scrollTo.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [scrollTo])
 
   useEffect(() => {
     let cancelled = false
@@ -220,7 +226,7 @@ export default function MonitorView({ session }) {
     <div className="space-y-6">
 
       {/* ─── KPI ─── */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div id="monitor-kpi" className="scroll-mt-20 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <KpiCard
           icon={Ic.shield} label="Uptime (30 วัน)" color={C.emerald}
           value={avgUptime != null ? `${avgUptime}%` : '—'}
@@ -248,7 +254,7 @@ export default function MonitorView({ session }) {
       </div>
 
       {/* ─── uptime trend ─── */}
-      <Panel title="Uptime รายวัน (30 วัน)"
+      <Panel id="monitor-uptime" title="Uptime รายวัน (30 วัน)"
         hint="เปอร์เซ็นต์ของ page check ที่ผ่าน (200 OK, ไม่มี js error) — ค่าต่ำแสดงว่าเว็บมีปัญหาช่วงนั้น">
         {uptime.length === 0
           ? <p className="text-sm text-slate-500">ยังไม่มีข้อมูล — รอให้ monitoring รันอย่างน้อย 1 วัน</p>
@@ -272,7 +278,7 @@ export default function MonitorView({ session }) {
       </Panel>
 
       {/* ─── response time trend ─── */}
-      <Panel title="Response Time รายวัน (30 วัน) — ต่อหน้า"
+      <Panel id="monitor-response" title="Response Time รายวัน (30 วัน) — ต่อหน้า"
         hint="เวลาโหลดเฉลี่ย (ms) ของแต่ละหน้าในแต่ละวัน — เส้นพุ่งสูงหมายถึงเซิร์ฟเวอร์ช้าหรือมีปัญหา">
         {respTrendData.length === 0
           ? <p className="text-sm text-slate-500">ยังไม่มีข้อมูล</p>
@@ -294,7 +300,7 @@ export default function MonitorView({ session }) {
       </Panel>
 
       {/* ─── Lighthouse trend + latest scores ─── */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div id="monitor-lighthouse" className="scroll-mt-20 grid gap-6 lg:grid-cols-3">
         {/* trend */}
         <Panel className="lg:col-span-2"
           title="Lighthouse Scores (30 วัน)"
@@ -347,7 +353,7 @@ export default function MonitorView({ session }) {
       </div>
 
       {/* ─── latest page results ─── */}
-      <Panel title="ผล Run ล่าสุด — รายหน้า"
+      <Panel id="monitor-pages" title="ผล Run ล่าสุด — รายหน้า"
         hint="สถานะของแต่ละหน้าในการ monitor ครั้งล่าสุด — response time, ขนาดหน้า, js error, failed request">
         {data.latestPages.length === 0
           ? <p className="text-sm text-slate-500">ยังไม่มีข้อมูล</p>
@@ -398,7 +404,7 @@ export default function MonitorView({ session }) {
       </Panel>
 
       {/* ─── run history ─── */}
-      <Panel title="ประวัติการ Monitor (30 รายการล่าสุด)"
+      <Panel id="monitor-history" title="ประวัติการ Monitor (30 รายการล่าสุด)"
         hint="ทุก run จะบันทึก status, จำนวนหน้าที่ผ่าน/ล้มเหลว — กด Run workflow บน GitHub Actions เพื่อรันเพิ่ม">
         {data.runs.length === 0
           ? <p className="text-sm text-slate-500">ยังไม่มีข้อมูล</p>

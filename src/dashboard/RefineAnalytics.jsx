@@ -46,9 +46,9 @@ const MODE_FILTERS = [
 ]
 
 /* ── small atoms ── */
-function Panel({ title, subtitle, action, children, className = '' }) {
+function Panel({ id, title, subtitle, action, children, className = '' }) {
   return (
-    <div className={`rounded-2xl border border-white/5 bg-white/[0.02] p-4 sm:p-5 ${className}`}>
+    <div id={id} className={`scroll-mt-20 rounded-2xl border border-white/5 bg-white/[0.02] p-4 sm:p-5 ${className}`}>
       {(title || action) && (
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
@@ -223,7 +223,7 @@ function LevelTooltip({ active, payload, label, logByLevel }) {
   )
 }
 
-export default function RefineAnalytics({ session }) {
+export default function RefineAnalytics({ session, scrollTo }) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -316,6 +316,12 @@ export default function RefineAnalytics({ session }) {
     const id = setInterval(() => setNow(Date.now()), 2000)
     return () => clearInterval(id)
   }, [])
+
+  // anchor จาก side nav — เลื่อนไปหา section ที่เลือก
+  useEffect(() => {
+    if (!scrollTo?.id) return
+    document.getElementById(scrollTo.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [scrollTo])
 
   const load = async (p = 1) => {
     setLoading(true); setError('')
@@ -427,7 +433,7 @@ export default function RefineAnalytics({ session }) {
       {error && <div className="rounded-xl border border-rose-900/50 bg-rose-950/40 p-3 text-sm text-rose-300">{error}</div>}
 
       {/* KPI cards */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div id="refine-kpi" className="scroll-mt-20 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[
           { label: 'ตีทั้งหมด (ครั้ง)', value: fmt(totalAttempts), color: '#818cf8' },
           { label: 'อัตราสำเร็จ',        value: `${pct(successCount, totalAttempts)}%`, color: '#34d399' },
@@ -443,6 +449,7 @@ export default function RefineAnalytics({ session }) {
 
       {/* ── Stacked Bar: ภาพรวมการตีบวก (level × result) ── */}
       <Panel
+        id="refine-overview"
         title="ภาพรวมการตีบวก"
         subtitle="จำนวนครั้งต่อระดับ แบ่งตามผลลัพธ์ — hover เพื่อดูหินที่ใช้"
       >
@@ -505,7 +512,7 @@ export default function RefineAnalytics({ session }) {
       </Panel>
 
       {/* ── Leaderboard ── */}
-      <Panel title="อันดับไอเทมที่ตีบ่อยสุด" subtitle="แยกตามไอเทม — Fixed type หรือค้นจาก divine-pride">
+      <Panel id="refine-leaderboard" title="อันดับไอเทมที่ตีบ่อยสุด" subtitle="แยกตามไอเทม — Fixed type หรือค้นจาก divine-pride">
         {leaderboard.length === 0 ? (
           <p className="py-8 text-center text-sm text-slate-500">ยังไม่มีข้อมูล</p>
         ) : (() => {
@@ -572,6 +579,7 @@ export default function RefineAnalytics({ session }) {
 
       {/* ── History (paginated) ── */}
       <Panel
+        id="refine-log"
         title="ประวัติการตีบวก"
         subtitle={`ทั้งหมด ${fmt(total)} ครั้ง · หน้า ${page}/${totalPages}`}
         action={

@@ -58,6 +58,36 @@ const NAV_ITEMS = [
   { id: 'monitor',   label: 'Monitor',   sub: 'สุขภาพเว็บไซต์',  icon: NavIc.monitor },
 ]
 
+// submenu anchor ต่อหน้า — คลิกแล้วเลื่อนไปหา section (usage บาง section ต้องสลับ sub-tab ก่อนด้วย)
+const NAV_SECTIONS = {
+  analytics: [
+    { id: 'an-kpi',      label: 'ภาพรวม (KPI)' },
+    { id: 'an-trend',    label: 'แนวโน้ม' },
+    { id: 'an-usage',    label: 'การใช้งาน/อุปกรณ์' },
+    { id: 'an-audience', label: 'ผู้ใช้/ช่องทางที่มา' },
+    { id: 'an-pages',    label: 'หน้ายอดนิยม' },
+    { id: 'an-geo',      label: 'ประเทศ/เมือง' },
+  ],
+  usage: [
+    { id: 'usage-traffic-kpi',      label: 'ทราฟฟิกวันนี้',    subTab: 'traffic' },
+    { id: 'usage-traffic-trend',    label: 'แนวโน้มผู้เข้าชม',  subTab: 'traffic' },
+    { id: 'usage-traffic-activity', label: 'กิจกรรมล่าสุด',    subTab: 'traffic' },
+    { id: 'refine-kpi',             label: 'สรุปการตีบวก',     subTab: 'refine' },
+    { id: 'refine-overview',        label: 'ภาพรวมการตีบวก',   subTab: 'refine' },
+    { id: 'refine-leaderboard',     label: 'อันดับไอเทม',      subTab: 'refine' },
+    { id: 'refine-log',             label: 'ประวัติการตีบวก',  subTab: 'refine' },
+    { id: 'usage-settings',         label: 'ตั้งค่าแสดงผล',    subTab: 'settings' },
+  ],
+  monitor: [
+    { id: 'monitor-kpi',        label: 'ภาพรวม (KPI)' },
+    { id: 'monitor-uptime',     label: 'Uptime รายวัน' },
+    { id: 'monitor-response',   label: 'Response Time' },
+    { id: 'monitor-lighthouse', label: 'Lighthouse Scores' },
+    { id: 'monitor-pages',      label: 'ผล Run รายหน้า' },
+    { id: 'monitor-history',    label: 'ประวัติ Monitor' },
+  ],
+}
+
 // อ่าน tab จาก URL hash (เช่น #usage) — validate ว่ามีจริง ไม่งั้น default analytics
 function tabFromHash() {
   try {
@@ -140,9 +170,9 @@ function KpiCard({ icon, label, value, delta, spark, sparkKey, color = ACCENT })
   )
 }
 
-function Panel({ title, subtitle, action, children, className = '' }) {
+function Panel({ id, title, subtitle, action, children, className = '' }) {
   return (
-    <div className={`rounded-2xl border border-white/5 bg-white/[0.03] p-5 backdrop-blur-sm ${className}`}>
+    <div id={id} className={`scroll-mt-20 rounded-2xl border border-white/5 bg-white/[0.03] p-5 backdrop-blur-sm ${className}`}>
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
           <h2 className="text-sm font-semibold text-slate-100">{title}</h2>
@@ -261,11 +291,17 @@ function LoadingState() {
 }
 
 /* ─── Analytics content (ไม่เปลี่ยนจากเดิม) ─── */
-function AnalyticsContent({ session }) {
+function AnalyticsContent({ session, scrollTo }) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [trendRange, setTrendRange] = useState('30')
+
+  // anchor จาก side nav — เลื่อนไปหา section ที่เลือก
+  useEffect(() => {
+    if (!scrollTo?.id) return
+    document.getElementById(scrollTo.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [scrollTo])
 
   useEffect(() => {
     let cancelled = false
@@ -318,14 +354,14 @@ function AnalyticsContent({ session }) {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div id="an-kpi" className="scroll-mt-20 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <KpiCard icon={Icon.users}   label="ผู้ใช้"           value={fmt(totals.activeUsers)}       delta={deltas.activeUsers}       spark={sparkData} sparkKey="activeUsers"       color="#818cf8" />
         <KpiCard icon={Icon.session} label="เซสชัน"           value={fmt(totals.sessions)}          delta={deltas.sessions}          spark={sparkData} sparkKey="sessions"          color="#34d399" />
         <KpiCard icon={Icon.eye}     label="เพจวิว"           value={fmt(totals.screenPageViews)}   delta={deltas.screenPageViews}   spark={sparkData} sparkKey="screenPageViews"   color="#fbbf24" />
         <KpiCard icon={Icon.clock}   label="เวลาเฉลี่ย/เซสชัน" value={fmtDuration(totals.averageSessionDuration)} delta={deltas.averageSessionDuration} color="#f472b6" />
       </div>
 
-      <Panel title="แนวโน้ม" subtitle={trendSubtitle} action={<RangeToggle value={trendRange} onChange={setTrendRange} />}>
+      <Panel id="an-trend" title="แนวโน้ม" subtitle={trendSubtitle} action={<RangeToggle value={trendRange} onChange={setTrendRange} />}>
         <ResponsiveContainer width="100%" height={300}>
           <AreaChart data={trendData} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
             <defs>
@@ -346,7 +382,7 @@ function AnalyticsContent({ session }) {
         </ResponsiveContainer>
       </Panel>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div id="an-usage" className="scroll-mt-20 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Panel title="การใช้งานฟีเจอร์" subtitle="จำนวนครั้งที่เกิด event" className="lg:col-span-2">
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={data.events || []} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
@@ -390,7 +426,7 @@ function AnalyticsContent({ session }) {
         </Panel>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div id="an-audience" className="scroll-mt-20 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Panel title="ผู้ใช้ใหม่ vs กลับมาซ้ำ" subtitle="สัดส่วน 30 วัน">
           <div className="relative">
             <ResponsiveContainer width="100%" height={180}>
@@ -422,10 +458,10 @@ function AnalyticsContent({ session }) {
         </Panel>
       </div>
 
-      <Panel title="หน้าที่เข้าชมมากสุด" subtitle="ตามจำนวนเพจวิว">
+      <Panel id="an-pages" title="หน้าที่เข้าชมมากสุด" subtitle="ตามจำนวนเพจวิว">
         <Leaderboard items={data.topPages} valueKey="views" labelKey="path" />
       </Panel>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div id="an-geo" className="scroll-mt-20 grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Panel title="ประเทศ" subtitle="ตามจำนวนผู้ใช้">
           <Leaderboard items={data.countries} valueKey="users" labelKey="country" />
         </Panel>
@@ -694,8 +730,7 @@ const USAGE_SUB_TABS = [
 const usageToday = bkkToday
 const usageDaysAgo = bkkDaysAgo
 
-function UsageContent({ session }) {
-  const [usageTab, setUsageTab] = useState('traffic')
+function UsageContent({ session, usageTab, setUsageTab, scrollTo }) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -705,6 +740,12 @@ function UsageContent({ session }) {
   const [metric, setMetric] = useState('visits')
   const [reloadTick, setReloadTick] = useState(0)
   const refresh = () => setReloadTick((t) => t + 1)
+
+  // anchor จาก side nav — เลื่อนไปหา section ที่เลือก (เฉพาะ section ของ traffic/settings — refine ทำเองใน RefineAnalytics)
+  useEffect(() => {
+    if (!scrollTo?.id) return
+    document.getElementById(scrollTo.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [scrollTo])
   // badge ออนไลน์ผูกกับ flag ระบบนับ — ปิดอยู่ก็ไม่ต้องต่อ WebSocket และโชว์สถานะ "ปิด" แทนเลข 0
   const trackingOn = !!data?.trackOnline
   const online = useOnlineCount({ track: false, enabled: trackingOn })
@@ -836,7 +877,7 @@ function UsageContent({ session }) {
           {loading && !data ? <LoadingState /> : (
             <>
               {/* KPI วันนี้ */}
-              <div>
+              <div id="usage-traffic-kpi" className="scroll-mt-20">
                 <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">วันนี้ · {today}</h3>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                   {[
@@ -857,6 +898,7 @@ function UsageContent({ session }) {
 
               {/* กราฟแนวโน้ม ผู้เข้าชม */}
               <Panel
+                id="usage-traffic-trend"
                 title="แนวโน้มผู้เข้าชม"
                 subtitle={`${from} → ${to} · รวม ${fmt(rangeTotal)} ${activeMetric.label}`}
                 action={
@@ -910,7 +952,9 @@ function UsageContent({ session }) {
                 )}
               </Panel>
 
-              <ActivityFeed session={session} />
+              <div id="usage-traffic-activity" className="scroll-mt-20">
+                <ActivityFeed session={session} />
+              </div>
             </>
           )}
         </div>
@@ -918,12 +962,12 @@ function UsageContent({ session }) {
 
       {/* ── การตีบวก ── */}
       {usageTab === 'refine' && (
-        <RefineAnalytics session={session} />
+        <RefineAnalytics session={session} scrollTo={scrollTo} />
       )}
 
       {/* ── ตั้งค่า ── */}
       {usageTab === 'settings' && (
-        <Panel title="การแสดงผลบนหน้าเว็บ" subtitle="ควบคุมสิ่งที่ผู้เล่นเห็นใต้แบนเนอร์">
+        <Panel id="usage-settings" title="การแสดงผลบนหน้าเว็บ" subtitle="ควบคุมสิ่งที่ผู้เล่นเห็นใต้แบนเนอร์">
           {loading && !data ? (
             <div className="space-y-3">{Array.from({ length: 2 }).map((_, i) => <div key={i} className="h-16 animate-pulse rounded-xl bg-white/[0.04]" />)}</div>
           ) : (
@@ -1007,6 +1051,8 @@ export default function DashboardView({ session }) {
   const [activeTab, setActiveTab] = useState(tabFromHash)
   const [sideOpen, setSideOpen] = useState(false)   // mobile drawer
   const [deskOpen, setDeskOpen] = useState(true)    // desktop sidebar
+  const [usageTab, setUsageTab] = useState('traffic') // ยกมาจาก UsageContent ให้ side nav สลับ sub-tab ได้
+  const [scrollTo, setScrollTo] = useState(null)      // { id, ts } — anchor เป้าหมายจาก submenu
 
   // sync hash → state (back/forward, แก้ hash เอง, เปิดลิงก์ที่มี hash)
   useEffect(() => {
@@ -1023,6 +1069,14 @@ export default function DashboardView({ session }) {
   }, [activeTab])
 
   const activeItem = NAV_ITEMS.find(n => n.id === activeTab)
+
+  // คลิก submenu — สลับหน้า/sub-tab ให้ตรง section แล้วสั่งเลื่อนไปหา (ts กันคลิกซ้ำ id เดิมไม่เลื่อน)
+  const goToSection = (topId, section) => {
+    setActiveTab(topId)
+    if (section.subTab) setUsageTab(section.subTab)
+    setSideOpen(false)
+    setScrollTo({ id: section.id, ts: Date.now() })
+  }
 
   return (
     <div className="min-h-screen w-full bg-slate-950 text-slate-100 flex">
@@ -1053,22 +1107,37 @@ export default function DashboardView({ session }) {
         <nav className="flex-1 overflow-y-auto px-2 py-4 space-y-0.5">
           {NAV_ITEMS.map(item => {
             const active = activeTab === item.id
+            const sections = NAV_SECTIONS[item.id] || []
             return (
-              <button key={item.id} onClick={() => { setActiveTab(item.id); setSideOpen(false) }}
-                className={`w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all ${
-                  active
-                    ? 'bg-indigo-500/15 text-indigo-200'
-                    : 'text-slate-400 hover:bg-white/[0.04] hover:text-slate-200'
-                }`}>
-                <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg transition-colors ${active ? 'bg-indigo-500/25' : 'bg-white/[0.04]'}`}>
-                  {item.icon({ width: 16, height: 16 })}
-                </span>
-                <span className="min-w-0">
-                  <span className="block text-sm font-medium leading-tight">{item.label}</span>
-                  <span className="block text-[11px] text-slate-500 leading-tight">{item.sub}</span>
-                </span>
-                {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-indigo-400 shrink-0" />}
-              </button>
+              <div key={item.id}>
+                <button onClick={() => { setActiveTab(item.id); setSideOpen(false) }}
+                  className={`w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all ${
+                    active
+                      ? 'bg-indigo-500/15 text-indigo-200'
+                      : 'text-slate-400 hover:bg-white/[0.04] hover:text-slate-200'
+                  }`}>
+                  <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg transition-colors ${active ? 'bg-indigo-500/25' : 'bg-white/[0.04]'}`}>
+                    {item.icon({ width: 16, height: 16 })}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-medium leading-tight">{item.label}</span>
+                    <span className="block text-[11px] text-slate-500 leading-tight">{item.sub}</span>
+                  </span>
+                  {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-indigo-400 shrink-0" />}
+                </button>
+
+                {/* submenu anchor — โชว์เฉพาะหน้าที่กำลังเปิดอยู่ */}
+                {active && sections.length > 0 && (
+                  <div className="ml-4 mt-0.5 space-y-0.5 border-l border-white/10 pl-3.5">
+                    {sections.map(sec => (
+                      <button key={sec.id} onClick={() => goToSection(item.id, sec)}
+                        className="block w-full truncate rounded-lg px-2.5 py-1.5 text-left text-xs text-slate-500 transition-colors hover:bg-white/[0.04] hover:text-slate-200">
+                        {sec.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             )
           })}
         </nav>
@@ -1112,9 +1181,9 @@ export default function DashboardView({ session }) {
 
         {/* page content */}
         <main className="px-4 py-6 sm:px-6 sm:py-8">
-          {activeTab === 'analytics' && <AnalyticsContent session={session} />}
-          {activeTab === 'usage'     && <UsageContent     session={session} />}
-          {activeTab === 'monitor'   && <MonitorView      session={session} />}
+          {activeTab === 'analytics' && <AnalyticsContent session={session} scrollTo={scrollTo} />}
+          {activeTab === 'usage'     && <UsageContent     session={session} scrollTo={scrollTo} usageTab={usageTab} setUsageTab={setUsageTab} />}
+          {activeTab === 'monitor'   && <MonitorView      session={session} scrollTo={scrollTo} />}
         </main>
       </div>
     </div>
