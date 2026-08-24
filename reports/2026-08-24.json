@@ -1,10 +1,10 @@
 {
   "date": "2026-08-24",
   "site": "https://ro-refine.com",
-  "startedAt": "2026-08-24T00:00:41.161Z",
-  "finishedAt": "2026-08-24T00:01:30.109Z",
+  "startedAt": "2026-08-24T23:53:42.941Z",
+  "finishedAt": "2026-08-24T23:54:21.900Z",
   "trigger": "schedule",
-  "gitSha": "e25bb92",
+  "gitSha": "4d0e438",
   "status": "passed",
   "summary": {
     "pagesTotal": 4,
@@ -21,14 +21,14 @@
   "lighthouse": [
     {
       "label": "home-th",
-      "performance": 68,
+      "performance": 83,
       "seo": 100,
       "accessibility": 99,
       "bestPractices": 96
     },
     {
       "label": "home-en",
-      "performance": 91,
+      "performance": 80,
       "seo": 100,
       "accessibility": 99,
       "bestPractices": 96
@@ -40,8 +40,8 @@
       "url": "https://ro-refine.com/",
       "httpStatus": 200,
       "ok": true,
-      "responseTimeMs": 3116,
-      "pageSizeBytes": 1352987,
+      "responseTimeMs": 3022,
+      "pageSizeBytes": 1352193,
       "failedRequests": 0,
       "jsErrors": 0
     },
@@ -50,8 +50,8 @@
       "url": "https://ro-refine.com/en/",
       "httpStatus": 200,
       "ok": true,
-      "responseTimeMs": 1836,
-      "pageSizeBytes": 1352987,
+      "responseTimeMs": 1268,
+      "pageSizeBytes": 1352193,
       "failedRequests": 0,
       "jsErrors": 0
     },
@@ -60,8 +60,8 @@
       "url": "https://ro-refine.com/dashboard",
       "httpStatus": 200,
       "ok": true,
-      "responseTimeMs": 1027,
-      "pageSizeBytes": 262956,
+      "responseTimeMs": 1104,
+      "pageSizeBytes": 262166,
       "failedRequests": 0,
       "jsErrors": 0
     },
@@ -70,7 +70,7 @@
       "url": "https://ro-refine.com/api/item?id=1101",
       "httpStatus": 200,
       "ok": true,
-      "responseTimeMs": 1059,
+      "responseTimeMs": 960,
       "pageSizeBytes": 6965,
       "failedRequests": 0,
       "jsErrors": 0
