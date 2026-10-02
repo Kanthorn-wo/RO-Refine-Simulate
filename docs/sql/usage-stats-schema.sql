@@ -64,7 +64,7 @@ $$;
 revoke execute on function public.bump_daily(date, text, bigint) from public, anon, authenticated;
 grant  execute on function public.bump_daily(date, text, bigint) to service_role;
 
--- ── ตาราง activity feed (เก็บ 200 รายการล่าสุด ring buffer) ─────
+-- ── ตาราง activity feed (เก็บทุกแถว — เดิม ring buffer 200 แถว) ─────
 create table if not exists public.usage_events (
   id         bigint generated always as identity primary key,
   created_at timestamptz not null default now(),
@@ -81,22 +81,10 @@ alter table public.usage_events add column if not exists vid text;
 alter table public.usage_events add column if not exists visitor_status text;
 alter table public.usage_events add column if not exists meta jsonb;
 
--- ตัดให้เหลือแค่ 200 แถวล่าสุดอัตโนมัติทุกครั้งที่ insert (กัน DB บวม)
-create or replace function public.trim_usage_events()
-returns trigger language plpgsql as $$
-begin
-  delete from public.usage_events
-  where id < (select min(id) from (select id from public.usage_events order by id desc limit 200) t);
-  return null;
-end $$;
-
+-- เก็บทุกแถว (เดิมมี trigger trg_trim_usage_events ตัดเหลือ 200 แถว — ยกเลิกแล้ว ดู usage-events-keep-all.sql)
 drop trigger if exists trg_trim_usage_events on public.usage_events;
-create trigger trg_trim_usage_events
-  after insert on public.usage_events
-  for each statement execute function public.trim_usage_events();
--- Postgres grant EXECUTE ให้ PUBLIC โดย default ตอนสร้าง function — ล็อกให้เหมือน RPC อื่นในไฟล์นี้ (defense-in-depth)
-revoke execute on function public.trim_usage_events() from public, anon, authenticated;
-grant  execute on function public.trim_usage_events() to service_role;
+drop function if exists public.trim_usage_events();
+create index if not exists usage_events_vid_idx on public.usage_events (vid, created_at desc);
 
 -- ── ตาราง visitor (ID สุ่ม anonymous — นับ unique / new vs returning) ──
 -- vid = UUID สุ่มฝั่ง client (ไม่ผูกตัวตน) เก็บเพื่อแยกคนใหม่/คนกลับมาซ้ำข้ามวัน

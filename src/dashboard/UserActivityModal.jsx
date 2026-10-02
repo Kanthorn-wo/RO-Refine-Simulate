@@ -2,7 +2,40 @@ import { useEffect, useMemo, useState } from 'react'
 import EventDetailModal, { DetailBadge } from './EventDetailModal'
 
 // รวม log กิจกรรมของผู้ใช้ 1 คน (vid) จาก 2 แหล่ง: usage_events (visit/auto/simulate) + refine_log (ตีบวกรายครั้ง)
-// usage_events เป็น ring buffer 200 แถวรวมทุกคน (เห็นแค่เท่าที่ยังไม่หลุดคิว) — refine_log ไม่จำกัดแล้ว แต่ query จำกัด 100 แถวล่าสุดต่อครั้ง
+// ทั้งสองตารางเก็บทุกแถว (ไม่ตัดแล้ว) — ไล่โหลดทีละหน้าจนครบทุกรายการของ vid นี้
+// (refine_log ก่อน 2026-07-30 ถูกตัดไปตั้งแต่สมัยยังมี trim, usage_events ก่อนยกเลิก trigger เหลือแค่ 200 แถวล่าสุดรวมทุกคน)
+
+const EVENT_PAGE = 200   // API cap ต่อหน้าของ /api/stats?events=
+const REFINE_PAGE = 1000 // API cap ต่อหน้าของ /api/refine
+const RENDER_STEP = 200  // render ทีละ 200 แถว กัน modal หน่วงเมื่อผู้ใช้มีหลายพันรายการ
+
+// ไล่โหลด usage_events ของ vid ด้วย cursor ?before=<id> จน hasMore=false
+async function fetchAllEvents(vid, headers) {
+  const all = []
+  let before = 0
+  for (;;) {
+    const res = await fetch(`/api/stats?events=${EVENT_PAGE}&vid=${encodeURIComponent(vid)}${before ? `&before=${before}` : ''}`, { headers })
+    if (!res.ok) throw new Error(`โหลดกิจกรรมไม่สำเร็จ (${res.status})`)
+    const json = await res.json()
+    const rows = json.events || []
+    all.push(...rows)
+    if (!json.hasMore || !rows.length) return all
+    before = rows[rows.length - 1].id
+  }
+}
+
+// ไล่โหลด refine_log ของ vid ทีละหน้าจนครบ total
+async function fetchAllRefines(vid, headers) {
+  const all = []
+  for (let page = 1; ; page++) {
+    const res = await fetch(`/api/refine?vid=${encodeURIComponent(vid)}&limit=${REFINE_PAGE}&page=${page}`, { headers })
+    if (!res.ok) throw new Error(`โหลดประวัติตีบวกไม่สำเร็จ (${res.status})${res.status === 401 || res.status === 403 ? ' — session อาจหมดอายุ ลอง login ใหม่' : ''}`)
+    const json = await res.json()
+    const rows = json.log || []
+    all.push(...rows)
+    if (rows.length < REFINE_PAGE || all.length >= (json.total || 0)) return all
+  }
+}
 
 const RESULT_META = {
   success: { label: 'สำเร็จ',    color: '#34d399', bg: '#34d39920' },
@@ -78,29 +111,21 @@ export default function UserActivityModal({ vid, session, onClose }) {
   const [error, setError] = useState('')
   const [items, setItems] = useState([])
   const [now, setNow] = useState(Date.now())
+  const [shown, setShown] = useState(RENDER_STEP)
 
   useEffect(() => {
     if (!vid) return
     let cancelled = false
-    setLoading(true); setError('')
+    setLoading(true); setError(''); setShown(RENDER_STEP)
     ;(async () => {
       try {
         const token = session?.access_token
         const authHeader = token ? { Authorization: `Bearer ${token}` } : {}
-        const [evRes, logRes] = await Promise.all([
-          fetch('/api/stats?events=200', { headers: authHeader }),
-          fetch(`/api/refine?q=${encodeURIComponent(vid)}&limit=100`, { headers: authHeader }),
-        ])
-        if (!evRes.ok) throw new Error(`โหลดกิจกรรมไม่สำเร็จ (${evRes.status})`)
-        if (!logRes.ok) throw new Error(`โหลดประวัติตีบวกไม่สำเร็จ (${logRes.status})${logRes.status === 401 || logRes.status === 403 ? ' — session อาจหมดอายุ ลอง login ใหม่' : ''}`)
-        const evJson = await evRes.json()
-        const logJson = await logRes.json()
-        const events = (evJson.events || [])
-          .filter((e) => e.vid === vid && e.type !== 'refine')
+        const [evRows, logRows] = await Promise.all([fetchAllEvents(vid, authHeader), fetchAllRefines(vid, authHeader)])
+        const events = evRows
+          .filter((e) => e.type !== 'refine')
           .map((e) => ({ kind: 'event', at: e.at, type: e.type, status: e.status, meta: e.meta }))
-        const refines = (logJson.log || [])
-          .filter((r) => r.vid === vid)
-          .map((r) => ({ kind: 'refine', at: r.created_at, ...r }))
+        const refines = logRows.map((r) => ({ kind: 'refine', at: r.created_at, ...r }))
         const merged = [...events, ...refines].sort((a, b) => new Date(b.at) - new Date(a.at))
         if (!cancelled) setItems(merged)
       } catch (e) {
@@ -117,7 +142,7 @@ export default function UserActivityModal({ vid, session, onClose }) {
     return () => clearInterval(id)
   }, [])
 
-  // สรุปจำนวนรวมแยกตามประเภท action — ใช้ค่านับจาก items ที่โหลดมาแล้ว (ตามข้อจำกัด ring buffer)
+  // สรุปจำนวนรวมแยกตามประเภท action — นับจากทุกรายการของ vid นี้ที่ DB ยังมี
   const summary = useMemo(() => {
     const s = { refineTotal: 0, success: 0, fail: 0, drop: 0, lost: 0, auto: 0, simulate: 0, visit: 0 }
     for (const it of items) {
@@ -174,16 +199,22 @@ export default function UserActivityModal({ vid, session, onClose }) {
             <p className="py-10 text-center text-sm text-slate-500">ไม่พบกิจกรรมของผู้ใช้นี้ (อาจหลุดจาก log ล่าสุดไปแล้ว)</p>
           ) : (
             <div className="space-y-1.5">
-              {items.map((it, i) => it.kind === 'refine'
+              {items.slice(0, shown).map((it, i) => it.kind === 'refine'
                 ? <RefineRow key={`r${it.id ?? i}`} r={it} now={now} />
                 : <EventRow key={`e${i}`} e={it} now={now} />
+              )}
+              {items.length > shown && (
+                <button onClick={() => setShown((n) => n + RENDER_STEP)}
+                  className="w-full rounded-lg border border-white/10 bg-white/[0.03] py-2 text-xs text-slate-400 transition-colors hover:text-slate-200">
+                  แสดงเพิ่มอีก {Math.min(RENDER_STEP, items.length - shown)} รายการ (เหลือ {items.length - shown})
+                </button>
               )}
             </div>
           )}
         </div>
 
         <div className="border-t border-white/10 p-3 text-center text-[11px] text-slate-500">
-          รวม {items.length} รายการ · เห็นได้เฉพาะเท่าที่ log ล่าสุดยังเก็บไว้
+          รวม {items.length} รายการ · ครบทุกรายการที่ระบบเก็บไว้ของผู้ใช้นี้
         </div>
       </div>
     </div>

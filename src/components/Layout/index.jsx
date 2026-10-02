@@ -209,8 +209,6 @@ const Container = () => {
   const handleRefine = () => {
     if (isPlaying) return;
     if (stack.length >= 20) return; // +20 คือ cap สูงสุดของเกมจริง ห้ามตีต่อ
-    // นับยอดรวมการใช้งานเว็บ (social proof) — ทุกครั้งที่ตี รวม auto, 1 ครั้ง = ใช้แร่ 1 ก้อน
-    recordRefine();
     // track เฉพาะกดตีเอง (auto นับครั้งเดียวตอน auto_start ไม่งั้น event ท่วม)
     if (!autoRunning) {
       trackEvent('refine_attempt', {
@@ -255,6 +253,9 @@ const Container = () => {
     if (canUseBSB) {
       setBsbUsedTotal(prev => prev + bsbUsed);
     }
+    // นับยอดรวมการใช้งานเว็บ (social proof) — ทุกครั้งที่ตี รวม auto: 1 ครั้ง = แร่ 1 ก้อน + BSB ที่ใช้จริงครั้งนั้น
+    // (ต้องเรียกหลังคำนวณ canUseBSB — เดิมเรียกต้นฟังก์ชันโดยไม่ส่ง bsb ทำให้ bsb_total ไม่เคยเพิ่ม)
+    recordRefine({ bsb: canUseBSB ? bsbUsed : 0 });
     if (isSuccess) {
       newStack.push({ time: new Date().toLocaleTimeString() });
       logMsg = `+${stack.length} → +${stack.length + 1} : สำเร็จ`;

@@ -133,13 +133,16 @@ export default async function handler(req, res) {
     // pagination + filter params
     const url = new URL(req.url || '/', `http://x`)
     const page  = Math.max(1, parseInt(url.searchParams.get('page')  || '1', 10))
-    const limit = Math.min(100, Math.max(10, parseInt(url.searchParams.get('limit') || '50', 10)))
+    const limit = Math.min(1000, Math.max(10, parseInt(url.searchParams.get('limit') || '50', 10)))
     const filterResult    = url.searchParams.get('result') || ''
     const filterStone     = url.searchParams.get('stone') || ''
     const filterItemType  = url.searchParams.get('item_type') || ''
     const filterMode      = url.searchParams.get('mode') || ''
     const rawQ = url.searchParams.get('q') || ''
     const filterQ = rawQ.trim().replace(/[,()*%]/g, ' ').trim().slice(0, 60)
+    // vid = กรองตรงตัว (exact) สำหรับ modal กิจกรรมรายคน — ต่างจาก q ที่เป็น ilike ค้นทั้งชื่อไอเทม/vid
+    const rawVid = url.searchParams.get('vid') || ''
+    const filterVid = /^[\w-]{8,64}$/.test(rawVid) ? rawVid : ''
     const offset = (page - 1) * limit
 
     try {
@@ -151,6 +154,7 @@ export default async function handler(req, res) {
       if (STONES.includes(filterStone))     logQ += `&stone=eq.${filterStone}`
       if (ITEM_TYPES.includes(filterItemType)) logQ += `&item_type=eq.${filterItemType}`
       if (MODES.includes(filterMode))       logQ += `&mode=eq.${filterMode}`
+      if (filterVid)                        logQ += `&vid=eq.${encodeURIComponent(filterVid)}`
       if (filterQ) {
         const enc = encodeURIComponent(`*${filterQ}*`)
         logQ += `&or=(item_name.ilike.${enc},vid.ilike.${enc})`
@@ -158,7 +162,8 @@ export default async function handler(req, res) {
       logQ += `&offset=${offset}&limit=${limit}`
 
       const [lbRes, bdRes, logRes] = await Promise.all([
-        sbFetch('refine_item_stats?select=item_type,item_id,attempts,success,fail&order=attempts.desc&limit=100'),
+        // ไม่ limit — UI โชว์ top 15 แต่การ์ด "ชนิดไอเทม" ใช้ leaderboard.length เป็นจำนวนทั้งหมด
+        sbFetch('refine_item_stats?select=item_type,item_id,attempts,success,fail&order=attempts.desc'),
         sbFetch('refine_breakdown?select=scope,dim,key,count,success&scope=eq.global'),
         sbFetch(logQ),
       ])

@@ -184,6 +184,9 @@ function resolveRange(q, today) {
   return null
 }
 
+// usage_events row → event ของ feed (id ใช้เป็น cursor ?before= ตอนโหลดหน้าถัดไป)
+const mapEvent = (r) => ({ id: r.id, at: r.created_at, type: r.type, count: Number(r.count || 1), vid: r.vid || null, status: r.visitor_status || null, meta: r.meta || null })
+
 export default async function handler(req, res) {
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return res.status(500).json({ error: 'supabase env not set' })
@@ -202,6 +205,32 @@ export default async function handler(req, res) {
         const user = await getUser(req)
         if (!user) return res.status(401).json({ error: 'unauthorized' })
         if (!isOwner(user)) return res.status(403).json({ error: 'ไม่มีสิทธิ์เข้าถึง' })
+      }
+
+      // หน้าถัดไปของ feed (?before=<id>) / feed ของผู้ใช้คนเดียว (?vid=) → ส่งเฉพาะ events ไม่ดึงตัวเลขรวมซ้ำ
+      // usage_events เก็บทุกแถวแล้ว (docs/sql/usage-events-keep-all.sql) — client ไล่หน้าจนครบ (hasMore=false)
+      const before = Math.floor(Number(q('before'))) || 0
+      const evVid = typeof q('vid') === 'string' && /^[\w-]{8,64}$/.test(q('vid')) ? q('vid') : ''
+      if (evN && (before > 0 || evVid)) {
+        let evQ = `usage_events?select=id,created_at,type,count,vid,visitor_status,meta&order=created_at.desc,id.desc&limit=${evN}`
+        if (before > 0) evQ += `&id=lt.${before}`
+        if (evVid) evQ += `&vid=eq.${encodeURIComponent(evVid)}`
+        const r = await sbFetch(evQ)
+        if (!r.ok) return res.status(502).json({ error: 'events failed' })
+        const rows = await r.json()
+        res.setHeader('cache-control', 'no-store')
+        return res.status(200).json({ events: rows.map(mapEvent), hasMore: rows.length === evN })
+      }
+
+      // ?overview=1 → หน้า "ภาพรวม" (owner-only): สรุปทั้งหมดคำนวณใน RPC overview_stats (docs/sql/overview-stats.sql)
+      if (q('overview')) {
+        const user = await getUser(req)
+        if (!user) return res.status(401).json({ error: 'unauthorized' })
+        if (!isOwner(user)) return res.status(403).json({ error: 'ไม่มีสิทธิ์เข้าถึง' })
+        const r = await sbFetch('rpc/overview_stats', { method: 'POST', body: '{}' })
+        if (!r.ok) return res.status(502).json({ error: 'overview failed' })
+        res.setHeader('cache-control', 'no-store')
+        return res.status(200).json(await r.json())
       }
 
       const reqs = [
@@ -277,7 +306,8 @@ export default async function handler(req, res) {
 
       if (eventsIdx >= 0) {
         const rows = eRes && eRes.ok ? await eRes.json() : []
-        payload.events = rows.map((r) => ({ at: r.created_at, type: r.type, count: Number(r.count || 1), vid: r.vid || null, status: r.visitor_status || null, meta: r.meta || null }))
+        payload.events = rows.map(mapEvent)
+        payload.hasMore = rows.length === evN
       }
 
       // ขอ events (feed) = อยาก realtime → ไม่ cache; อย่างอื่น cache 60 วิ
@@ -324,6 +354,13 @@ export default async function handler(req, res) {
       // discrete action event (auto / simulate)
       const action = ACTION_EVENTS.includes(body.event) ? body.event : null
       if (action) tasks.push(bumpDaily(today, action, 1))
+      // ตัวนับรายคน (usage_visitors.sim_runs / auto_runs) สำหรับหน้า "ภาพรวม" — bot ไม่นับ
+      if (action && vid && !isBot) {
+        tasks.push(sbFetch('rpc/bump_visitor_action', {
+          method: 'POST',
+          body: JSON.stringify({ p_vid: vid, p_action: action }),
+        }))
+      }
 
       // activity feed: 1 event ต่อ 1 batch (ตี = รวบทั้ง batch กัน row บวมจาก auto) — แนบ vid ของผู้ใช้
       const events = []

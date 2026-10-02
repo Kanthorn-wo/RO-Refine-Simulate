@@ -45,6 +45,60 @@ const MODE_FILTERS = [
 ]
 
 /* ── small atoms ── */
+const PAGE_SIZES = [20, 50, 100, 200] // ตัวเลือกจำนวนแถวต่อหน้าของประวัติ (API cap 1000)
+
+// เลขหน้าที่จะแสดง: หน้าแรก, หน้าสุดท้าย และ ±2 รอบหน้าปัจจุบัน — ช่วงที่ข้ามแทนด้วย '…'
+function pageWindow(page, totalPages) {
+  const pages = []
+  for (let p = 1; p <= totalPages; p++) {
+    if (p === 1 || p === totalPages || Math.abs(p - page) <= 2) pages.push(p)
+    else if (pages[pages.length - 1] !== '…') pages.push('…')
+  }
+  return pages
+}
+
+// pagination ตารางประวัติ (มีหลายร้อยหน้า): หน้าแรก/สุดท้าย + เลขหน้ารอบ ๆ + ช่องพิมพ์เลขหน้ากระโดดไปตรง ๆ
+function Pager({ page, totalPages, disabled, onGo, pageSize, onPageSize }) {
+  const [jump, setJump] = useState('')
+  const go = (p) => {
+    const n = Math.min(totalPages, Math.max(1, Math.floor(Number(p)) || 1))
+    if (n !== page) onGo(n)
+  }
+  const btn = 'min-w-8 rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-slate-300 transition-colors hover:text-slate-100 disabled:opacity-40'
+  return (
+    <div className="mt-4 flex flex-wrap items-center justify-center gap-1.5 text-xs">
+      <label className="mr-1 flex items-center gap-1.5 text-slate-500">
+        แสดง
+        <select value={pageSize} onChange={(e) => onPageSize(Number(e.target.value))} disabled={disabled}
+          className="rounded-lg border border-white/10 bg-white/[0.03] px-2 py-1.5 text-slate-200 [color-scheme:dark]">
+          {PAGE_SIZES.map((n) => <option key={n} value={n}>{n}</option>)}
+        </select>
+        รายการ/หน้า
+      </label>
+      <button onClick={() => go(1)} disabled={disabled || page <= 1} className={btn} title="หน้าแรก">«</button>
+      <button onClick={() => go(page - 1)} disabled={disabled || page <= 1} className={btn}>ก่อนหน้า</button>
+      {pageWindow(page, totalPages).map((p, i) => p === '…'
+        ? <span key={`gap${i}`} className="px-1 text-slate-600">…</span>
+        : (
+          <button key={p} onClick={() => go(p)} disabled={disabled}
+            className={`${btn} tabular-nums ${p === page ? 'border-indigo-400/40 bg-indigo-500/25 text-indigo-100' : ''}`}>
+            {p}
+          </button>
+        ))}
+      <button onClick={() => go(page + 1)} disabled={disabled || page >= totalPages} className={btn}>ถัดไป</button>
+      <button onClick={() => go(totalPages)} disabled={disabled || page >= totalPages} className={btn} title="หน้าสุดท้าย">»</button>
+      <form className="ml-1 flex items-center gap-1.5" onSubmit={(e) => { e.preventDefault(); if (jump) go(jump); setJump('') }}>
+        <span className="text-slate-500">ไปหน้า</span>
+        <input type="number" min={1} max={totalPages} value={jump} onChange={(e) => setJump(e.target.value)}
+          placeholder={String(page)} aria-label="ไปหน้าที่"
+          className="w-16 rounded-lg border border-white/10 bg-white/[0.03] px-2 py-1.5 text-center tabular-nums text-slate-200 [color-scheme:dark] focus:border-indigo-400/50 focus:outline-none" />
+        <span className="text-slate-500">/ {fmt(totalPages)}</span>
+        <button type="submit" disabled={disabled || !jump} className={btn}>ไป</button>
+      </form>
+    </div>
+  )
+}
+
 function Panel({ id, title, subtitle, action, children, className = '' }) {
   return (
     <div id={id} className={`scroll-mt-20 rounded-2xl border border-white/5 bg-white/[0.02] p-4 sm:p-5 ${className}`}>
@@ -228,7 +282,7 @@ export default function RefineAnalytics({ session, scrollTo }) {
   const [searchQ, setSearchQ] = useState('')
   const [lbExpanded, setLbExpanded] = useState(false)
   const [openVid, setOpenVid] = useState(null)
-  const PAGE_SIZE = 50
+  const [pageSize, setPageSize] = useState(50) // จำนวนแถวต่อหน้า (เลือกได้ใน Pager)
   const mountedRef = useRef(true)
 
   // debounce search input → searchQ (delay 350ms)
@@ -289,7 +343,7 @@ export default function RefineAnalytics({ session, scrollTo }) {
             total: matchFilter ? (prev.total || 0) + 1 : prev.total,
           }
           // ตารางประวัติ (log) อัปเดตเฉพาะหน้าแรกและตรง filter
-          if (matchFilter && page === 1) next.log = [r, ...prev.log].slice(0, PAGE_SIZE)
+          if (matchFilter && page === 1) next.log = [r, ...prev.log].slice(0, pageSize)
           return next
         })
       })
@@ -298,7 +352,7 @@ export default function RefineAnalytics({ session, scrollTo }) {
       mountedRef.current = false
       supabase.removeChannel(channel)
     }
-  }, [filterResult, filterStone, filterMode, searchQ, page])
+  }, [filterResult, filterStone, filterMode, searchQ, page, pageSize])
 
   // ticker อัปเดตเวลา relative ทุก 2 วิ (เหมือน ActivityFeed)
   useEffect(() => {
@@ -316,7 +370,7 @@ export default function RefineAnalytics({ session, scrollTo }) {
     setLoading(true); setError('')
     try {
       const token = session?.access_token
-      const params = new URLSearchParams({ page: String(p), limit: String(PAGE_SIZE) })
+      const params = new URLSearchParams({ page: String(p), limit: String(pageSize) })
       if (filterResult !== 'all') params.set('result', filterResult)
       if (filterStone  !== 'all') params.set('stone',  filterStone)
       if (filterMode   !== 'all') params.set('mode',   filterMode)
@@ -334,21 +388,21 @@ export default function RefineAnalytics({ session, scrollTo }) {
   }
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { load(1) }, [session, tick, filterResult, filterStone, filterMode, searchQ])
+  useEffect(() => { load(1) }, [session, tick, filterResult, filterStone, filterMode, searchQ, pageSize])
 
   // resync เต็มเป็นระยะ (safety net) — กัน realtime patch หลุด sync ตอนเปิดแท็บค้างไว้นาน (เช่น relTime เพี้ยน)
   useEffect(() => {
     const id = setInterval(() => { if (!loading) load(page) }, 120000)
     return () => clearInterval(id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session, page, filterResult, filterStone, filterMode, searchQ])
+  }, [session, page, pageSize, filterResult, filterStone, filterMode, searchQ])
 
   const leaderboard   = useMemo(() => data?.leaderboard || [], [data])
   const breakdown     = useMemo(() => data?.breakdown || {}, [data])
   const log           = useMemo(() => data?.log || [], [data])
   const levelResult   = useMemo(() => data?.levelResult || [], [data])
   const total         = data?.total || 0
-  const totalPages    = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  const totalPages    = Math.max(1, Math.ceil(total / pageSize))
 
   // resolve ชื่อ item จาก divine-pride
   const ids = useMemo(() => {
@@ -660,6 +714,13 @@ export default function RefineAnalytics({ session, scrollTo }) {
                       {r.bsb && <span className="shrink-0 rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-300">BSB</span>}
                       {r.event_buff && <span className="shrink-0 rounded bg-orange-500/15 px-1.5 py-0.5 text-[10px] font-medium text-orange-300">Event</span>}
                       {r.mode === 'auto' && <span className="shrink-0 rounded bg-sky-500/10 px-1.5 py-0.5 text-[10px] text-sky-400">Auto</span>}
+                      {/* แถวที่ไม่มี vid — แสดงผู้ใช้แบบปิดบัง (ไม่มีกิจกรรมให้เปิดดู) */}
+                      {!r.vid && (
+                        <span className="inline-flex shrink-0 items-center gap-1 rounded bg-white/5 px-1.5 py-0.5 text-[10px] text-slate-500">
+                          <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                          xxxxxxxx
+                        </span>
+                      )}
                       {r.vid && (
                         <button onClick={() => setOpenVid(r.vid)} title={`ดูกิจกรรมทั้งหมดของ ${r.vid}`}
                           className="inline-flex shrink-0 items-center gap-1 rounded bg-white/5 px-1.5 py-0.5 text-[10px] text-slate-500 transition-colors hover:text-indigo-300">
@@ -683,14 +744,7 @@ export default function RefineAnalytics({ session, scrollTo }) {
               })}
             </div>
 
-            {/* pagination */}
-            <div className="mt-4 flex items-center justify-center gap-2 text-xs">
-              <button onClick={() => load(page - 1)} disabled={page <= 1 || loading}
-                className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-slate-300 transition-colors hover:text-slate-100 disabled:opacity-40">ก่อนหน้า</button>
-              <span className="text-slate-500">หน้า {page} / {totalPages}</span>
-              <button onClick={() => load(page + 1)} disabled={page >= totalPages || loading}
-                className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-slate-300 transition-colors hover:text-slate-100 disabled:opacity-40">ถัดไป</button>
-            </div>
+            <Pager page={page} totalPages={totalPages} disabled={loading} onGo={load} pageSize={pageSize} onPageSize={setPageSize} />
           </>
         )}
       </Panel>

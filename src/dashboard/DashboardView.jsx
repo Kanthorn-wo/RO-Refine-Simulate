@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase'
 import { useOnlineCount } from '../utils/useOnlineCount'
 import { bkkToday, bkkDaysAgo } from '../utils/date'
 import MonitorView from './MonitorView'
+import OverviewView from './OverviewView'
 import RefineAnalytics from './RefineAnalytics'
 import Toggle from '../components/Toggle'
 import UserActivityModal from './UserActivityModal'
@@ -26,6 +27,11 @@ const fmtDuration = (s) => {
 
 /* ─── nav icons ─── */
 const NavIc = {
+  overview: (p) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <rect x="3" y="3" width="7" height="9" rx="1" /><rect x="14" y="3" width="7" height="5" rx="1" /><rect x="14" y="12" width="7" height="9" rx="1" /><rect x="3" y="16" width="7" height="5" rx="1" />
+    </svg>
+  ),
   analytics: (p) => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
       <path d="M18 20V10M12 20V4M6 20v-6" />
@@ -54,6 +60,7 @@ const NavIc = {
 }
 
 const NAV_ITEMS = [
+  { id: 'overview',  label: 'ภาพรวม',    sub: 'ผู้เข้าชมทำอะไรบ้าง', icon: NavIc.overview },
   { id: 'analytics', label: 'Analytics', sub: 'GA4 ผู้ใช้งาน', icon: NavIc.analytics },
   { id: 'usage',     label: 'Usage',     sub: 'สถิติการใช้งานรวม', icon: NavIc.usage },
   { id: 'monitor',   label: 'Monitor',   sub: 'สุขภาพเว็บไซต์',  icon: NavIc.monitor },
@@ -61,6 +68,14 @@ const NAV_ITEMS = [
 
 // submenu anchor ต่อหน้า — คลิกแล้วเลื่อนไปหา section (usage บาง section ต้องสลับ sub-tab ก่อนด้วย)
 const NAV_SECTIONS = {
+  overview: [
+    { id: 'ov-kpi',      label: 'ตัวเลขหลัก' },
+    { id: 'ov-adoption', label: 'ผู้ใช้ทำอะไรบ้าง' },
+    { id: 'ov-outcome',  label: 'ผลการตีบวก' },
+    { id: 'ov-level',    label: 'ตีไปได้ไกลแค่ไหน' },
+    { id: 'ov-return',   label: 'กลับมากี่วัน' },
+    { id: 'ov-items',    label: 'ประเภทไอเทม' },
+  ],
   analytics: [
     { id: 'an-kpi',      label: 'ภาพรวม (KPI)' },
     { id: 'an-trend',    label: 'แนวโน้ม' },
@@ -89,13 +104,13 @@ const NAV_SECTIONS = {
   ],
 }
 
-// อ่าน tab จาก URL hash (เช่น #usage) — validate ว่ามีจริง ไม่งั้น default analytics
+// อ่าน tab จาก URL hash (เช่น #usage) — validate ว่ามีจริง ไม่งั้น default หน้า "ภาพรวม"
 function tabFromHash() {
   try {
     const h = (window.location.hash || '').replace(/^#/, '')
     if (h && NAV_ITEMS.some((n) => n.id === h)) return h
   } catch { /* ignore */ }
-  return 'analytics'
+  return 'overview'
 }
 
 /* ─── icons (analytics section) ─── */
@@ -355,6 +370,10 @@ function AnalyticsContent({ session, scrollTo }) {
 
   return (
     <div className="space-y-6">
+      {/* GA4 นับคนคนละวิธีกับ usage_visitors — กันคนเทียบตัวเลขข้ามหน้าแล้วงง */}
+      <p className="-mb-3 text-xs text-slate-500">
+        ตัวเลขในหน้านี้มาจาก Google Analytics ซึ่งนับเฉพาะคนที่ยอมรับ cookie และนับผู้ใช้คนละวิธี จึงไม่เท่ากับจำนวนผู้เข้าชมในหน้าภาพรวม/Usage
+      </p>
       <div id="an-kpi" className="scroll-mt-20 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <KpiCard icon={Icon.users}   label="ผู้ใช้"           value={fmt(totals.activeUsers)}       delta={deltas.activeUsers}       spark={sparkData} sparkKey="activeUsers"       color="#818cf8" />
         <KpiCard icon={Icon.session} label="เซสชัน"           value={fmt(totals.sessions)}          delta={deltas.sessions}          spark={sparkData} sparkKey="sessions"          color="#34d399" />
@@ -508,6 +527,8 @@ const EVENT_FILTERS = [
   { id: 'visit',    label: 'เข้าเว็บ' },
 ]
 
+const FEED_PAGE = 200 // จำนวน event ต่อการโหลด 1 ครั้ง (API cap 200 ต่อหน้า)
+
 function ActivityFeed({ session }) {
   const [events, setEvents] = useState(null)
   const [error, setError] = useState('')
@@ -521,20 +542,41 @@ function ActivityFeed({ session }) {
   const [live, setLive] = useState(false)
   const [openVid, setOpenVid] = useState(null)
   const [detailEv, setDetailEv] = useState(null) // event (รันจำลอง/Auto) ที่เปิดดูรายละเอียดอยู่
+  const [hasMore, setHasMore] = useState(false)   // ยังมี event เก่ากว่าที่โหลดมาไหม (usage_events เก็บทุกแถว ไม่ตัดแล้ว)
+  const [loadingMore, setLoadingMore] = useState(false)
   const mountedRef = useRef(true)
+
+  const fetchEvents = async (query) => {
+    const token = session?.access_token
+    const res = await fetch(`/api/stats?events=${FEED_PAGE}${query}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+    if (!res.ok) throw new Error(`โหลดไม่สำเร็จ (${res.status})`)
+    return res.json()
+  }
 
   const load = async () => {
     if (mountedRef.current) { setRefreshing(true); setError('') }
     try {
-      const token = session?.access_token
-      const res = await fetch('/api/stats?events=200', { headers: token ? { Authorization: `Bearer ${token}` } : {} })
-      if (!res.ok) throw new Error(`โหลดไม่สำเร็จ (${res.status})`)
-      const json = await res.json()
-      if (mountedRef.current) setEvents(json.events || [])
+      const json = await fetchEvents('')
+      if (mountedRef.current) { setEvents(json.events || []); setHasMore(!!json.hasMore) }
     } catch (err) {
       if (mountedRef.current) setError(err.message)
     } finally {
       if (mountedRef.current) setRefreshing(false)
+    }
+  }
+
+  // โหลดหน้าถัดไป (เก่ากว่า) ต่อท้าย — cursor = id ที่เก่าที่สุดที่มีอยู่
+  const loadMore = async () => {
+    const ids = (events || []).map((e) => e.id).filter(Boolean)
+    if (!ids.length) return
+    setLoadingMore(true); setError('')
+    try {
+      const json = await fetchEvents(`&before=${Math.min(...ids)}`)
+      if (mountedRef.current) { setEvents((prev) => [...(prev || []), ...(json.events || [])]); setHasMore(!!json.hasMore) }
+    } catch (err) {
+      if (mountedRef.current) setError(err.message)
+    } finally {
+      if (mountedRef.current) setLoadingMore(false)
     }
   }
 
@@ -547,8 +589,8 @@ function ActivityFeed({ session }) {
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'usage_events' }, (payload) => {
         if (!mountedRef.current) return
         const r = payload.new
-        const ev = { at: r.created_at, type: r.type, count: Number(r.count || 1), vid: r.vid || null, status: r.visitor_status || null, meta: r.meta || null }
-        setEvents((prev) => [ev, ...(prev || [])].slice(0, 200))
+        const ev = { id: r.id, at: r.created_at, type: r.type, count: Number(r.count || 1), vid: r.vid || null, status: r.visitor_status || null, meta: r.meta || null }
+        setEvents((prev) => [ev, ...(prev || [])])
       })
       .subscribe((status) => { if (mountedRef.current) setLive(status === 'SUBSCRIBED') })
     return () => { mountedRef.current = false; supabase.removeChannel(channel) }
@@ -562,7 +604,9 @@ function ActivityFeed({ session }) {
   }, [])
 
   const all = events || []
-  // vid ที่มี action อื่นนอกจาก visit ในช่วงที่เห็น (feed เก็บ 200 รายการล่าสุดรวมทุกคน) — ใช้บอกว่า "เข้าเว็บ" คนนี้ไม่ได้เข้ามาเฉย ๆ
+  // วันที่ของกิจกรรมเก่าสุดที่โหลดมา — แสดงเมื่อโหลดครบแล้ว (hasMore=false) ว่าข้อมูลย้อนหลังได้ถึงไหน
+  const oldestAt = all.reduce((min, e) => (e.at && (!min || e.at < min) ? e.at : min), null)
+  // vid ที่มี action อื่นนอกจาก visit ในช่วงที่โหลดมาแล้ว (กด "โหลดเพิ่ม" = เห็นย้อนหลังมากขึ้น) — ใช้บอกว่า "เข้าเว็บ" คนนี้ไม่ได้เข้ามาเฉย ๆ
   const activeVids = new Set(all.filter((e) => e.type !== 'visit' && e.vid).map((e) => e.vid))
   const filtered = filter === 'all' ? all : all.filter((e) => e.type === filter)
   const dir = sortDir === 'asc' ? 1 : -1
@@ -696,7 +740,19 @@ function ActivityFeed({ session }) {
                 className="rounded-md border border-white/10 bg-white/[0.03] px-2 py-1 text-slate-200 [color-scheme:dark]">
                 {PAGE_SIZES.map((n) => <option key={n} value={n}>{n}</option>)}
               </select>
-              <span>รายการ · ทั้งหมด {fmt(all.length)}</span>
+              <span>รายการ · โหลดแล้ว {fmt(all.length)}</span>
+              {!hasMore && oldestAt && (
+                <span className="text-slate-500" title="กิจกรรมที่เก่ากว่านี้ถูกลบไปก่อนเปลี่ยนเป็นเก็บทุกรายการ (2 ต.ค. 2026)">
+                  · ข้อมูลเก่าสุด {new Date(oldestAt).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </span>
+              )}
+              {hasMore && (
+                <button onClick={loadMore} disabled={loadingMore}
+                  className="inline-flex items-center gap-1 rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1 transition-colors hover:text-slate-200 disabled:opacity-50">
+                  {loadingMore && <Spinner size={12} />}
+                  โหลดเก่ากว่านี้อีก {FEED_PAGE}
+                </button>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={safePage <= 1}
@@ -1205,6 +1261,7 @@ export default function DashboardView({ session }) {
 
         {/* page content */}
         <main className="px-4 py-6 sm:px-6 sm:py-8">
+          {activeTab === 'overview'  && <OverviewView     session={session} scrollTo={scrollTo} />}
           {activeTab === 'analytics' && <AnalyticsContent session={session} scrollTo={scrollTo} />}
           {activeTab === 'usage'     && <UsageContent     session={session} scrollTo={scrollTo} usageTab={usageTab} setUsageTab={setUsageTab} onTrackOnlineChange={setTrackOnline} />}
           {activeTab === 'monitor'   && <MonitorView      session={session} scrollTo={scrollTo} />}
