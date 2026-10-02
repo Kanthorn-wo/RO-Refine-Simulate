@@ -18,10 +18,10 @@ const EVENT_META = {
 }
 const VISIT_STATUS_LABEL = { new: 'คนใหม่', returning: 'คนเก่า', bot: 'Bot' }
 
-// รายละเอียดการรันจำลอง (usage_events.meta) — ใช้ทั้งใน modal นี้และ ActivityFeed (DashboardView)
+// รายละเอียดการรันจำลอง (usage_events.meta) — แสดงใน SimDetailModal (เปิดได้ทั้งจาก modal นี้และ ActivityFeed ใน DashboardView)
 const fmtNum = (n) => (n == null ? '—' : Number(n).toLocaleString('th-TH', { maximumFractionDigits: 1 }))
 
-export function SimMetaBadges({ m }) {
+function SimMetaBadges({ m }) {
   return (
     <>
       {m.item_name && <span className="max-w-[140px] truncate text-xs text-slate-300">{m.item_name}</span>}
@@ -37,7 +37,7 @@ export function SimMetaBadges({ m }) {
   )
 }
 
-export function SimMetaDetail({ m }) {
+function SimMetaDetail({ m }) {
   const items = [
     { label: 'ตีเฉลี่ย', value: `${fmtNum(m.avg_attempts)} ครั้ง`, sub: `median ${fmtNum(m.median)} · p90 ${fmtNum(m.p90)}` },
     { label: 'ไอเทมหายเฉลี่ย', value: `${fmtNum(m.avg_lost)} ชิ้น` },
@@ -58,17 +58,41 @@ export function SimMetaDetail({ m }) {
   )
 }
 
-const Chevron = ({ open }) => (
-  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-    className={`transition-transform ${open ? 'rotate-180' : ''}`}><path d="m6 9 6 6 6-6" /></svg>
-)
-
-export function SimExpandButton({ open, onClick }) {
+// badge กดได้ข้างคำว่า "รันจำลอง" — เปิด SimDetailModal
+export function SimDetailBadge({ onClick }) {
   return (
-    <button onClick={onClick} aria-expanded={open} title={open ? 'ซ่อนผลจำลอง' : 'ดูผลจำลอง'}
-      className="inline-flex shrink-0 items-center rounded border border-white/10 bg-white/[0.03] p-0.5 text-slate-400 transition-colors hover:text-slate-200">
-      <Chevron open={open} />
+    <button onClick={onClick} title="ดูรายละเอียดการจำลอง"
+      className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-medium text-emerald-300 transition-colors hover:bg-emerald-500/25">
+      <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18M7 15l4-4 3 3 5-6" /></svg>
+      ดูผล
     </button>
+  )
+}
+
+// หน้าต่างรายละเอียดรันจำลอง 1 ครั้ง — เปิดจากการกดคำว่า "รันจำลอง" (แถวใน list ไม่ต้องอัดข้อมูล)
+export function SimDetailModal({ ev, onClose }) {
+  const m = ev.meta
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" onClick={onClose}>
+      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-slate-950/95 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between gap-3 border-b border-white/10 p-4">
+          <div className="min-w-0">
+            <h3 className="text-sm font-semibold text-slate-200">รายละเอียดการจำลอง</h3>
+            <p className="mt-0.5 truncate text-xs text-slate-500">
+              {new Date(ev.at).toLocaleString('th-TH')}{ev.vid && <span className="font-mono"> · {ev.vid}</span>}
+            </p>
+          </div>
+          <button onClick={onClose} aria-label="ปิด"
+            className="shrink-0 rounded-lg border border-white/10 bg-white/[0.03] p-1.5 text-slate-400 transition-colors hover:text-slate-200">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+          </button>
+        </div>
+        <div className="space-y-3 p-4">
+          <div className="flex flex-wrap items-center gap-2"><SimMetaBadges m={m} /></div>
+          <SimMetaDetail m={m} />
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -106,26 +130,23 @@ function RefineRow({ r, now }) {
 }
 
 function EventRow({ e, now }) {
-  const [open, setOpen] = useState(false)
+  const [showSim, setShowSim] = useState(false)
   const meta = EVENT_META[e.type] || { label: e.type, dot: '#94a3b8' }
   const sim = e.type === 'simulate' && e.meta
   return (
-    <div className="rounded-lg border border-white/5 bg-white/[0.02] p-2 text-sm">
-      <div className="flex items-center gap-2.5">
-        <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: meta.dot }} />
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
-          <span className="text-slate-200">{meta.label}</span>
-          {e.type === 'visit' && e.status && (
-            <span className={`text-xs ${e.status === 'new' ? 'text-cyan-400' : e.status === 'bot' ? 'text-amber-400' : 'text-violet-400'}`}>
-              ({VISIT_STATUS_LABEL[e.status] || e.status})
-            </span>
-          )}
-          {sim && <SimMetaBadges m={e.meta} />}
-        </div>
-        {sim && <SimExpandButton open={open} onClick={() => setOpen((o) => !o)} />}
-        <span className="hidden w-16 shrink-0 text-right text-[11px] text-slate-500 sm:block">{relTime(e.at, now)}</span>
+    <div className="flex items-center gap-2.5 rounded-lg border border-white/5 bg-white/[0.02] p-2 text-sm">
+      <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: meta.dot }} />
+      <div className="flex min-w-0 flex-1 items-center gap-2">
+        <span className="text-slate-200">{meta.label}</span>
+        {sim && <SimDetailBadge onClick={() => setShowSim(true)} />}
+        {e.type === 'visit' && e.status && (
+          <span className={`text-xs ${e.status === 'new' ? 'text-cyan-400' : e.status === 'bot' ? 'text-amber-400' : 'text-violet-400'}`}>
+            ({VISIT_STATUS_LABEL[e.status] || e.status})
+          </span>
+        )}
       </div>
-      {sim && open && <div className="mt-2 pl-[18px]"><SimMetaDetail m={e.meta} /></div>}
+      <span className="hidden w-16 shrink-0 text-right text-[11px] text-slate-500 sm:block">{relTime(e.at, now)}</span>
+      {showSim && <SimDetailModal ev={e} onClose={() => setShowSim(false)} />}
     </div>
   )
 }
