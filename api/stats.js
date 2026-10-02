@@ -65,6 +65,8 @@ function recordVisit(vid, day) {
 
 // event แบบ discrete (action) ที่รับได้ — กันยัด type มั่ว
 const ACTION_EVENTS = ['auto', 'simulate']
+// ค่าที่ cookie bar ส่งมา (src/components/CookieConsent) — ตรงกับ check constraint ของ usage_visitors.consent
+const CONSENT_VALUES = ['accepted', 'rejected']
 
 // meta ของ simulate / auto (config + ผลสรุป) — whitelist ทุก field, ค่าผิดรูปแบบทิ้ง (ชุด type/stone ตรงกับ api/refine.js)
 const META_ITEM_TYPES = ['weapon1', 'weapon2', 'weapon3', 'weapon4', 'weapon5', 'armor1', 'armor2']
@@ -379,6 +381,16 @@ export default async function handler(req, res) {
         }))
       }
       if (tasks.length) await Promise.all(tasks)
+
+      // การตัดสินใจเรื่องคุกกี้ (ยอมรับ/ปฏิเสธ) ต่อ visitor — สำหรับสถิติ "GA4 เห็นกี่คน" ในหน้าภาพรวม
+      // ทำหลัง tasks เพราะ row ของ usage_visitors สร้างโดย record_visit ใน request เดียวกันได้ (ไม่มี row = ข้าม รอบหน้าส่งใหม่)
+      const consent = CONSENT_VALUES.includes(body.consent) ? body.consent : null
+      if (consent && vid && !isBot) {
+        await sbFetch('rpc/set_visitor_consent', {
+          method: 'POST',
+          body: JSON.stringify({ p_vid: vid, p_consent: consent }),
+        })
+      }
       return res.status(200).json({ ok: true })
     } catch {
       return res.status(502).json({ error: 'write failed' })

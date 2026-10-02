@@ -35,7 +35,7 @@ create index if not exists refine_log_vid_idx on public.refine_log (vid);
 create or replace function public.overview_stats()
 returns jsonb language sql stable as $$
   with v as (
-    select vid, visit_days, last_seen, sim_runs, auto_runs from public.usage_visitors
+    select vid, visit_days, last_seen, sim_runs, auto_runs, consent from public.usage_visitors
   ),
   -- วันแรกที่ refine_log มีแถวผูกกับ vid (เวลาไทย) — ตัวหารของสถิติรายคนต้องเป็นคนที่เข้าเว็บช่วงเดียวกัน
   log_start as (
@@ -89,7 +89,11 @@ returns jsonb language sql stable as $$
       'days_4_7',  count(*) filter (where visit_days between 4 and 7),
       'days_8p',   count(*) filter (where visit_days >= 8),
       -- ตัวหารของสถิติรายคน: คนที่เข้าเว็บตั้งแต่วันแรกของ refine_log
-      'active_since_log', count(*) filter (where last_seen >= (select d0 from log_start))
+      'active_since_log', count(*) filter (where last_seen >= (select d0 from log_start)),
+      -- การตัดสินใจเรื่องคุกกี้ (docs/sql/visitor-consent.sql) — GA4 นับได้เฉพาะ accepted
+      'consent_accepted', count(*) filter (where consent = 'accepted'),
+      'consent_rejected', count(*) filter (where consent = 'rejected'),
+      'consent_unknown',  count(*) filter (where consent is null)
     ) from v),
     'adoption', (select jsonb_build_object(
       'refined',       count(*),

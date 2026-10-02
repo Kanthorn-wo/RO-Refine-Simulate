@@ -108,14 +108,34 @@ function getVisitorId() {
   }
 }
 
+// คีย์เดียวกับ STORAGE_KEY ใน src/components/CookieConsent — ค่า 'accepted' | 'rejected' | ไม่มี (ยังไม่ตอบ)
+const CONSENT_KEY = 'ro_refine_cookie_consent'
+
+function savedConsent() {
+  try {
+    const v = localStorage.getItem(CONSENT_KEY)
+    return v === 'accepted' || v === 'rejected' ? v : null
+  } catch {
+    return null
+  }
+}
+
 // นับ "คนใช้วันนี้" 1 ครั้ง/เบราว์เซอร์/วัน — dedup ฝั่ง client ด้วย localStorage + ส่ง vid ให้แยก new/returning
+// แนบการตัดสินใจเรื่องคุกกี้ไปด้วย (ถ้ามี) — คนที่ตอบไว้ก่อนเริ่มเก็บสถิตินี้จะถูกบันทึกตอนกลับมา
 export function pingVisitOncePerDay() {
   try {
     const key = `ro_stats_visit_${bkkToday()}`
     if (localStorage.getItem(key)) return
     localStorage.setItem(key, '1')
-    post(ENDPOINT, { visit: true, vid: getVisitorId() })
+    const consent = savedConsent()
+    post(ENDPOINT, { visit: true, vid: getVisitorId(), ...(consent && { consent }) })
   } catch { /* ignore */ }
+}
+
+// บันทึกตอนผู้ใช้กดยอมรับ/ปฏิเสธใน cookie bar (สถิติรวมแบบไม่ระบุตัวตน — ไม่ใช่ข้อมูลของ GA)
+export function recordConsent(consent) {
+  if (consent !== 'accepted' && consent !== 'rejected') return
+  post(ENDPOINT, { consent, vid: getVisitorId() })
 }
 
 // บันทึก action แบบครั้งเดียว (auto = เริ่มระบบ Auto, simulate = รันโหมดจำลอง)

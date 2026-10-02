@@ -227,8 +227,8 @@ export const TRANSLATIONS = {
     online_now: 'กำลังออนไลน์',
 
     // Cookie consent
-    cookie_title: 'เว็บไซต์นี้ใช้คุกกี้',
-    cookie_desc: 'เราใช้คุกกี้ที่จำเป็นเพื่อให้เว็บทำงาน และคุกกี้วิเคราะห์เพื่อเก็บสถิติการใช้งานแบบไม่ระบุตัวตน เพื่อปรับปรุงเว็บให้ดีขึ้น',
+    cookie_title: 'ช่วยเราพัฒนาเว็บได้ไหม?',
+    cookie_desc: 'เราใช้คุกกี้วิเคราะห์ (Google Analytics) เพื่อดูว่าฟีเจอร์ไหนมีคนใช้ จะได้ปรับปรุงให้ตรงใจผู้เล่นมากขึ้น — เก็บแบบไม่ระบุตัวตน และไม่ใช้เพื่อโฆษณา',
     cookie_accept: 'ยอมรับทั้งหมด',
     cookie_reject: 'ปฏิเสธ',
     cookie_read_more: 'นโยบายคุกกี้',
@@ -470,8 +470,8 @@ export const TRANSLATIONS = {
     online_now: 'online now',
 
     // Cookie consent
-    cookie_title: 'This site uses cookies',
-    cookie_desc: 'We use necessary cookies to make the site work and analytics cookies to collect anonymous usage statistics that help us improve the site.',
+    cookie_title: 'Help us improve the site?',
+    cookie_desc: 'We use analytics cookies (Google Analytics) to see which features people use, so we can make the simulator better for players — anonymous and never used for ads.',
     cookie_accept: 'Accept all',
     cookie_reject: 'Reject',
     cookie_read_more: 'Cookie Policy',

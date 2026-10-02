@@ -74,6 +74,7 @@ const NAV_SECTIONS = {
     { id: 'ov-outcome',  label: 'ผลการตีบวก' },
     { id: 'ov-level',    label: 'ตีไปได้ไกลแค่ไหน' },
     { id: 'ov-return',   label: 'กลับมากี่วัน' },
+    { id: 'ov-consent',  label: 'คุกกี้ / GA4' },
     { id: 'ov-items',    label: 'ประเภทไอเทม' },
   ],
   analytics: [
@@ -178,7 +179,7 @@ function KpiCard({ icon, label, value, delta, spark, sparkKey, color = ACCENT })
           </span>
           <span className="text-sm text-slate-400">{label}</span>
         </div>
-        <DeltaBadge value={delta} />
+        {delta !== undefined && <DeltaBadge value={delta} />}
       </div>
       <div className="mt-3 text-3xl font-bold tracking-tight text-white">{value}</div>
       {spark && <div className="-mx-1 mt-2"><Sparkline data={spark} dataKey={sparkKey} color={color} /></div>}
@@ -206,6 +207,7 @@ const TREND_OPTIONS = [
   { id: '7',    label: '7 วัน' },
   { id: '30',   label: '30 วัน' },
   { id: '90',   label: '90 วัน' },
+  { id: 'all',  label: 'ทั้งหมด' },
 ]
 
 function RangeToggle({ value, onChange }) {
@@ -220,6 +222,9 @@ function RangeToggle({ value, onChange }) {
     </div>
   )
 }
+
+// อันดับในหน้า Analytics แสดงครบทุกรายการ (ไม่ตัด) — จำกัดความสูงแล้วเลื่อนในกล่องแทน
+const LIST_SCROLL = 'max-h-96 overflow-y-auto pr-1'
 
 function Leaderboard({ items, valueKey, labelKey, hintMap }) {
   if (!items?.length) return <p className="text-sm text-slate-500">ไม่มีข้อมูล</p>
@@ -311,7 +316,7 @@ function AnalyticsContent({ session, scrollTo }) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [trendRange, setTrendRange] = useState('30')
+  const [trendRange, setTrendRange] = useState('all')
 
   // anchor จาก side nav — เลื่อนไปหา section ที่เลือก
   useEffect(() => {
@@ -343,13 +348,18 @@ function AnalyticsContent({ session, scrollTo }) {
   }, [session])
 
   const totals = data?.totals || {}
-  const deltas = data?.deltas || {}
+  // ทุกตัวเลขในหน้านี้ = ตั้งแต่เริ่มเก็บข้อมูลจนถึงวันนี้ (api/ga.js) — กราฟแนวโน้มเลือกตัดช่วงเองได้
+  const sinceLabel = data?.range?.startDate
+    ? new Date(data.range.startDate).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })
+    : 'เริ่มเก็บข้อมูล'
   const ts = data?.timeseries || []
-  const sparkData = ts.slice(-30)
+  const sparkData = ts
   const isHourly = trendRange === 'today'
-  const trendData = isHourly ? (data?.hourly || []) : ts.slice(-Number(trendRange))
+  const trendData = isHourly ? (data?.hourly || []) : trendRange === 'all' ? ts : ts.slice(-Number(trendRange))
   const trendXKey = isHourly ? 'hour' : 'date'
-  const trendSubtitle = isHourly ? 'ผู้ใช้และเซสชันวันนี้ (รายชั่วโมง)' : `ผู้ใช้และเซสชันใน ${trendRange} วันล่าสุด`
+  const trendSubtitle = isHourly ? 'ผู้ใช้และเซสชันวันนี้ (รายชั่วโมง)'
+    : trendRange === 'all' ? `ผู้ใช้และเซสชันรายวัน ตั้งแต่ ${sinceLabel} ถึงวันนี้`
+    : `ผู้ใช้และเซสชันใน ${trendRange} วันล่าสุด`
   const devices = data?.devices || []
   const deviceTotal = devices.reduce((s, d) => s + (d.users || 0), 0)
   const audience = data?.audience || {}
@@ -372,13 +382,13 @@ function AnalyticsContent({ session, scrollTo }) {
     <div className="space-y-6">
       {/* GA4 นับคนคนละวิธีกับ usage_visitors — กันคนเทียบตัวเลขข้ามหน้าแล้วงง */}
       <p className="-mb-3 text-xs text-slate-500">
-        ตัวเลขในหน้านี้มาจาก Google Analytics ซึ่งนับเฉพาะคนที่ยอมรับ cookie และนับผู้ใช้คนละวิธี จึงไม่เท่ากับจำนวนผู้เข้าชมในหน้าภาพรวม/Usage
+        ทุกตัวเลขนับตั้งแต่ {sinceLabel} ถึงวันนี้ · มาจาก Google Analytics ซึ่งนับเฉพาะคนที่ยอมรับ cookie และนับผู้ใช้คนละวิธี จึงไม่เท่ากับจำนวนผู้เข้าชมในหน้าภาพรวม/Usage
       </p>
       <div id="an-kpi" className="scroll-mt-20 grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <KpiCard icon={Icon.users}   label="ผู้ใช้"           value={fmt(totals.activeUsers)}       delta={deltas.activeUsers}       spark={sparkData} sparkKey="activeUsers"       color="#818cf8" />
-        <KpiCard icon={Icon.session} label="เซสชัน"           value={fmt(totals.sessions)}          delta={deltas.sessions}          spark={sparkData} sparkKey="sessions"          color="#34d399" />
-        <KpiCard icon={Icon.eye}     label="เพจวิว"           value={fmt(totals.screenPageViews)}   delta={deltas.screenPageViews}   spark={sparkData} sparkKey="screenPageViews"   color="#fbbf24" />
-        <KpiCard icon={Icon.clock}   label="เวลาเฉลี่ย/เซสชัน" value={fmtDuration(totals.averageSessionDuration)} delta={deltas.averageSessionDuration} color="#f472b6" />
+        <KpiCard icon={Icon.users}   label="ผู้ใช้"           value={fmt(totals.activeUsers)}       spark={sparkData} sparkKey="activeUsers"       color="#818cf8" />
+        <KpiCard icon={Icon.session} label="เซสชัน"           value={fmt(totals.sessions)}          spark={sparkData} sparkKey="sessions"          color="#34d399" />
+        <KpiCard icon={Icon.eye}     label="เพจวิว"           value={fmt(totals.screenPageViews)}   spark={sparkData} sparkKey="screenPageViews"   color="#fbbf24" />
+        <KpiCard icon={Icon.clock}   label="เวลาเฉลี่ย/เซสชัน" value={fmtDuration(totals.averageSessionDuration)} color="#f472b6" />
       </div>
 
       <Panel id="an-trend" title="แนวโน้ม" subtitle={trendSubtitle} action={<RangeToggle value={trendRange} onChange={setTrendRange} />}>
@@ -447,7 +457,7 @@ function AnalyticsContent({ session, scrollTo }) {
       </div>
 
       <div id="an-audience" className="scroll-mt-20 grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Panel title="ผู้ใช้ใหม่ vs กลับมาซ้ำ" subtitle="สัดส่วน 30 วัน">
+        <Panel title="ผู้ใช้ใหม่ vs กลับมาซ้ำ" subtitle="สัดส่วนตั้งแต่เริ่มเก็บข้อมูล">
           <div className="relative">
             <ResponsiveContainer width="100%" height={180}>
               <PieChart>
@@ -474,19 +484,19 @@ function AnalyticsContent({ session, scrollTo }) {
           </div>
         </Panel>
         <Panel title="ช่องทางที่มา" subtitle="ผู้ใช้มาจากแหล่งใด" className="lg:col-span-2">
-          <Leaderboard items={data.channels} valueKey="users" labelKey="channel" hintMap={CHANNEL_HINTS} />
+          <div className={LIST_SCROLL}><Leaderboard items={data.channels} valueKey="users" labelKey="channel" hintMap={CHANNEL_HINTS} /></div>
         </Panel>
       </div>
 
-      <Panel id="an-pages" title="หน้าที่เข้าชมมากสุด" subtitle="ตามจำนวนเพจวิว">
-        <Leaderboard items={data.topPages} valueKey="views" labelKey="path" />
+      <Panel id="an-pages" title="หน้าที่เข้าชมมากสุด" subtitle={`ตามจำนวนเพจวิว · ทั้งหมด ${fmt(data.topPages?.length || 0)} หน้า`}>
+        <div className={LIST_SCROLL}><Leaderboard items={data.topPages} valueKey="views" labelKey="path" /></div>
       </Panel>
       <div id="an-geo" className="scroll-mt-20 grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Panel title="ประเทศ" subtitle="ตามจำนวนผู้ใช้">
-          <Leaderboard items={data.countries} valueKey="users" labelKey="country" />
+        <Panel title="ประเทศ" subtitle={`ตามจำนวนผู้ใช้ · ทั้งหมด ${fmt(data.countries?.length || 0)} ประเทศ`}>
+          <div className={LIST_SCROLL}><Leaderboard items={data.countries} valueKey="users" labelKey="country" /></div>
         </Panel>
-        <Panel title="เมือง" subtitle="ตามจำนวนผู้ใช้">
-          <Leaderboard items={data.cities} valueKey="users" labelKey="city" />
+        <Panel title="เมือง" subtitle={`ตามจำนวนผู้ใช้ · ทั้งหมด ${fmt(data.cities?.length || 0)} เมือง`}>
+          <div className={LIST_SCROLL}><Leaderboard items={data.cities} valueKey="users" labelKey="city" /></div>
         </Panel>
       </div>
     </div>

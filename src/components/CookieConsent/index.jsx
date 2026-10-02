@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../../contexts/LangContext'
+import { recordConsent } from '../../utils/usageStats'
 
 const STORAGE_KEY = 'ro_refine_cookie_consent'
 
@@ -45,6 +46,7 @@ export default function CookieConsent({ onVisibilityChange }) {
       /* ignore */
     }
     applyConsent(accepted)
+    recordConsent(accepted ? 'accepted' : 'rejected')
     setVisible(false)
   }
 

@@ -12,9 +12,9 @@ import { getUser, isOwner } from './_lib/auth.js'
 //   SUPABASE_ANON_KEY — anon key (ใช้ verify token)
 //   DASHBOARD_ALLOWED_EMAILS — อีเมลเจ้าของที่เข้า dashboard ได้ (คั่นด้วย , — ถ้าไม่ตั้ง = ปฏิเสธทุกคน)
 
-const RANGE = { startDate: '30daysAgo', endDate: 'today' }
-const PREV_RANGE = { startDate: '60daysAgo', endDate: '31daysAgo' }
-const TREND_RANGE = { startDate: '90daysAgo', endDate: 'today' }
+// ทุกรายงานดึง "ตั้งแต่เริ่มเก็บข้อมูลจนถึงวันนี้" — 2015-08-14 คือวันเริ่มต้นเร็วสุดที่ GA4 Data API รับ
+// (GA คืนเฉพาะช่วงที่ property มีข้อมูลจริง; ค่า data retention 2/14 เดือนมีผลกับ Explore/ข้อมูลรายคน ไม่ใช่รายงานรวมนี้)
+const RANGE = { startDate: '2015-08-14', endDate: 'today' }
 
 // custom event ของเว็บ (ตรงกับ trackEvent ใน src/utils/analytics.js)
 const FEATURE_EVENTS = ['refine_attempt', 'auto_start', 'sim_open', 'sim_run']
@@ -22,6 +22,9 @@ const FEATURE_EVENTS = ['refine_attempt', 'auto_start', 'sim_open', 'sim_run']
 
 // "20260518" -> "05/18"
 const fmtDate = (s) => (s && s.length === 8 ? `${s.slice(4, 6)}/${s.slice(6, 8)}` : s)
+// "20260518" -> Date (UTC) / Date -> "20260518" — ใช้เติมวันที่ไม่มีข้อมูลในกราฟรายวัน
+const parseYmd = (s) => new Date(Date.UTC(+s.slice(0, 4), +s.slice(4, 6) - 1, +s.slice(6, 8)))
+const toYmd = (d) => d.toISOString().slice(0, 10).replace(/-/g, '')
 const num = (v) => Number(v || 0)
 
 export default async function handler(req, res) {
@@ -43,7 +46,7 @@ export default async function handler(req, res) {
     })
     const property = `properties/${GA_PROPERTY_ID}`
 
-    const [totalsRes, prevTotalsRes, tsRes, hourlyRes, pagesRes, devicesRes, countriesRes, eventsRes, newReturnRes, channelsRes, citiesRes] = await Promise.all([
+    const [totalsRes, tsRes, hourlyRes, pagesRes, devicesRes, countriesRes, eventsRes, newReturnRes, channelsRes, citiesRes] = await Promise.all([
       client.runReport({
         property,
         dateRanges: [RANGE],
@@ -54,20 +57,9 @@ export default async function handler(req, res) {
           { name: 'averageSessionDuration' },
         ],
       }),
-      // ช่วงก่อนหน้า (30 วันก่อนหน้านั้น) สำหรับคำนวณ % เปลี่ยนแปลง
       client.runReport({
         property,
-        dateRanges: [PREV_RANGE],
-        metrics: [
-          { name: 'activeUsers' },
-          { name: 'sessions' },
-          { name: 'screenPageViews' },
-          { name: 'averageSessionDuration' },
-        ],
-      }),
-      client.runReport({
-        property,
-        dateRanges: [TREND_RANGE], // 90 วัน — ฝั่ง client เลือกตัด 7/30/90 ผ่าน dropdown
+        dateRanges: [RANGE], // รายวันตั้งแต่เริ่ม — ฝั่ง client เลือกตัด 7/30/90/ทั้งหมด
         dimensions: [{ name: 'date' }],
         metrics: [{ name: 'activeUsers' }, { name: 'sessions' }, { name: 'screenPageViews' }],
         orderBys: [{ dimension: { dimensionName: 'date' } }],
@@ -86,7 +78,6 @@ export default async function handler(req, res) {
         dimensions: [{ name: 'pagePath' }],
         metrics: [{ name: 'screenPageViews' }],
         orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
-        limit: 10,
       }),
       client.runReport({
         property,
@@ -100,7 +91,6 @@ export default async function handler(req, res) {
         dimensions: [{ name: 'country' }],
         metrics: [{ name: 'activeUsers' }],
         orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
-        limit: 8,
       }),
       client.runReport({
         property,
@@ -128,7 +118,6 @@ export default async function handler(req, res) {
         dimensions: [{ name: 'sessionDefaultChannelGroup' }],
         metrics: [{ name: 'activeUsers' }],
         orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
-        limit: 8,
       }),
       // เมือง
       client.runReport({
@@ -137,7 +126,6 @@ export default async function handler(req, res) {
         dimensions: [{ name: 'city' }],
         metrics: [{ name: 'activeUsers' }],
         orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
-        limit: 8,
       }),
     ])
 
@@ -149,28 +137,25 @@ export default async function handler(req, res) {
       averageSessionDuration: num(totalRow[3]?.value),
     }
 
-    const prevRow = prevTotalsRes[0].rows?.[0]?.metricValues || []
-    const prev = {
-      activeUsers: num(prevRow[0]?.value),
-      sessions: num(prevRow[1]?.value),
-      screenPageViews: num(prevRow[2]?.value),
-      averageSessionDuration: num(prevRow[3]?.value),
+    // รายวันตั้งแต่วันแรกที่มีข้อมูล — GA คืนเฉพาะวันที่มีข้อมูล จึงเติมวันที่ขาดเป็น 0 ให้กราฟต่อเนื่องตามเวลาจริง
+    const tsByDay = {}
+    for (const r of tsRes[0].rows || []) tsByDay[r.dimensionValues?.[0]?.value] = r.metricValues
+    const tsDays = Object.keys(tsByDay).sort()
+    const timeseries = []
+    if (tsDays.length) {
+      // GA นับวันตาม timezone ของ property (ไทยนำ UTC) — ใช้วันที่ล่าสุดจาก GA ถ้าเลยวันนี้ของ UTC ไปแล้ว
+      const end = [toYmd(new Date()), tsDays[tsDays.length - 1]].sort().pop()
+      for (let d = parseYmd(tsDays[0]); toYmd(d) <= end; d.setUTCDate(d.getUTCDate() + 1)) {
+        const mv = tsByDay[toYmd(d)] || []
+        timeseries.push({
+          date: fmtDate(toYmd(d)),
+          activeUsers: num(mv[0]?.value),
+          sessions: num(mv[1]?.value),
+          screenPageViews: num(mv[2]?.value),
+        })
+      }
     }
-    // % เปลี่ยนแปลงเทียบช่วงก่อน (null = ช่วงก่อนเป็น 0 เทียบไม่ได้)
-    const pct = (c, p) => (p > 0 ? +(((c - p) / p) * 100).toFixed(1) : null)
-    const deltas = {
-      activeUsers: pct(totals.activeUsers, prev.activeUsers),
-      sessions: pct(totals.sessions, prev.sessions),
-      screenPageViews: pct(totals.screenPageViews, prev.screenPageViews),
-      averageSessionDuration: pct(totals.averageSessionDuration, prev.averageSessionDuration),
-    }
-
-    const timeseries = (tsRes[0].rows || []).map((r) => ({
-      date: fmtDate(r.dimensionValues?.[0]?.value),
-      activeUsers: num(r.metricValues?.[0]?.value),
-      sessions: num(r.metricValues?.[1]?.value),
-      screenPageViews: num(r.metricValues?.[2]?.value),
-    }))
+    const firstDate = tsDays[0] ? `${tsDays[0].slice(0, 4)}-${tsDays[0].slice(4, 6)}-${tsDays[0].slice(6, 8)}` : null
 
     // รายชั่วโมง — เติมครบ 0..23 (ชั่วโมงที่ไม่มีข้อมูล = 0)
     const hourMap = {}
@@ -242,9 +227,8 @@ export default async function handler(req, res) {
 
     res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600')
     return res.status(200).json({
-      range: { startDate: '30 วันก่อน', endDate: 'วันนี้' },
+      range: { startDate: firstDate, endDate: 'today' },
       totals,
-      deltas,
       timeseries,
       hourly,
       topPages,

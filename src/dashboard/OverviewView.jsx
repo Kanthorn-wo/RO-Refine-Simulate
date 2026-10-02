@@ -153,6 +153,37 @@ function BucketChart({ data, unit }) {
   )
 }
 
+// สัดส่วนการตัดสินใจเรื่องคุกกี้ (แท่ง 100% + legend) — ยอมรับ = กลุ่มที่ GA4 เห็น
+const CONSENT_SEGMENTS = [
+  { key: 'accepted', label: 'ยอมรับ (GA4 นับได้)', color: '#34d399' },
+  { key: 'rejected', label: 'ปฏิเสธ',               color: '#fb7185' },
+  { key: 'unknown',  label: 'ยังไม่ตอบ / ไม่ทราบ',   color: '#64748b' },
+]
+function ConsentBar(counts) {
+  const total = CONSENT_SEGMENTS.reduce((n, s) => n + (counts[s.key] || 0), 0)
+  if (!total) return <p className="text-sm text-slate-500">ยังไม่มีข้อมูล</p>
+  return (
+    <div>
+      <div className="flex h-6 gap-[2px] overflow-hidden rounded">
+        {CONSENT_SEGMENTS.map((s) => counts[s.key] ? (
+          <div key={s.key} title={`${s.label}: ${fmt(counts[s.key])} คน (${fmtPct(pct(counts[s.key], total))})`}
+            style={{ width: `${pct(counts[s.key], total)}%`, background: s.color }} />
+        ) : null)}
+      </div>
+      <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-xs">
+        {CONSENT_SEGMENTS.map((s) => (
+          <li key={s.key} className="flex items-center gap-1.5 text-slate-400">
+            <span className="h-2.5 w-2.5 rounded-sm" style={{ background: s.color }} />
+            {s.label}
+            <b className="tabular-nums text-slate-100">{fmt(counts[s.key] || 0)}</b>
+            <span className="tabular-nums text-slate-500">({fmtPct(pct(counts[s.key] || 0, total))})</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 export default function OverviewView({ session, scrollTo }) {
   const [data, setData] = useState(null)
   const [error, setError] = useState('')
@@ -302,6 +333,12 @@ export default function OverviewView({ session, scrollTo }) {
           <p className="mt-2 text-xs text-slate-500">จำนวนวันที่เข้าเว็บ (นับ 1 ครั้ง/วัน) · % ของผู้เข้าชมทั้งหมด</p>
         </Panel>
       </div>
+
+      <Panel id="ov-consent" title="การยอมรับคุกกี้ (GA4 เห็นกี่คน)"
+        summary={`GA4 นับได้เฉพาะคนที่กดยอมรับ — ตอนนี้ ${fmt(v.consent_accepted || 0)} คน (${fmtPct(pct(v.consent_accepted || 0, total))}) จากผู้เข้าชม ${fmt(total)} คน`}
+        basis={`ผู้เข้าชมทั้งหมด ${fmt(total)} คน · เริ่มบันทึก 2 ต.ค. 2026 — คนที่ตอบก่อนหน้านั้นจะถูกนับตอนกลับมาเข้าเว็บ`}>
+        <ConsentBar accepted={v.consent_accepted || 0} rejected={v.consent_rejected || 0} unknown={v.consent_unknown || 0} />
+      </Panel>
 
       <Panel id="ov-items" title="ตีไอเทมประเภทไหนกันบ้าง"
         summary={topItem && sumResults(topItem.data) ? `ตี${topItem.label} มากที่สุด ${fmt(sumResults(topItem.data))} ครั้ง (${fmtPct(pct(sumResults(topItem.data), logged))} ของการตีทั้งหมด)` : 'ยังไม่มีข้อมูล'}
