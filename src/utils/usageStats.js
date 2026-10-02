@@ -1,5 +1,5 @@
 // ตัวเลขการใช้งานรวม (social proof) — ส่งแบบ batch, anonymous, ไม่เก็บข้อมูลส่วนตัว
-// นับ: ตีบวก (refine) / แร่ที่ใช้ (stone) / BSB ที่ใช้ (bsb) / คนใช้วันนี้ (visit)
+// ยอดตีบวก/แร่/BSB คำนวณฝั่ง DB จาก refine_log (recordRefineDetail) — ที่นี่ส่งแค่จำนวนครั้งไว้ทำ activity feed + visit/action
 // ยิงเป็น batch ตอนปิด/ซ่อนแท็บ หรือสะสมถึงเพดาน — ไม่ยิงทุกครั้งกัน request ท่วม
 
 import { bkkToday } from './date.js'
@@ -9,7 +9,7 @@ const ENDPOINT = '/api/stats'
 const REFINE_ENDPOINT = '/api/refine'
 const CAP = POST_BATCH_CAP // ต้องตรงกับ cap ฝั่ง server (api/stats.js, api/refine.js) — flush ก่อนเกิน
 
-let pending = { refine: 0, stone: 0, bsb: 0 }
+let pending = { refine: 0 }
 let flushTimer = null
 
 // pending detail การตีบวก (analytics ละเอียด) — แยกจากตัวนับ social proof
@@ -32,11 +32,11 @@ function post(url, body) {
 }
 
 function flushUsage() {
-  const { refine, stone, bsb } = pending
-  if (!refine && !stone && !bsb) return
-  pending = { refine: 0, stone: 0, bsb: 0 }
+  const { refine } = pending
+  if (!refine) return
+  pending = { refine: 0 }
   if (flushTimer) { clearTimeout(flushTimer); flushTimer = null }
-  post(ENDPOINT, { refine, stone, bsb, vid: getVisitorId() })
+  post(ENDPOINT, { refine, vid: getVisitorId() })
 }
 
 // ── analytics ละเอียด: เก็บทุก attempt (itemType/itemId/level/stone/bsb/result) ส่ง batch ──
@@ -85,12 +85,10 @@ function scheduleFlush() {
   flushTimer = setTimeout(() => { flushTimer = null; flushUsage() }, 10000)
 }
 
-// เรียกทุกครั้งที่ตีบวก 1 ครั้ง (รวม auto) — stone = แร่ที่ใช้รอบนั้น (ปกติ 1), bsb = BSB ที่ใช้รอบนั้น
-export function recordRefine({ stone = 1, bsb = 0 } = {}) {
+// เรียกทุกครั้งที่ตีบวก 1 ครั้ง (รวม auto) — นับจำนวนครั้งสำหรับ activity feed
+export function recordRefine() {
   pending.refine += 1
-  pending.stone += stone
-  pending.bsb += bsb
-  if (pending.refine >= CAP - 10 || pending.stone >= CAP - 10) flushUsage()
+  if (pending.refine >= CAP - 10) flushUsage()
   else scheduleFlush()
 }
 

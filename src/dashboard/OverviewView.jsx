@@ -3,7 +3,7 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGri
 
 // หน้า "ภาพรวม" — สรุปว่าผู้เข้าชมทั้งหมดทำอะไรบ้าง จาก GET /api/stats?overview=1 (RPC overview_stats ใน docs/sql/overview-stats.sql)
 // ทุก panel บอก "ฐานข้อมูล" ของตัวเอง (prop basis) เพราะแต่ละแหล่งเริ่มเก็บคนละวัน:
-// - ตัวเลขรวมตลอดกาล = usage_counters / usage_daily
+// - ตัวเลขรวมตลอดกาล = usage_counters / usage_daily (view คำนวณจาก refine_log — ตรงกับประวัติเสมอ)
 // - อัตราตีติดรวม = refine_breakdown (แหล่งเดียวกับ KPI หน้า Usage > ตีบวก — ต้องตรงกัน)
 // - ผลการตีแยกกลุ่ม / ประเภทไอเทม = refine_log ทุกแถว (เท่ากับประวัติในหน้า Usage)
 // - สถิติรายคน = refine_log ที่ join usage_visitors, ตัวหาร = คนที่เข้าเว็บตั้งแต่วันแรกของ refine_log (active_since_log)

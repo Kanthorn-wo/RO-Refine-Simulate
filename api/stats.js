@@ -7,7 +7,8 @@ import { ORE_COLORS } from '../src/constants/ores.js'
 // Vercel Serverless: ตัวนับการใช้งานรวม (social proof) — anonymous, ไม่เก็บข้อมูลส่วนตัว
 //   GET  → ตัวเลขรวมสะสม + คนใช้วันนี้ + flag show_stats (public, cache สั้น)
 //          ส่ง ?from=YYYY-MM-DD&to=YYYY-MM-DD หรือ ?history=N → แนบ daily[] รายวันสำหรับกราฟ
-//   POST → เพิ่มยอด (batch ผ่าน sendBeacon) — เขียนทั้งยอดสะสม (usage_counters) + รายวัน (usage_daily)
+//   POST → visit / action (auto, simulate) / consent + event ใน feed — ยอดตีบวก/แร่/BSB ไม่เขียนที่นี่
+//          (usage_counters / usage_daily ส่วน refine/stone/bsb เป็น view คำนวณจาก refine_log)
 //          cap delta ต่อ request กัน abuse
 // เขียน/อ่านผ่าน service_role (RLS ล็อก table ไว้)
 // ENV: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
@@ -39,13 +40,6 @@ function sbFetch(pathAndQuery, init) {
       'Content-Type': 'application/json',
       ...(init && init.headers),
     },
-  })
-}
-
-function bumpTotal(metric, delta) {
-  return sbFetch('rpc/bump_counter', {
-    method: 'POST',
-    body: JSON.stringify({ p_metric: metric, p_delta: delta }),
   })
 }
 
@@ -323,13 +317,10 @@ export default async function handler(req, res) {
   if (req.method === 'POST') {
     try {
       const body = await readBody(req)
+      // ยอดตีบวก/แร่/BSB (รวม + รายวัน) เป็น view คำนวณจาก refine_log (docs/sql/derive-aggregates-from-refine-log.sql)
+      // refine ที่ส่งมาใช้แค่ทำ event ใน activity feed — ไม่เขียนตัวนับซ้ำ
       const refine = clampInt(body.refine)
-      const stone = clampInt(body.stone)
-      const bsb = clampInt(body.bsb)
       const tasks = []
-      if (refine) { tasks.push(bumpTotal('refine_total', refine)); tasks.push(bumpDaily(today, 'refine', refine)) }
-      if (stone)  { tasks.push(bumpTotal('stone_total', stone));   tasks.push(bumpDaily(today, 'stone', stone)) }
-      if (bsb)    { tasks.push(bumpTotal('bsb_total', bsb));        tasks.push(bumpDaily(today, 'bsb', bsb)) }
 
       // vid = ID สุ่ม anonymous ต่อเบราว์เซอร์ (ไม่ผูกตัวตน) — ผูกกับ event เพื่อรู้ว่ามาจากคนเดียวกัน
       const vid = typeof body.vid === 'string' && /^[\w-]{8,64}$/.test(body.vid) ? body.vid : null

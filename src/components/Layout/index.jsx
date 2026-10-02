@@ -253,9 +253,8 @@ const Container = () => {
     if (canUseBSB) {
       setBsbUsedTotal(prev => prev + bsbUsed);
     }
-    // นับยอดรวมการใช้งานเว็บ (social proof) — ทุกครั้งที่ตี รวม auto: 1 ครั้ง = แร่ 1 ก้อน + BSB ที่ใช้จริงครั้งนั้น
-    // (ต้องเรียกหลังคำนวณ canUseBSB — เดิมเรียกต้นฟังก์ชันโดยไม่ส่ง bsb ทำให้ bsb_total ไม่เคยเพิ่ม)
-    recordRefine({ bsb: canUseBSB ? bsbUsed : 0 });
+    // นับจำนวนครั้งที่ตีสำหรับ activity feed — ยอดรวมตีบวก/แร่/BSB คำนวณจาก refine_log (recordRefineDetail ด้านล่าง)
+    recordRefine();
     if (isSuccess) {
       newStack.push({ time: new Date().toLocaleTimeString() });
       logMsg = `+${stack.length} → +${stack.length + 1} : สำเร็จ`;
