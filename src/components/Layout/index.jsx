@@ -60,6 +60,10 @@ const normalizeStoneRules = (rules, start, target, itemType, nextIdRef) => {
   });
 };
 
+// รายงาน Auto ไป dashboard: เก็บลำดับการตีไม่เกินกี่ครั้งต่อรอบ (ต้องตรงกับ cap ใน api/stats.js sanitizeAutoMeta) + รหัสผลแบบย่อ
+const AUTO_STEP_CAP = 1000;
+const AUTO_STEP_RESULT = { success: 's', fail: 'f', level_drop: 'd', item_lost: 'l', bsb_protect: 'b' };
+
 const Container = () => {
   const { lang, setLang, t } = useLang();
 
@@ -198,6 +202,9 @@ const Container = () => {
   const [autoStoneRules, setAutoStoneRules] = useState([{ id: 0, from: 1, stone: 'enriched', stopOnLoss: false, bsb: false }]);
   const nextRuleId = useRef(1);
   const [autoUseBSB, setAutoUseBSB] = useState(false);
+  // Auto 1 รอบ (เริ่ม→หยุด) สำหรับรายงานไป dashboard: { startedAt, logStart, config, stopReason }
+  const autoRunRef = useRef(null);
+  const markAutoStop = (reason) => { if (autoRunRef.current) autoRunRef.current.stopReason = reason; };
 
   const handleRefine = () => {
     if (isPlaying) return;
@@ -354,11 +361,12 @@ const Container = () => {
     if (!autoRunning) return;
     if (isPlaying || mode === 'process') return;
     if (stack.length >= autoTarget) {
+      markAutoStop('target');
       setAutoRunning(false);
       if (autoUseBSB) setUseBSB(false);
       return;
     }
-    if (isItemLost) { setAutoRunning(false); return; }
+    if (isItemLost) { markAutoStop('lost'); setAutoRunning(false); return; }
     const rawStone = getPlannedStone(autoStoneRules, stack.length + 1);
     const plannedStone = getEffectiveStone(rawStone, itemType, stack.length);
     const wantCash = plannedStone === 'hd';
@@ -382,6 +390,7 @@ const Container = () => {
       const bsbProtects = useBSB && isBsbLevel(stack.length) && (bsbTable[stack.length] || 0) > 0;
       const currentRate = getRate(isEventRate, wantCash, wantEnriched, itemType, stack.length);
       if (wouldLoseOnFail && !bsbProtects && currentRate < 100) {
+        markAutoStop('risk');
         setAutoRunning(false);
         if (autoUseBSB) setUseBSB(false);
         return;
@@ -422,7 +431,22 @@ const Container = () => {
   const handleStartAuto = () => {
     if (autoRunning || isPlaying) return;
     if (autoStart >= autoTarget) return;
-    recordAction('auto');
+    // snapshot config ตอนเริ่ม — รายงานจริงส่งตอนหยุด (reportAutoRun) พร้อมผลทั้งรอบ
+    autoRunRef.current = {
+      startedAt: Date.now(),
+      logStart: log.length,
+      stopReason: null,
+      config: {
+        item_type: itemType,
+        item_id: apiItem?.id ?? null,
+        item_name: apiItem?.name ?? null,
+        start: autoStart,
+        target: autoTarget,
+        event_rate: isEventRate,
+        use_bsb: autoUseBSB,
+        rules: autoStoneRules.map((r) => ({ from: r.from, stone: r.stone, bsb: autoUseBSB && !!r.bsb, stop: !!r.stopOnLoss })),
+      },
+    };
     trackEvent('auto_start', {
       item_type: itemType,
       start: autoStart,
@@ -446,6 +470,57 @@ const Container = () => {
     setAutoRunning(false);
     if (autoUseBSB) setUseBSB(false);
   };
+
+  // รายงาน Auto 1 รอบไป dashboard: config ตอนเริ่ม + ผลรวมจาก log ช่วงที่ auto รัน (log ล้างไม่ได้ระหว่างรัน)
+  // ส่งครั้งเดียวต่อรอบ — ทุกทางที่หยุด auto (ถึงเป้า/หาย/หยุดเพราะเสี่ยง/กดหยุด/เปลี่ยนค่า) + ปิดแท็บกลางทาง
+  const reportAutoRun = (fallbackReason) => {
+    const run = autoRunRef.current;
+    if (!run) return;
+    autoRunRef.current = null;
+    const entries = log.slice(run.logStart);
+    const ores = {};
+    let successes = 0, drops = 0, bsbUsed = 0, maxLevel = run.config.start;
+    for (const e of entries) {
+      if (e.oreName) ores[e.oreName] = (ores[e.oreName] || 0) + 1;
+      if (e.isSuccess) successes++;
+      if (e.resultType === 'level_drop') drops++;
+      bsbUsed += e.bsbConsumed || 0;
+      maxLevel = Math.max(maxLevel, e.toLevel);
+    }
+    recordAction('auto', {
+      ...run.config,
+      reason: run.stopReason || fallbackReason,
+      attempts: entries.length,
+      successes,
+      drops,
+      lost: entries.some((e) => e.resultType === 'item_lost'),
+      bsb_used: bsbUsed,
+      ores,
+      final_level: entries.length ? entries[entries.length - 1].toLevel : run.config.start,
+      max_level: maxLevel,
+      duration_sec: Math.round((Date.now() - run.startedAt) / 1000),
+      // ลำดับการตีของรอบนี้ (ล่าสุด AUTO_STEP_CAP ครั้ง) แบบย่อ [ระดับก่อน, ระดับหลัง, ผล, หิน, BSB ที่ใช้] — dashboard แสดงรายครั้ง
+      steps: entries.slice(-AUTO_STEP_CAP).map((e) => [
+        e.fromLevel,
+        e.toLevel,
+        AUTO_STEP_RESULT[e.resultType] || 'f',
+        e.useEnriched ? 'e' : e.useCash ? 'h' : 'n',
+        e.bsbConsumed || 0,
+      ]),
+      steps_truncated: entries.length > AUTO_STEP_CAP,
+    });
+  };
+  const reportAutoRunRef = useRef(reportAutoRun);
+  useEffect(() => { reportAutoRunRef.current = reportAutoRun; });
+  useEffect(() => {
+    if (!autoRunning) reportAutoRun('stopped');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoRunning]);
+  useEffect(() => {
+    const onPageHide = () => reportAutoRunRef.current('closed');
+    window.addEventListener('pagehide', onPageHide);
+    return () => window.removeEventListener('pagehide', onPageHide);
+  }, []);
 
   const handleClearSession = () => {
     setLog([]);

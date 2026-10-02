@@ -9,7 +9,8 @@ import { bkkToday, bkkDaysAgo } from '../utils/date'
 import MonitorView from './MonitorView'
 import RefineAnalytics from './RefineAnalytics'
 import Toggle from '../components/Toggle'
-import UserActivityModal, { SimDetailBadge, SimDetailModal } from './UserActivityModal'
+import UserActivityModal from './UserActivityModal'
+import EventDetailModal, { DetailBadge } from './EventDetailModal'
 
 const ACCENT = '#818cf8'
 const ACCENT2 = '#34d399'
@@ -494,7 +495,7 @@ function relTime(iso, now) {
 
 const EVENT_META = {
   refine:   { label: 'ตีบวก',        dot: '#818cf8' },
-  auto:     { label: 'เริ่ม Auto',   dot: '#fbbf24' },
+  auto:     { label: 'รัน Auto',   dot: '#fbbf24' },
   simulate: { label: 'รันจำลอง',     dot: '#34d399' },
   visit:    { label: 'มีคนเข้าเว็บ', dot: '#f472b6' },
 }
@@ -519,7 +520,7 @@ function ActivityFeed({ session }) {
   const [sortDir, setSortDir] = useState('desc')  // 'asc' | 'desc'
   const [live, setLive] = useState(false)
   const [openVid, setOpenVid] = useState(null)
-  const [simDetail, setSimDetail] = useState(null) // event รันจำลองที่เปิดดูรายละเอียดอยู่
+  const [detailEv, setDetailEv] = useState(null) // event (รันจำลอง/Auto) ที่เปิดดูรายละเอียดอยู่
   const mountedRef = useRef(true)
 
   const load = async () => {
@@ -647,7 +648,6 @@ function ActivityFeed({ session }) {
               <tbody>
                 {rows.map((ev, i) => {
                   const meta = EVENT_META[ev.type] || { label: ev.type, dot: '#94a3b8' }
-                  const sim = ev.type === 'simulate' && ev.meta
                   return (
                     <tr key={start + i} className="border-b border-white/5 last:border-0">
                       <td className="px-2 py-2 tabular-nums text-slate-500">{start + i + 1}</td>
@@ -655,7 +655,7 @@ function ActivityFeed({ session }) {
                         <span className="inline-flex items-center gap-2 text-slate-200">
                           <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: meta.dot }} />
                           <span className="truncate">{meta.label}</span>
-                          {sim && <SimDetailBadge onClick={() => setSimDetail(ev)} />}
+                          {ev.meta && <DetailBadge onClick={() => setDetailEv(ev)} />}
                           {ev.type === 'visit' && ev.status && (
                             <span className={`shrink-0 text-xs ${ev.status === 'new' ? 'text-cyan-400' : ev.status === 'bot' ? 'text-amber-400' : 'text-violet-400'}`}>
                               ({ev.status === 'new' ? 'คนใหม่' : ev.status === 'bot' ? 'Bot' : 'คนเก่า'})
@@ -711,7 +711,7 @@ function ActivityFeed({ session }) {
         </>
       )}
       {openVid && <UserActivityModal vid={openVid} session={session} onClose={() => setOpenVid(null)} />}
-      {simDetail && <SimDetailModal ev={simDetail} onClose={() => setSimDetail(null)} />}
+      {detailEv && <EventDetailModal ev={detailEv} onClose={() => setDetailEv(null)} />}
     </Panel>
   )
 }
@@ -721,7 +721,7 @@ const TRAFFIC_METRICS = [
   { id: 'visits',           label: 'คนเข้าเว็บ', color: '#f472b6' },
   { id: 'visits_new',       label: 'คนใหม่',     color: '#22d3ee' },
   { id: 'visits_returning', label: 'กลับมาซ้ำ',  color: '#a78bfa' },
-  { id: 'auto',             label: 'เริ่ม Auto', color: '#f59e0b' },
+  { id: 'auto',             label: 'รัน Auto', color: '#f59e0b' },
   { id: 'simulate',         label: 'รันจำลอง',   color: '#4ade80' },
 ]
 
@@ -734,7 +734,39 @@ const USAGE_SUB_TABS = [
 const usageToday = bkkToday
 const usageDaysAgo = bkkDaysAgo
 
-function UsageContent({ session, usageTab, setUsageTab, scrollTo }) {
+// badge จำนวนคนออนไลน์บน header (ทุกหน้า) — ผูกกับ flag ระบบนับ: ปิดอยู่ไม่ต่อ WebSocket และโชว์ "ระบบนับปิด" แทนเลข 0
+// trackOnline: null = ยังโหลด flag ไม่เสร็จ
+function OnlineBadge({ trackOnline }) {
+  const online = useOnlineCount({ track: false, enabled: trackOnline === true })
+  if (trackOnline == null) {
+    // placeholder ขนาดเท่ากัน กัน flicker "ปิด → เลข"
+    return (
+      <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs font-medium text-slate-500">
+        <span className="h-2 w-2 animate-pulse rounded-full bg-slate-700" />
+        <span className="tabular-nums">—</span> ออนไลน์
+      </span>
+    )
+  }
+  if (!trackOnline) {
+    return (
+      <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs font-medium text-slate-500">
+        <span className="h-2 w-2 rounded-full bg-slate-600" />
+        ระบบนับปิด
+      </span>
+    )
+  }
+  return (
+    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-400">
+      <span className="relative flex h-2 w-2">
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+      </span>
+      <span className="tabular-nums">{fmt(online)}</span> ออนไลน์
+    </span>
+  )
+}
+
+function UsageContent({ session, usageTab, setUsageTab, scrollTo, onTrackOnlineChange }) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -750,10 +782,6 @@ function UsageContent({ session, usageTab, setUsageTab, scrollTo }) {
     if (!scrollTo?.id) return
     document.getElementById(scrollTo.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }, [scrollTo])
-  // badge ออนไลน์ผูกกับ flag ระบบนับ — ปิดอยู่ก็ไม่ต้องต่อ WebSocket และโชว์สถานะ "ปิด" แทนเลข 0
-  const trackingOn = !!data?.trackOnline
-  const online = useOnlineCount({ track: false, enabled: trackingOn })
-
   useEffect(() => {
     let cancelled = false
     const load = async () => {
@@ -762,7 +790,7 @@ function UsageContent({ session, usageTab, setUsageTab, scrollTo }) {
         const res = await fetch(`/api/stats?from=${from}&to=${to}`)
         if (!res.ok) throw new Error(`โหลดข้อมูลไม่สำเร็จ (${res.status})`)
         const json = await res.json()
-        if (!cancelled) setData(json)
+        if (!cancelled) { setData(json); onTrackOnlineChange(!!json.trackOnline) }
       } catch (err) {
         if (!cancelled) setError(err.message)
       } finally {
@@ -771,7 +799,7 @@ function UsageContent({ session, usageTab, setUsageTab, scrollTo }) {
     }
     load()
     return () => { cancelled = true }
-  }, [from, to, reloadTick])
+  }, [from, to, reloadTick, onTrackOnlineChange])
 
   const toggleSetting = async (key, field) => {
     if (!data || savingKey) return
@@ -793,6 +821,7 @@ function UsageContent({ session, usageTab, setUsageTab, scrollTo }) {
       await post(key, next)
       // สะท้อนค่าที่เขียนสำเร็จทันที ก่อนลอง cascade ต่อ — กัน UI ค้างค่าเก่าถ้า cascade ล้มเหลวกลางทาง (server เขียนตัวแรกไปแล้วจริง)
       setData((d) => ({ ...d, [field]: next }))
+      if (key === 'track_online') onTrackOnlineChange(next) // badge ออนไลน์บน header อัปเดตทันที
       // ปิดระบบนับ = ปิด "แสดงให้ผู้เล่นเห็น" ตามด้วย (cascade) — เปิดระบบนับไม่ดึงกลับ ต้องเปิด show เอง
       if (key === 'track_online' && next === false && data.showOnline !== false) {
         await post('show_online', false)
@@ -819,27 +848,6 @@ function UsageContent({ session, usageTab, setUsageTab, scrollTo }) {
     <div className="flex items-center justify-between gap-3">
       <div className="flex items-center gap-2.5 flex-wrap">
         <h2 className="text-base font-semibold text-slate-200">Usage</h2>
-        {data == null ? (
-          // กำลังโหลด — placeholder ขนาดเท่ากัน กัน flicker "ปิด → เลข"
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-2 py-0.5 text-xs font-medium text-slate-500">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-slate-700" />
-            <span className="tabular-nums">—</span> ออนไลน์
-          </span>
-        ) : trackingOn ? (
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-            </span>
-            <span className="tabular-nums">{fmt(online)}</span> ออนไลน์
-          </span>
-        ) : (
-          // ระบบนับปิดอยู่ — ไม่ใช่ "0 คนออนไลน์"
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-2 py-0.5 text-xs font-medium text-slate-500">
-            <span className="h-2 w-2 rounded-full bg-slate-600" />
-            ระบบนับปิด
-          </span>
-        )}
       </div>
       {/* tab refine ไม่ใช้ refresh นี้ — ซ่อนด้วย invisible (คงพื้นที่ไว้) กันความสูงแถว header เปลี่ยน = layout shift */}
       <button onClick={refresh} disabled={loading || usageTab === 'refine'}
@@ -889,7 +897,7 @@ function UsageContent({ session, usageTab, setUsageTab, scrollTo }) {
                     { label: 'คนใหม่วันนี้',      value: data?.newToday,       color: '#22d3ee' },
                     { label: 'กลับมาซ้ำวันนี้',   value: data?.returningToday, color: '#a78bfa' },
                     { label: 'ผู้ใช้ไม่ซ้ำทั้งหมด', value: data?.totalVisitors,  color: '#818cf8' },
-                    { label: 'เริ่ม Auto วันนี้',  value: data?.autoToday,      color: '#f59e0b' },
+                    { label: 'รัน Auto วันนี้',  value: data?.autoToday,      color: '#f59e0b' },
                     { label: 'รันจำลองวันนี้',     value: data?.simToday,       color: '#4ade80' },
                   ].map((s) => (
                     <div key={s.label} className="rounded-xl border border-white/5 bg-white/[0.03] px-3 py-2.5">
@@ -1057,6 +1065,17 @@ export default function DashboardView({ session }) {
   const [deskOpen, setDeskOpen] = useState(true)    // desktop sidebar
   const [usageTab, setUsageTab] = useState('traffic') // ยกมาจาก UsageContent ให้ side nav สลับ sub-tab ได้
   const [scrollTo, setScrollTo] = useState(null)      // { id, ts } — anchor เป้าหมายจาก submenu
+  const [trackOnline, setTrackOnline] = useState(null) // flag ระบบนับออนไลน์ สำหรับ badge บน header (null = กำลังโหลด)
+
+  // โหลด flag ระบบนับครั้งแรก (ทุกหน้า) — หน้า Usage sync ค่าซ้ำตอนโหลด/กด toggle ผ่าน onTrackOnlineChange
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/stats')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((json) => { if (!cancelled && json) setTrackOnline(!!json.trackOnline) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [])
 
   // sync hash → state (back/forward, แก้ hash เอง, เปิดลิงก์ที่มี hash)
   useEffect(() => {
@@ -1174,8 +1193,9 @@ export default function DashboardView({ session }) {
             <h1 className="text-base font-semibold leading-tight text-slate-100">{activeItem?.label}</h1>
             <p className="text-xs text-slate-500">{activeItem?.sub}</p>
           </div>
+          <OnlineBadge trackOnline={trackOnline} />
           <a href="https://ro-refine.com" target="_blank" rel="noopener noreferrer"
-            className="ml-auto flex shrink-0 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-white/[0.08] hover:text-slate-100">
+            className="flex shrink-0 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-white/[0.08] hover:text-slate-100">
             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
             </svg>
@@ -1186,7 +1206,7 @@ export default function DashboardView({ session }) {
         {/* page content */}
         <main className="px-4 py-6 sm:px-6 sm:py-8">
           {activeTab === 'analytics' && <AnalyticsContent session={session} scrollTo={scrollTo} />}
-          {activeTab === 'usage'     && <UsageContent     session={session} scrollTo={scrollTo} usageTab={usageTab} setUsageTab={setUsageTab} />}
+          {activeTab === 'usage'     && <UsageContent     session={session} scrollTo={scrollTo} usageTab={usageTab} setUsageTab={setUsageTab} onTrackOnlineChange={setTrackOnline} />}
           {activeTab === 'monitor'   && <MonitorView      session={session} scrollTo={scrollTo} />}
         </main>
       </div>

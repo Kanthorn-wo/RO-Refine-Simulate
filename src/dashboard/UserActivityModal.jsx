@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import EventDetailModal, { DetailBadge } from './EventDetailModal'
 
 // รวม log กิจกรรมของผู้ใช้ 1 คน (vid) จาก 2 แหล่ง: usage_events (visit/auto/simulate) + refine_log (ตีบวกรายครั้ง)
 // usage_events เป็น ring buffer 200 แถวรวมทุกคน (เห็นแค่เท่าที่ยังไม่หลุดคิว) — refine_log ไม่จำกัดแล้ว แต่ query จำกัด 100 แถวล่าสุดต่อครั้ง
@@ -12,89 +13,11 @@ const RESULT_META = {
 const STONE_LABEL = { normal: 'หินปกติ', enriched: 'Enriched', hd: 'HD' }
 const TYPE_SHORT = { weapon1: 'W1', weapon2: 'W2', weapon3: 'W3', weapon4: 'W4', weapon5: 'W5', armor1: 'A1', armor2: 'A2' }
 const EVENT_META = {
-  auto:     { label: 'เริ่ม Auto', dot: '#fbbf24' },
+  auto:     { label: 'รัน Auto', dot: '#fbbf24' },
   simulate: { label: 'รันจำลอง',   dot: '#34d399' },
   visit:    { label: 'เข้าเว็บ',   dot: '#f472b6' },
 }
 const VISIT_STATUS_LABEL = { new: 'คนใหม่', returning: 'คนเก่า', bot: 'Bot' }
-
-// รายละเอียดการรันจำลอง (usage_events.meta) — แสดงใน SimDetailModal (เปิดได้ทั้งจาก modal นี้และ ActivityFeed ใน DashboardView)
-const fmtNum = (n) => (n == null ? '—' : Number(n).toLocaleString('th-TH', { maximumFractionDigits: 1 }))
-
-function SimMetaBadges({ m }) {
-  return (
-    <>
-      {m.item_name && <span className="max-w-[140px] truncate text-xs text-slate-300">{m.item_name}</span>}
-      {m.item_type && <span className="shrink-0 rounded bg-white/5 px-1.5 py-0.5 text-[10px] text-slate-400">{TYPE_SHORT[m.item_type] || m.item_type}</span>}
-      {m.start != null && m.target != null && (
-        <span className="shrink-0 rounded bg-indigo-500/15 px-1.5 py-0.5 text-[10px] font-medium tabular-nums text-indigo-300">+{m.start} → +{m.target}</span>
-      )}
-      {m.stone && <span className="shrink-0 rounded bg-white/5 px-1.5 py-0.5 text-[10px] text-slate-300">{STONE_LABEL[m.stone] || m.stone}</span>}
-      {m.bsb && <span className="shrink-0 rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-300">BSB</span>}
-      {m.event_rate && <span className="shrink-0 rounded bg-sky-500/10 px-1.5 py-0.5 text-[10px] text-sky-400">เรท Event</span>}
-      {m.rounds != null && <span className="shrink-0 text-[10px] tabular-nums text-slate-500">{fmtNum(m.rounds)} รอบ</span>}
-    </>
-  )
-}
-
-function SimMetaDetail({ m }) {
-  const items = [
-    { label: 'ตีเฉลี่ย', value: `${fmtNum(m.avg_attempts)} ครั้ง`, sub: `median ${fmtNum(m.median)} · p90 ${fmtNum(m.p90)}` },
-    { label: 'ไอเทมหายเฉลี่ย', value: `${fmtNum(m.avg_lost)} ชิ้น` },
-    { label: 'แร่เฉลี่ย', value: `${fmtNum(m.avg_ores)} ก้อน` },
-    m.bsb && { label: 'BSB เฉลี่ย', value: `${fmtNum(m.avg_bsb)} ชิ้น` },
-    m.aborted > 0 && { label: 'รอบที่ตีเกินเพดาน', value: `${fmtNum(m.aborted)} รอบ`, warn: true },
-  ].filter(Boolean)
-  return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-      {items.map((it) => (
-        <div key={it.label} className="rounded-lg border border-white/5 bg-white/[0.02] px-2.5 py-1.5">
-          <div className="text-[10px] text-slate-500">{it.label}</div>
-          <div className={`text-sm font-semibold tabular-nums ${it.warn ? 'text-rose-300' : 'text-slate-200'}`}>{it.value}</div>
-          {it.sub && <div className="text-[10px] tabular-nums text-slate-500">{it.sub}</div>}
-        </div>
-      ))}
-    </div>
-  )
-}
-
-// badge กดได้ข้างคำว่า "รันจำลอง" — เปิด SimDetailModal
-export function SimDetailBadge({ onClick }) {
-  return (
-    <button onClick={onClick} title="ดูรายละเอียดการจำลอง"
-      className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-medium text-emerald-300 transition-colors hover:bg-emerald-500/25">
-      <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18M7 15l4-4 3 3 5-6" /></svg>
-      ดูผล
-    </button>
-  )
-}
-
-// หน้าต่างรายละเอียดรันจำลอง 1 ครั้ง — เปิดจากการกดคำว่า "รันจำลอง" (แถวใน list ไม่ต้องอัดข้อมูล)
-export function SimDetailModal({ ev, onClose }) {
-  const m = ev.meta
-  return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" onClick={onClose}>
-      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-slate-950/95 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between gap-3 border-b border-white/10 p-4">
-          <div className="min-w-0">
-            <h3 className="text-sm font-semibold text-slate-200">รายละเอียดการจำลอง</h3>
-            <p className="mt-0.5 truncate text-xs text-slate-500">
-              {new Date(ev.at).toLocaleString('th-TH')}{ev.vid && <span className="font-mono"> · {ev.vid}</span>}
-            </p>
-          </div>
-          <button onClick={onClose} aria-label="ปิด"
-            className="shrink-0 rounded-lg border border-white/10 bg-white/[0.03] p-1.5 text-slate-400 transition-colors hover:text-slate-200">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
-          </button>
-        </div>
-        <div className="space-y-3 p-4">
-          <div className="flex flex-wrap items-center gap-2"><SimMetaBadges m={m} /></div>
-          <SimMetaDetail m={m} />
-        </div>
-      </div>
-    </div>
-  )
-}
 
 function relTime(iso, now) {
   const s = Math.max(0, Math.floor((now - new Date(iso).getTime()) / 1000))
@@ -130,15 +53,14 @@ function RefineRow({ r, now }) {
 }
 
 function EventRow({ e, now }) {
-  const [showSim, setShowSim] = useState(false)
+  const [showDetail, setShowDetail] = useState(false)
   const meta = EVENT_META[e.type] || { label: e.type, dot: '#94a3b8' }
-  const sim = e.type === 'simulate' && e.meta
   return (
     <div className="flex items-center gap-2.5 rounded-lg border border-white/5 bg-white/[0.02] p-2 text-sm">
       <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: meta.dot }} />
       <div className="flex min-w-0 flex-1 items-center gap-2">
         <span className="text-slate-200">{meta.label}</span>
-        {sim && <SimDetailBadge onClick={() => setShowSim(true)} />}
+        {e.meta && <DetailBadge onClick={() => setShowDetail(true)} />}
         {e.type === 'visit' && e.status && (
           <span className={`text-xs ${e.status === 'new' ? 'text-cyan-400' : e.status === 'bot' ? 'text-amber-400' : 'text-violet-400'}`}>
             ({VISIT_STATUS_LABEL[e.status] || e.status})
@@ -146,7 +68,7 @@ function EventRow({ e, now }) {
         )}
       </div>
       <span className="hidden w-16 shrink-0 text-right text-[11px] text-slate-500 sm:block">{relTime(e.at, now)}</span>
-      {showSim && <SimDetailModal ev={e} onClose={() => setShowSim(false)} />}
+      {showDetail && <EventDetailModal ev={e} onClose={() => setShowDetail(false)} />}
     </div>
   )
 }
@@ -238,7 +160,7 @@ export default function UserActivityModal({ vid, session, onClose }) {
                 {summary.lost ? ` · หาย ${summary.lost}` : ''})
               </span>
             )}
-            {summary.auto > 0 && <span className="rounded-full bg-amber-500/15 px-2.5 py-1 font-medium text-amber-300">เริ่ม Auto {summary.auto} ครั้ง</span>}
+            {summary.auto > 0 && <span className="rounded-full bg-amber-500/15 px-2.5 py-1 font-medium text-amber-300">รัน Auto {summary.auto} ครั้ง</span>}
             {summary.simulate > 0 && <span className="rounded-full bg-emerald-500/15 px-2.5 py-1 font-medium text-emerald-300">รันจำลอง {summary.simulate} ครั้ง</span>}
             {summary.visit > 0 && <span className="rounded-full bg-pink-500/15 px-2.5 py-1 font-medium text-pink-300">เข้าเว็บ {summary.visit} ครั้ง</span>}
           </div>

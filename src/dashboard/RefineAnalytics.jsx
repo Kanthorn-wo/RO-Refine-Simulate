@@ -6,6 +6,7 @@ import { getOreName, ORE_COLORS, ORE_IMAGES } from '../constants/ores'
 import { getRate } from '../constants/refineRates'
 import { supabase } from '../lib/supabase'
 import UserActivityModal from './UserActivityModal'
+import ItemIcon from './ItemIcon'
 
 /* ── helpers ── */
 const fmt = (n) => Number(n || 0).toLocaleString('th-TH')
@@ -18,8 +19,6 @@ const TYPE_LABEL = {
 }
 const TYPE_SHORT = { weapon1: 'W1', weapon2: 'W2', weapon3: 'W3', weapon4: 'W4', weapon5: 'W5', armor1: 'A1', armor2: 'A2' }
 const isWeapon = (t) => typeof t === 'string' && t.startsWith('weapon')
-const defaultIcon = (t) => (isWeapon(t) ? '/images/default_weapon.png' : '/images/default_armor.png')
-const dpIcon = (id) => `https://static.divine-pride.net/images/items/item/${id}.png`
 
 const RESULT_META = {
   success: { label: 'สำเร็จ',    color: '#34d399', bg: '#34d39920' },
@@ -133,16 +132,6 @@ function RefineSkeleton({ error }) {
         <div className="space-y-1.5">{Array.from({ length: 8 }).map((_, i) => <Sk key={i} className="h-10 w-full" />)}</div>
       </div>
     </div>
-  )
-}
-
-function ItemIcon({ id, type, size = 28 }) {
-  const [err, setErr] = useState(false)
-  const src = id && !err ? dpIcon(id) : defaultIcon(type)
-  return (
-    <img src={src} alt="" width={size} height={size} onError={() => setErr(true)}
-      className="shrink-0 rounded bg-black/20 object-contain"
-      style={{ width: size, height: size, imageRendering: 'pixelated' }} />
   )
 }
 

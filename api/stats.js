@@ -2,6 +2,7 @@ import { isBotUA } from '../src/constants/botUA.js'
 import { getUser, isOwner } from './_lib/auth.js'
 import { bkkToday } from '../src/utils/date.js'
 import { POST_BATCH_CAP } from '../src/constants/limits.js'
+import { ORE_COLORS } from '../src/constants/ores.js'
 
 // Vercel Serverless: ตัวนับการใช้งานรวม (social proof) — anonymous, ไม่เก็บข้อมูลส่วนตัว
 //   GET  → ตัวเลขรวมสะสม + คนใช้วันนี้ + flag show_stats (public, cache สั้น)
@@ -65,31 +66,86 @@ function recordVisit(vid, day) {
 // event แบบ discrete (action) ที่รับได้ — กันยัด type มั่ว
 const ACTION_EVENTS = ['auto', 'simulate']
 
-// meta ของ simulate (config + ผลสรุป) — whitelist ทุก field, ค่าผิดรูปแบบทิ้ง (ชุด type/stone ตรงกับ api/refine.js)
-const SIM_ITEM_TYPES = ['weapon1', 'weapon2', 'weapon3', 'weapon4', 'weapon5', 'armor1', 'armor2']
-const SIM_STONES = ['normal', 'enriched', 'hd']
-const SIM_NUM_FIELDS = ['avg_attempts', 'median', 'p90', 'avg_lost', 'avg_ores', 'avg_bsb']
-function sanitizeSimMeta(m) {
-  if (!m || typeof m !== 'object') return null
-  const intIn = (v, min, max) => (Number.isInteger(v) && v >= min && v <= max ? v : undefined)
-  const out = {
-    item_type: SIM_ITEM_TYPES.includes(m.item_type) ? m.item_type : undefined,
-    item_name: typeof m.item_name === 'string' && m.item_name ? m.item_name.slice(0, 120) : undefined,
-    start: intIn(m.start, 0, 20),
-    target: intIn(m.target, 1, 20),
-    stone: SIM_STONES.includes(m.stone) ? m.stone : undefined,
-    bsb: typeof m.bsb === 'boolean' ? m.bsb : undefined,
-    event_rate: typeof m.event_rate === 'boolean' ? m.event_rate : undefined,
-    rounds: intIn(m.rounds, 1, 1000),
-    aborted: intIn(m.aborted, 0, 1000),
-  }
-  for (const k of SIM_NUM_FIELDS) {
-    const n = Number(m[k])
-    if (m[k] != null && Number.isFinite(n) && n >= 0 && n <= 1e6) out[k] = Math.round(n * 100) / 100
-  }
+// meta ของ simulate / auto (config + ผลสรุป) — whitelist ทุก field, ค่าผิดรูปแบบทิ้ง (ชุด type/stone ตรงกับ api/refine.js)
+const META_ITEM_TYPES = ['weapon1', 'weapon2', 'weapon3', 'weapon4', 'weapon5', 'armor1', 'armor2']
+const META_STONES = ['normal', 'enriched', 'hd']
+const SIM_NUM_FIELDS = ['avg_attempts', 'min_attempts', 'max_attempts', 'median', 'p90', 'avg_successes', 'avg_fails', 'avg_lost', 'avg_ores', 'avg_bsb']
+const ORE_NAMES = Object.keys(ORE_COLORS) // ชื่อแร่ทั้งหมดในระบบ — กันยัด key มั่วใน map แร่
+const roundNum = (v) => {
+  const n = Number(v)
+  return v != null && Number.isFinite(n) && n >= 0 && n <= 1e6 ? Math.round(n * 100) / 100 : undefined
+}
+// { ชื่อแร่: จำนวน } — รับเฉพาะชื่อแร่ที่รู้จัก
+const sanitizeOres = (o) => (o && typeof o === 'object'
+  ? dropUndefined(Object.fromEntries(ORE_NAMES.filter((k) => k in o).map((k) => [k, roundNum(o[k])])))
+  : null)
+const AUTO_STOP_REASONS = ['target', 'lost', 'risk', 'stopped', 'closed']
+// ลำดับการตีของรอบ auto: [ระดับก่อน, ระดับหลัง, ผล, หิน, BSB] — cap ต้องตรงกับ AUTO_STEP_CAP ใน Layout
+const AUTO_STEP_CAP = 1000
+const STEP_RESULTS = ['s', 'f', 'd', 'l', 'b'] // success / fail / level_drop / item_lost / bsb_protect
+const STEP_STONES = ['n', 'e', 'h']            // normal / enriched / hd
+const intIn = (v, min, max) => (Number.isInteger(v) && v >= min && v <= max ? v : undefined)
+const boolOr = (v) => (typeof v === 'boolean' ? v : undefined)
+const dropUndefined = (out) => {
   for (const k of Object.keys(out)) if (out[k] === undefined) delete out[k]
   return Object.keys(out).length ? out : null
 }
+// field ที่ simulate กับ auto ใช้ร่วมกัน
+const baseMeta = (m) => ({
+  item_type: META_ITEM_TYPES.includes(m.item_type) ? m.item_type : undefined,
+  item_id: intIn(m.item_id, 1, 99999999),
+  item_name: typeof m.item_name === 'string' && m.item_name ? m.item_name.slice(0, 120) : undefined,
+  start: intIn(m.start, 0, 20),
+  target: intIn(m.target, 1, 20),
+  event_rate: boolOr(m.event_rate),
+})
+
+function sanitizeSimMeta(m) {
+  if (!m || typeof m !== 'object') return null
+  const out = {
+    ...baseMeta(m),
+    stone: META_STONES.includes(m.stone) ? m.stone : undefined,
+    bsb: boolOr(m.bsb),
+    rounds: intIn(m.rounds, 1, 1000),
+    aborted: intIn(m.aborted, 0, 1000),
+    ores: sanitizeOres(m.ores) || undefined,
+  }
+  for (const k of SIM_NUM_FIELDS) out[k] = roundNum(m[k])
+  return dropUndefined(out)
+}
+
+// auto 1 รอบ (เริ่ม→หยุด): แผนหินตามช่วง (rules) + เหตุผลที่หยุด + ผลรวมทั้งรอบ
+function sanitizeAutoMeta(m) {
+  if (!m || typeof m !== 'object') return null
+  const rules = Array.isArray(m.rules)
+    ? m.rules.slice(0, 20)
+      .filter((r) => r && intIn(r.from, 1, 20) !== undefined && META_STONES.includes(r.stone))
+      .map((r) => ({ from: r.from, stone: r.stone, bsb: r.bsb === true, stop: r.stop === true }))
+    : undefined
+  return dropUndefined({
+    ...baseMeta(m),
+    use_bsb: boolOr(m.use_bsb),
+    rules: rules && rules.length ? rules : undefined,
+    reason: AUTO_STOP_REASONS.includes(m.reason) ? m.reason : undefined,
+    attempts: intIn(m.attempts, 0, 100000),
+    successes: intIn(m.successes, 0, 100000),
+    drops: intIn(m.drops, 0, 100000),
+    lost: boolOr(m.lost),
+    bsb_used: intIn(m.bsb_used, 0, 10000000),
+    ores: sanitizeOres(m.ores) || undefined,
+    final_level: intIn(m.final_level, 0, 20),
+    max_level: intIn(m.max_level, 0, 20),
+    duration_sec: intIn(m.duration_sec, 0, 86400),
+    steps: Array.isArray(m.steps)
+      ? m.steps.slice(0, AUTO_STEP_CAP)
+        .filter((s) => Array.isArray(s) && intIn(s[0], 0, 19) !== undefined && intIn(s[1], 0, 20) !== undefined
+          && STEP_RESULTS.includes(s[2]) && STEP_STONES.includes(s[3]))
+        .map((s) => [s[0], s[1], s[2], s[3], intIn(s[4], 0, 999) ?? 0])
+      : undefined,
+    steps_truncated: boolOr(m.steps_truncated),
+  })
+}
+const META_SANITIZERS = { simulate: sanitizeSimMeta, auto: sanitizeAutoMeta }
 
 // อ่าน body ให้รองรับทั้ง Vercel (req.body parsed) และ dev shim (raw stream)
 async function readBody(req) {
@@ -275,7 +331,7 @@ export default async function handler(req, res) {
       if (body.visit) events.push({ type: 'visit', count: 1, vid, visitor_status: visitorStatus })
       if (action) {
         // ใส่ key meta เฉพาะตอนมีค่า — event อื่นไม่แตะคอลัมน์นี้
-        const meta = action === 'simulate' ? sanitizeSimMeta(body.meta) : null
+        const meta = META_SANITIZERS[action](body.meta)
         events.push(meta ? { type: action, count: 1, vid, meta } : { type: action, count: 1, vid })
       }
       if (events.length) {

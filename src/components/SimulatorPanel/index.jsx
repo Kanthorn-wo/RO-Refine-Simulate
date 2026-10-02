@@ -176,6 +176,7 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable, apiItem }) => {
           // บันทึกตอนรันเสร็จ — แนบ config + ผลสรุปให้ dashboard (กิจกรรมล่าสุด) ดูได้ว่ารันอะไร ได้ผลยังไง
           recordAction('simulate', {
             item_type: itemType,
+            item_id: apiItem?.id ?? null,
             item_name: apiItem?.name ?? null,
             start: startLevel,
             target: targetLevel,
@@ -184,11 +185,16 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable, apiItem }) => {
             event_rate: isEventRate,
             rounds: all.length,
             avg_attempts: metrics.attempts.avg,
+            min_attempts: metrics.attempts.min,
+            max_attempts: metrics.attempts.max,
             median: stats.median,
             p90: stats.p90,
+            avg_successes: metrics.successes.avg,
+            avg_fails: metrics.fails.avg,
             avg_lost: metrics.itemsLost.avg,
             avg_ores: metrics.oresTotal.avg,
             avg_bsb: metrics.bsbUsed.avg,
+            ores: oreAvg,
             aborted: abortedCount,
           });
           setRunning(false);
