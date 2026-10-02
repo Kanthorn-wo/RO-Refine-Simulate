@@ -365,22 +365,26 @@ export default async function handler(req, res) {
         events.push(meta ? { type: action, count: 1, vid, meta } : { type: action, count: 1, vid })
       }
       if (events.length) {
-        tasks.push(sbFetch('usage_events', {
+        // ?columns= ให้ insert หลายแถวที่ key ไม่ครบเท่ากันได้ (key ที่ขาด = null) — ไม่งั้น PostgREST ปฏิเสธทั้ง batch
+        tasks.push(sbFetch('usage_events?columns=type,count,vid,visitor_status,meta', {
           method: 'POST',
           headers: { Prefer: 'return=minimal' },
           body: JSON.stringify(events),
         }))
       }
-      if (tasks.length) await Promise.all(tasks)
+      // fetch ไม่ throw เมื่อ Supabase ตอบ error — เช็ก status เอง กันบันทึกไม่สำเร็จแล้วตอบ 200 เงียบ ๆ
+      const responses = await Promise.all(tasks)
+      if (responses.some((r) => !r.ok)) return res.status(502).json({ error: 'write failed' })
 
       // การตัดสินใจเรื่องคุกกี้ (ยอมรับ/ปฏิเสธ) ต่อ visitor — สำหรับสถิติ "GA4 เห็นกี่คน" ในหน้าภาพรวม
       // ทำหลัง tasks เพราะ row ของ usage_visitors สร้างโดย record_visit ใน request เดียวกันได้ (ไม่มี row = ข้าม รอบหน้าส่งใหม่)
       const consent = CONSENT_VALUES.includes(body.consent) ? body.consent : null
       if (consent && vid && !isBot) {
-        await sbFetch('rpc/set_visitor_consent', {
+        const r = await sbFetch('rpc/set_visitor_consent', {
           method: 'POST',
           body: JSON.stringify({ p_vid: vid, p_consent: consent }),
         })
+        if (!r.ok) return res.status(502).json({ error: 'write failed' })
       }
       return res.status(200).json({ ok: true })
     } catch {

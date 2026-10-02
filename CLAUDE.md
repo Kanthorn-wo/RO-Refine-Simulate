@@ -16,6 +16,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run dev` / `npm run build` / `npm run preview`
 - `npm run lint` — ESLint (flat config, `no-unused-vars` ignore ตัวขึ้นต้นตัวพิมพ์ใหญ่หรือ `_`)
 - `npm test` — Vitest ครั้งเดียว (pure logic: `simulate.js`, `stones.js`, `refineRates.js` — ไฟล์ `*.test.js` วางข้างโมดูล), `npm run test:watch` — watch mode
+- `npm run smoke` — smoke test เส้นทางตีบวก → API จริง → DB → ตัวเลขทุกจุด บน **production** (`monitoring/smoke.js`, อ่าน key จาก `.env.local`, ใส่ URL อื่นได้ `npm run smoke -- <url>`) — เขียนข้อมูลทดสอบ vid `smoke-*` แล้วลบทิ้งเองทุกครั้ง; รันหลังแก้ `api/stats.js`/`api/refine.js`/schema
 
 คำเตือน script auto-commit ใน `package.json`: `deploy`, `quick-commit`, `auto-deploy`, `watch-and-deploy`, `start-auto`, `watch-changes` ทุกตัว **commit + push อัตโนมัติ** ห้ามรันโดยไม่ขออนุญาตผู้ใช้ก่อน
 
