@@ -18,6 +18,60 @@ const EVENT_META = {
 }
 const VISIT_STATUS_LABEL = { new: 'คนใหม่', returning: 'คนเก่า', bot: 'Bot' }
 
+// รายละเอียดการรันจำลอง (usage_events.meta) — ใช้ทั้งใน modal นี้และ ActivityFeed (DashboardView)
+const fmtNum = (n) => (n == null ? '—' : Number(n).toLocaleString('th-TH', { maximumFractionDigits: 1 }))
+
+export function SimMetaBadges({ m }) {
+  return (
+    <>
+      {m.item_name && <span className="max-w-[140px] truncate text-xs text-slate-300">{m.item_name}</span>}
+      {m.item_type && <span className="shrink-0 rounded bg-white/5 px-1.5 py-0.5 text-[10px] text-slate-400">{TYPE_SHORT[m.item_type] || m.item_type}</span>}
+      {m.start != null && m.target != null && (
+        <span className="shrink-0 rounded bg-indigo-500/15 px-1.5 py-0.5 text-[10px] font-medium tabular-nums text-indigo-300">+{m.start} → +{m.target}</span>
+      )}
+      {m.stone && <span className="shrink-0 rounded bg-white/5 px-1.5 py-0.5 text-[10px] text-slate-300">{STONE_LABEL[m.stone] || m.stone}</span>}
+      {m.bsb && <span className="shrink-0 rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-300">BSB</span>}
+      {m.event_rate && <span className="shrink-0 rounded bg-sky-500/10 px-1.5 py-0.5 text-[10px] text-sky-400">เรท Event</span>}
+      {m.rounds != null && <span className="shrink-0 text-[10px] tabular-nums text-slate-500">{fmtNum(m.rounds)} รอบ</span>}
+    </>
+  )
+}
+
+export function SimMetaDetail({ m }) {
+  const items = [
+    { label: 'ตีเฉลี่ย', value: `${fmtNum(m.avg_attempts)} ครั้ง`, sub: `median ${fmtNum(m.median)} · p90 ${fmtNum(m.p90)}` },
+    { label: 'ไอเทมหายเฉลี่ย', value: `${fmtNum(m.avg_lost)} ชิ้น` },
+    { label: 'แร่เฉลี่ย', value: `${fmtNum(m.avg_ores)} ก้อน` },
+    m.bsb && { label: 'BSB เฉลี่ย', value: `${fmtNum(m.avg_bsb)} ชิ้น` },
+    m.aborted > 0 && { label: 'รอบที่ตีเกินเพดาน', value: `${fmtNum(m.aborted)} รอบ`, warn: true },
+  ].filter(Boolean)
+  return (
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      {items.map((it) => (
+        <div key={it.label} className="rounded-lg border border-white/5 bg-white/[0.02] px-2.5 py-1.5">
+          <div className="text-[10px] text-slate-500">{it.label}</div>
+          <div className={`text-sm font-semibold tabular-nums ${it.warn ? 'text-rose-300' : 'text-slate-200'}`}>{it.value}</div>
+          {it.sub && <div className="text-[10px] tabular-nums text-slate-500">{it.sub}</div>}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+const Chevron = ({ open }) => (
+  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+    className={`transition-transform ${open ? 'rotate-180' : ''}`}><path d="m6 9 6 6 6-6" /></svg>
+)
+
+export function SimExpandButton({ open, onClick }) {
+  return (
+    <button onClick={onClick} aria-expanded={open} title={open ? 'ซ่อนผลจำลอง' : 'ดูผลจำลอง'}
+      className="inline-flex shrink-0 items-center rounded border border-white/10 bg-white/[0.03] p-0.5 text-slate-400 transition-colors hover:text-slate-200">
+      <Chevron open={open} />
+    </button>
+  )
+}
+
 function relTime(iso, now) {
   const s = Math.max(0, Math.floor((now - new Date(iso).getTime()) / 1000))
   if (s < 5) return 'เมื่อสักครู่'
@@ -52,19 +106,26 @@ function RefineRow({ r, now }) {
 }
 
 function EventRow({ e, now }) {
+  const [open, setOpen] = useState(false)
   const meta = EVENT_META[e.type] || { label: e.type, dot: '#94a3b8' }
+  const sim = e.type === 'simulate' && e.meta
   return (
-    <div className="flex items-center gap-2.5 rounded-lg border border-white/5 bg-white/[0.02] p-2 text-sm">
-      <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: meta.dot }} />
-      <div className="flex min-w-0 flex-1 items-center gap-2">
-        <span className="text-slate-200">{meta.label}</span>
-        {e.type === 'visit' && e.status && (
-          <span className={`text-xs ${e.status === 'new' ? 'text-cyan-400' : e.status === 'bot' ? 'text-amber-400' : 'text-violet-400'}`}>
-            ({VISIT_STATUS_LABEL[e.status] || e.status})
-          </span>
-        )}
+    <div className="rounded-lg border border-white/5 bg-white/[0.02] p-2 text-sm">
+      <div className="flex items-center gap-2.5">
+        <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: meta.dot }} />
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="text-slate-200">{meta.label}</span>
+          {e.type === 'visit' && e.status && (
+            <span className={`text-xs ${e.status === 'new' ? 'text-cyan-400' : e.status === 'bot' ? 'text-amber-400' : 'text-violet-400'}`}>
+              ({VISIT_STATUS_LABEL[e.status] || e.status})
+            </span>
+          )}
+          {sim && <SimMetaBadges m={e.meta} />}
+        </div>
+        {sim && <SimExpandButton open={open} onClick={() => setOpen((o) => !o)} />}
+        <span className="hidden w-16 shrink-0 text-right text-[11px] text-slate-500 sm:block">{relTime(e.at, now)}</span>
       </div>
-      <span className="hidden w-16 shrink-0 text-right text-[11px] text-slate-500 sm:block">{relTime(e.at, now)}</span>
+      {sim && open && <div className="mt-2 pl-[18px]"><SimMetaDetail m={e.meta} /></div>}
     </div>
   )
 }
@@ -93,7 +154,7 @@ export default function UserActivityModal({ vid, session, onClose }) {
         const logJson = await logRes.json()
         const events = (evJson.events || [])
           .filter((e) => e.vid === vid && e.type !== 'refine')
-          .map((e) => ({ kind: 'event', at: e.at, type: e.type, status: e.status }))
+          .map((e) => ({ kind: 'event', at: e.at, type: e.type, status: e.status, meta: e.meta }))
         const refines = (logJson.log || [])
           .filter((r) => r.vid === vid)
           .map((r) => ({ kind: 'refine', at: r.created_at, ...r }))

@@ -119,9 +119,10 @@ export function pingVisitOncePerDay() {
 }
 
 // บันทึก action แบบครั้งเดียว (auto = เริ่มระบบ Auto, simulate = รันโหมดจำลอง)
-export function recordAction(type) {
+// meta = รายละเอียดเสริม (ตอนนี้ใช้กับ simulate: config + ผลสรุป) — server whitelist field เอง
+export function recordAction(type, meta = null) {
   if (type !== 'auto' && type !== 'simulate') return
-  post(ENDPOINT, { event: type, vid: getVisitorId() })
+  post(ENDPOINT, { event: type, vid: getVisitorId(), ...(meta && { meta }) })
 }
 
 export async function fetchUsage() {

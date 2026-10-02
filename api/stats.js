@@ -65,6 +65,32 @@ function recordVisit(vid, day) {
 // event แบบ discrete (action) ที่รับได้ — กันยัด type มั่ว
 const ACTION_EVENTS = ['auto', 'simulate']
 
+// meta ของ simulate (config + ผลสรุป) — whitelist ทุก field, ค่าผิดรูปแบบทิ้ง (ชุด type/stone ตรงกับ api/refine.js)
+const SIM_ITEM_TYPES = ['weapon1', 'weapon2', 'weapon3', 'weapon4', 'weapon5', 'armor1', 'armor2']
+const SIM_STONES = ['normal', 'enriched', 'hd']
+const SIM_NUM_FIELDS = ['avg_attempts', 'median', 'p90', 'avg_lost', 'avg_ores', 'avg_bsb']
+function sanitizeSimMeta(m) {
+  if (!m || typeof m !== 'object') return null
+  const intIn = (v, min, max) => (Number.isInteger(v) && v >= min && v <= max ? v : undefined)
+  const out = {
+    item_type: SIM_ITEM_TYPES.includes(m.item_type) ? m.item_type : undefined,
+    item_name: typeof m.item_name === 'string' && m.item_name ? m.item_name.slice(0, 120) : undefined,
+    start: intIn(m.start, 0, 20),
+    target: intIn(m.target, 1, 20),
+    stone: SIM_STONES.includes(m.stone) ? m.stone : undefined,
+    bsb: typeof m.bsb === 'boolean' ? m.bsb : undefined,
+    event_rate: typeof m.event_rate === 'boolean' ? m.event_rate : undefined,
+    rounds: intIn(m.rounds, 1, 1000),
+    aborted: intIn(m.aborted, 0, 1000),
+  }
+  for (const k of SIM_NUM_FIELDS) {
+    const n = Number(m[k])
+    if (m[k] != null && Number.isFinite(n) && n >= 0 && n <= 1e6) out[k] = Math.round(n * 100) / 100
+  }
+  for (const k of Object.keys(out)) if (out[k] === undefined) delete out[k]
+  return Object.keys(out).length ? out : null
+}
+
 // อ่าน body ให้รองรับทั้ง Vercel (req.body parsed) และ dev shim (raw stream)
 async function readBody(req) {
   if (req.body && typeof req.body === 'object') return req.body
@@ -132,7 +158,7 @@ export default async function handler(req, res) {
       let eventsIdx = -1
       if (range) { dailyIdx = reqs.length; reqs.push(sbFetch(`usage_daily?select=day,metric,count&day=gte.${range.from}&day=lte.${range.to}&order=day`)) }
       // order ต้องมี id.desc เป็น tiebreaker — batch insert หลายแถวได้ created_at เท่ากันเป๊ะ (ดูคอมเมนต์เดียวกันใน api/refine.js)
-      if (evN)   { eventsIdx = reqs.length; reqs.push(sbFetch(`usage_events?select=id,created_at,type,count,vid,visitor_status&order=created_at.desc,id.desc&limit=${evN}`)) }
+      if (evN)   { eventsIdx = reqs.length; reqs.push(sbFetch(`usage_events?select=id,created_at,type,count,vid,visitor_status,meta&order=created_at.desc,id.desc&limit=${evN}`)) }
       const results = await Promise.all(reqs)
       const [cRes, vRes, sRes, visRes] = results
       const dRes = dailyIdx >= 0 ? results[dailyIdx] : null
@@ -195,7 +221,7 @@ export default async function handler(req, res) {
 
       if (eventsIdx >= 0) {
         const rows = eRes && eRes.ok ? await eRes.json() : []
-        payload.events = rows.map((r) => ({ at: r.created_at, type: r.type, count: Number(r.count || 1), vid: r.vid || null, status: r.visitor_status || null }))
+        payload.events = rows.map((r) => ({ at: r.created_at, type: r.type, count: Number(r.count || 1), vid: r.vid || null, status: r.visitor_status || null, meta: r.meta || null }))
       }
 
       // ขอ events (feed) = อยาก realtime → ไม่ cache; อย่างอื่น cache 60 วิ
@@ -247,7 +273,11 @@ export default async function handler(req, res) {
       const events = []
       if (refine) events.push({ type: 'refine', count: refine, vid })
       if (body.visit) events.push({ type: 'visit', count: 1, vid, visitor_status: visitorStatus })
-      if (action) events.push({ type: action, count: 1, vid })
+      if (action) {
+        // ใส่ key meta เฉพาะตอนมีค่า — event อื่นไม่แตะคอลัมน์นี้
+        const meta = action === 'simulate' ? sanitizeSimMeta(body.meta) : null
+        events.push(meta ? { type: action, count: 1, vid, meta } : { type: action, count: 1, vid })
+      }
       if (events.length) {
         tasks.push(sbFetch('usage_events', {
           method: 'POST',

@@ -118,7 +118,6 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable, apiItem }) => {
   const runSimulation = () => {
     if (running || cooldownActive) return;
     const startedAt = Date.now();
-    recordAction('simulate');
     trackEvent('sim_run', {
       item_type: itemType,
       start: startLevel,
@@ -154,22 +153,43 @@ const SimulatorPanel = ({ itemType, isEventRate, bsbTable, apiItem }) => {
           };
         };
         const finalize = () => {
+          const stats = summarize(attempts);
+          const metrics = {
+            attempts: metric((r) => r.attempts),
+            successes: metric((r) => r.successes),
+            fails: metric((r) => r.fails),
+            itemsLost: metric((r) => r.itemsLost),
+            oresTotal: metric((r) => r.oresTotal),
+            bsbUsed: metric((r) => r.bsbUsed),
+          };
+          const abortedCount = all.filter((r) => r.aborted).length;
           setResults({
             runs: all,
             // เก็บ config ที่ใช้รันจริง — กัน state ปัจจุบันถูกเปลี่ยนหลังรันแล้วข้อความ/ป้ายเพี้ยน
             cfgUsed: { startLevel, targetLevel, isEventRate },
-            stats: summarize(attempts),
+            stats,
             attempts,
-            metrics: {
-              attempts: metric((r) => r.attempts),
-              successes: metric((r) => r.successes),
-              fails: metric((r) => r.fails),
-              itemsLost: metric((r) => r.itemsLost),
-              oresTotal: metric((r) => r.oresTotal),
-              bsbUsed: metric((r) => r.bsbUsed),
-            },
+            metrics,
             oreAvg,
-            hasAborted: all.some((r) => r.aborted),
+            hasAborted: abortedCount > 0,
+          });
+          // บันทึกตอนรันเสร็จ — แนบ config + ผลสรุปให้ dashboard (กิจกรรมล่าสุด) ดูได้ว่ารันอะไร ได้ผลยังไง
+          recordAction('simulate', {
+            item_type: itemType,
+            item_name: apiItem?.name ?? null,
+            start: startLevel,
+            target: targetLevel,
+            stone,
+            bsb: cfg.useBSB,
+            event_rate: isEventRate,
+            rounds: all.length,
+            avg_attempts: metrics.attempts.avg,
+            median: stats.median,
+            p90: stats.p90,
+            avg_lost: metrics.itemsLost.avg,
+            avg_ores: metrics.oresTotal.avg,
+            avg_bsb: metrics.bsbUsed.avg,
+            aborted: abortedCount,
           });
           setRunning(false);
           cooldownEndRef.current = Date.now() + COOLDOWN_SEC * 1000;

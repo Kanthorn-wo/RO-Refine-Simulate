@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import {
   ResponsiveContainer, AreaChart, Area, BarChart, Bar, Cell,
   PieChart, Pie, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -9,7 +9,7 @@ import { bkkToday, bkkDaysAgo } from '../utils/date'
 import MonitorView from './MonitorView'
 import RefineAnalytics from './RefineAnalytics'
 import Toggle from '../components/Toggle'
-import UserActivityModal from './UserActivityModal'
+import UserActivityModal, { SimMetaBadges, SimMetaDetail, SimExpandButton } from './UserActivityModal'
 
 const ACCENT = '#818cf8'
 const ACCENT2 = '#34d399'
@@ -519,6 +519,7 @@ function ActivityFeed({ session }) {
   const [sortDir, setSortDir] = useState('desc')  // 'asc' | 'desc'
   const [live, setLive] = useState(false)
   const [openVid, setOpenVid] = useState(null)
+  const [expandedKey, setExpandedKey] = useState(null) // แถวรันจำลองที่กางดูผลอยู่ (key = at|vid)
   const mountedRef = useRef(true)
 
   const load = async () => {
@@ -545,7 +546,7 @@ function ActivityFeed({ session }) {
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'usage_events' }, (payload) => {
         if (!mountedRef.current) return
         const r = payload.new
-        const ev = { at: r.created_at, type: r.type, count: Number(r.count || 1), vid: r.vid || null, status: r.visitor_status || null }
+        const ev = { at: r.created_at, type: r.type, count: Number(r.count || 1), vid: r.vid || null, status: r.visitor_status || null, meta: r.meta || null }
         setEvents((prev) => [ev, ...(prev || [])].slice(0, 200))
       })
       .subscribe((status) => { if (mountedRef.current) setLive(status === 'SUBSCRIBED') })
@@ -646,13 +647,19 @@ function ActivityFeed({ session }) {
               <tbody>
                 {rows.map((ev, i) => {
                   const meta = EVENT_META[ev.type] || { label: ev.type, dot: '#94a3b8' }
+                  const sim = ev.type === 'simulate' && ev.meta
+                  const rowKey = `${ev.at}|${ev.vid}`
+                  const expanded = sim && expandedKey === rowKey
                   return (
-                    <tr key={start + i} className="border-b border-white/5 last:border-0">
+                    <Fragment key={start + i}>
+                    <tr className={expanded ? '' : 'border-b border-white/5 last:border-0'}>
                       <td className="px-2 py-2 tabular-nums text-slate-500">{start + i + 1}</td>
                       <td className="px-2 py-2">
-                        <span className="inline-flex items-center gap-2 text-slate-200">
+                        <span className={`${sim ? 'flex flex-wrap gap-y-1' : 'inline-flex'} items-center gap-x-2 text-slate-200`}>
                           <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: meta.dot }} />
                           <span className="truncate">{meta.label}</span>
+                          {sim && <SimMetaBadges m={ev.meta} />}
+                          {sim && <SimExpandButton open={expanded} onClick={() => setExpandedKey(expanded ? null : rowKey)} />}
                           {ev.type === 'visit' && ev.status && (
                             <span className={`shrink-0 text-xs ${ev.status === 'new' ? 'text-cyan-400' : ev.status === 'bot' ? 'text-amber-400' : 'text-violet-400'}`}>
                               ({ev.status === 'new' ? 'คนใหม่' : ev.status === 'bot' ? 'Bot' : 'คนเก่า'})
@@ -680,6 +687,13 @@ function ActivityFeed({ session }) {
                       <td className="px-2 py-2 text-right tabular-nums text-slate-300">{ev.type === 'refine' ? `×${fmt(ev.count)}` : '—'}</td>
                       <td className="whitespace-nowrap px-2 py-2 text-right tabular-nums text-slate-400" title={new Date(ev.at).toLocaleString('th-TH')}>{relTime(ev.at, now)}</td>
                     </tr>
+                    {expanded && (
+                      <tr className="border-b border-white/5 last:border-0">
+                        <td />
+                        <td colSpan={4} className="px-2 pb-3"><SimMetaDetail m={ev.meta} /></td>
+                      </tr>
+                    )}
+                    </Fragment>
                   )
                 })}
               </tbody>
