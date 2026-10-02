@@ -18,6 +18,8 @@ const RANGE = { startDate: '2015-08-14', endDate: 'today' }
 
 // custom event ของเว็บ (ตรงกับ trackEvent ใน src/utils/analytics.js)
 const FEATURE_EVENTS = ['refine_attempt', 'auto_start', 'sim_open', 'sim_run']
+// path ของหน้าแอดมิน — ตรงกับเงื่อนไขที่ไม่ส่ง GA ใน index.html
+const ADMIN_PATH = /^\/(dashboard|login)(\/|$)/
 
 
 // "20260518" -> "05/18"
@@ -173,10 +175,16 @@ export default async function handler(req, res) {
       }
     })
 
-    const topPages = (pagesRes[0].rows || []).map((r) => ({
-      path: r.dimensionValues?.[0]?.value,
-      views: num(r.metricValues?.[0]?.value),
-    }))
+    // หน้าผู้เล่นเท่านั้น: ตัดหน้าแอดมิน (ข้อมูลเก่าก่อนหยุดส่ง GA ใน index.html) + รวม path ซ้ำ (/en/index.html = /en/)
+    const pageViews = {}
+    for (const r of pagesRes[0].rows || []) {
+      const path = (r.dimensionValues?.[0]?.value || '').replace(/index\.html$/, '')
+      if (ADMIN_PATH.test(path)) continue
+      pageViews[path] = (pageViews[path] || 0) + num(r.metricValues?.[0]?.value)
+    }
+    const topPages = Object.entries(pageViews)
+      .map(([path, views]) => ({ path, views }))
+      .sort((a, b) => b.views - a.views)
 
     const devices = (devicesRes[0].rows || []).map((r) => ({
       category: r.dimensionValues?.[0]?.value,

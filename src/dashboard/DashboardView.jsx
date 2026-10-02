@@ -169,7 +169,7 @@ function Sparkline({ data, dataKey, color }) {
   )
 }
 
-function KpiCard({ icon, label, value, delta, spark, sparkKey, color = ACCENT }) {
+function KpiCard({ icon, label, value, hint, delta, spark, sparkKey, color = ACCENT }) {
   return (
     <div className="group relative overflow-hidden rounded-2xl border border-white/5 bg-white/[0.03] p-5 backdrop-blur-sm transition-colors hover:border-white/10">
       <div className="flex items-start justify-between">
@@ -182,6 +182,7 @@ function KpiCard({ icon, label, value, delta, spark, sparkKey, color = ACCENT })
         {delta !== undefined && <DeltaBadge value={delta} />}
       </div>
       <div className="mt-3 text-3xl font-bold tracking-tight text-white">{value}</div>
+      {hint && <p className="mt-1 text-[11px] leading-snug text-slate-500">{hint}</p>}
       {spark && <div className="-mx-1 mt-2"><Sparkline data={spark} dataKey={sparkKey} color={color} /></div>}
     </div>
   )
@@ -263,6 +264,14 @@ const CHANNEL_HINTS = {
   Display: 'โฆษณาแบนเนอร์ตามเว็บต่าง ๆ',
   'Cross-network': 'แคมเปญโฆษณาข้ามหลายแพลตฟอร์มของ Google',
   Unassigned: 'GA จัดกลุ่มไม่ได้ (ข้อมูลที่มาไม่พอ)',
+}
+
+// custom event ของเว็บ (src/utils/analytics.js) — ชื่อไทย + คำอธิบาย แทนชื่อ event ดิบของ GA
+const EVENT_LABELS = {
+  refine_attempt: { label: 'กดตีบวกเอง',     hint: 'นับทุกครั้งที่กดปุ่มตีบวก (ครั้งที่ Auto ตีให้ไม่นับ)' },
+  auto_start:     { label: 'เริ่ม Auto',      hint: 'กดเริ่มตีบวกอัตโนมัติ 1 รอบ' },
+  sim_open:       { label: 'เปิดหน้าจำลอง',   hint: 'เปิดหน้าต่างจำลองความน่าจะเป็น' },
+  sim_run:        { label: 'รันการจำลอง',     hint: 'กดรันการจำลองในหน้าต่างจำลอง' },
 }
 
 function ChartTooltip({ active, payload, label }) {
@@ -381,14 +390,14 @@ function AnalyticsContent({ session, scrollTo }) {
   return (
     <div className="space-y-6">
       {/* GA4 นับคนคนละวิธีกับ usage_visitors — กันคนเทียบตัวเลขข้ามหน้าแล้วงง */}
-      <p className="-mb-3 text-xs text-slate-500">
+      <p className="text-xs text-slate-500">
         ทุกตัวเลขนับตั้งแต่ {sinceLabel} ถึงวันนี้ · มาจาก Google Analytics ซึ่งนับเฉพาะคนที่ยอมรับ cookie และนับผู้ใช้คนละวิธี จึงไม่เท่ากับจำนวนผู้เข้าชมในหน้าภาพรวม/Usage
       </p>
       <div id="an-kpi" className="scroll-mt-20 grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <KpiCard icon={Icon.users}   label="ผู้ใช้"           value={fmt(totals.activeUsers)}       spark={sparkData} sparkKey="activeUsers"       color="#818cf8" />
-        <KpiCard icon={Icon.session} label="เซสชัน"           value={fmt(totals.sessions)}          spark={sparkData} sparkKey="sessions"          color="#34d399" />
-        <KpiCard icon={Icon.eye}     label="เพจวิว"           value={fmt(totals.screenPageViews)}   spark={sparkData} sparkKey="screenPageViews"   color="#fbbf24" />
-        <KpiCard icon={Icon.clock}   label="เวลาเฉลี่ย/เซสชัน" value={fmtDuration(totals.averageSessionDuration)} color="#f472b6" />
+        <KpiCard icon={Icon.users}   label="ผู้ใช้"           value={fmt(totals.activeUsers)}       hint="จำนวนคน (เบราว์เซอร์) ที่เข้าเว็บ ไม่นับซ้ำ"       spark={sparkData} sparkKey="activeUsers"       color="#818cf8" />
+        <KpiCard icon={Icon.session} label="เซสชัน"           value={fmt(totals.sessions)}          hint="จำนวนรอบที่เข้าเว็บ — หายไปเกิน 30 นาทีแล้วกลับมา = รอบใหม่"          spark={sparkData} sparkKey="sessions"          color="#34d399" />
+        <KpiCard icon={Icon.eye}     label="เพจวิว"           value={fmt(totals.screenPageViews)}   hint="จำนวนครั้งที่เปิด/โหลดหน้าเว็บ (รีเฟรชก็นับ)"   spark={sparkData} sparkKey="screenPageViews"   color="#fbbf24" />
+        <KpiCard icon={Icon.clock}   label="เวลาเฉลี่ย/เซสชัน" value={fmtDuration(totals.averageSessionDuration)} hint="อยู่ในเว็บนานเท่าไรต่อการเข้า 1 รอบ (เฉลี่ย)" color="#f472b6" />
       </div>
 
       <Panel id="an-trend" title="แนวโน้ม" subtitle={trendSubtitle} action={<RangeToggle value={trendRange} onChange={setTrendRange} />}>
@@ -413,23 +422,13 @@ function AnalyticsContent({ session, scrollTo }) {
       </Panel>
 
       <div id="an-usage" className="scroll-mt-20 grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Panel title="การใช้งานฟีเจอร์" subtitle="จำนวนครั้งที่เกิด event" className="lg:col-span-2">
-          <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={data.events || []} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
-              <defs>
-                <linearGradient id="gBar" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#a78bfa" /><stop offset="100%" stopColor="#6366f1" />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-              <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} width={44} />
-              <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
-              <Bar dataKey="count" name="จำนวน" fill="url(#gBar)" radius={[6, 6, 0, 0]} maxBarSize={48} />
-            </BarChart>
-          </ResponsiveContainer>
+        <Panel title="การใช้งานฟีเจอร์" subtitle="จำนวนครั้งที่ผู้ใช้กดใช้แต่ละฟีเจอร์ (นับเฉพาะคนที่ยอมรับคุกกี้)" className="lg:col-span-2">
+          <Leaderboard valueKey="count" labelKey="label"
+            items={[...(data.events || [])].sort((a, b) => b.count - a.count)
+              .map((e) => ({ ...e, label: EVENT_LABELS[e.name]?.label || e.name }))}
+            hintMap={Object.fromEntries(Object.values(EVENT_LABELS).map((e) => [e.label, e.hint]))} />
         </Panel>
-        <Panel title="อุปกรณ์" subtitle="สัดส่วนผู้ใช้">
+        <Panel title="อุปกรณ์" subtitle="ผู้ใช้เปิดเว็บจากอุปกรณ์อะไร (desktop = คอม, mobile = มือถือ, tablet = แท็บเล็ต)">
           <div className="relative">
             <ResponsiveContainer width="100%" height={180}>
               <PieChart>
@@ -457,7 +456,7 @@ function AnalyticsContent({ session, scrollTo }) {
       </div>
 
       <div id="an-audience" className="scroll-mt-20 grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Panel title="ผู้ใช้ใหม่ vs กลับมาซ้ำ" subtitle="สัดส่วนตั้งแต่เริ่มเก็บข้อมูล">
+        <Panel title="ผู้ใช้ใหม่ vs กลับมาซ้ำ" subtitle="ผู้ใช้ใหม่ = เข้าเว็บครั้งแรก · กลับมาซ้ำ = เคยเข้ามาแล้วกลับมาอีก">
           <div className="relative">
             <ResponsiveContainer width="100%" height={180}>
               <PieChart>
@@ -478,24 +477,24 @@ function AnalyticsContent({ session, scrollTo }) {
             <div className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-emerald-400" /><span className="text-slate-400">กลับมาซ้ำ</span><span className="ml-auto font-medium text-slate-200">{fmt(audience.returningUsers)}</span></div>
             <div className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-indigo-400" /><span className="text-slate-400">ผู้ใช้ใหม่</span><span className="ml-auto font-medium text-slate-200">{fmt(audience.newUsers)}</span></div>
             <div className="mt-2 flex items-center justify-between border-t border-white/5 pt-2">
-              <span className="text-slate-400">เฉลี่ยกลับมา/คนเก่า</span>
+              <span className="text-slate-400" title="จำนวนเซสชันของผู้ใช้ที่กลับมาซ้ำ ÷ จำนวนผู้ใช้ที่กลับมาซ้ำ">เฉลี่ยกลับมา/คนเก่า</span>
               <span className="font-semibold text-indigo-300">{audience.returningAvgVisits || 0} ครั้ง</span>
             </div>
           </div>
         </Panel>
-        <Panel title="ช่องทางที่มา" subtitle="ผู้ใช้มาจากแหล่งใด" className="lg:col-span-2">
+        <Panel title="ช่องทางที่มา" subtitle="ผู้ใช้เจอเว็บเราจากไหน (ตัวเล็กใต้ชื่อ = ความหมายของช่องทาง)" className="lg:col-span-2">
           <div className={LIST_SCROLL}><Leaderboard items={data.channels} valueKey="users" labelKey="channel" hintMap={CHANNEL_HINTS} /></div>
         </Panel>
       </div>
 
-      <Panel id="an-pages" title="หน้าที่เข้าชมมากสุด" subtitle={`ตามจำนวนเพจวิว · ทั้งหมด ${fmt(data.topPages?.length || 0)} หน้า`}>
+      <Panel id="an-pages" title="หน้าที่เข้าชมมากสุด" subtitle={`เรียงตามจำนวนครั้งที่เปิดหน้า · / = หน้าไทย, /en = หน้าอังกฤษ · ทั้งหมด ${fmt(data.topPages?.length || 0)} หน้า`}>
         <div className={LIST_SCROLL}><Leaderboard items={data.topPages} valueKey="views" labelKey="path" /></div>
       </Panel>
       <div id="an-geo" className="scroll-mt-20 grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Panel title="ประเทศ" subtitle={`ตามจำนวนผู้ใช้ · ทั้งหมด ${fmt(data.countries?.length || 0)} ประเทศ`}>
+        <Panel title="ประเทศ" subtitle={`ผู้ใช้อยู่ประเทศไหน (GA ประเมินจาก IP) · ทั้งหมด ${fmt(data.countries?.length || 0)} ประเทศ`}>
           <div className={LIST_SCROLL}><Leaderboard items={data.countries} valueKey="users" labelKey="country" /></div>
         </Panel>
-        <Panel title="เมือง" subtitle={`ตามจำนวนผู้ใช้ · ทั้งหมด ${fmt(data.cities?.length || 0)} เมือง`}>
+        <Panel title="เมือง" subtitle={`ผู้ใช้อยู่เมืองไหน (ประเมินจาก IP อาจคลาดเคลื่อน) · ทั้งหมด ${fmt(data.cities?.length || 0)} เมือง`}>
           <div className={LIST_SCROLL}><Leaderboard items={data.cities} valueKey="users" labelKey="city" /></div>
         </Panel>
       </div>
