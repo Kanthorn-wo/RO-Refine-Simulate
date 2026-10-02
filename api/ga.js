@@ -17,7 +17,7 @@ import { getUser, isOwner } from './_lib/auth.js'
 const RANGE = { startDate: '2015-08-14', endDate: 'today' }
 
 // custom event ของเว็บ (ตรงกับ trackEvent ใน src/utils/analytics.js)
-const FEATURE_EVENTS = ['refine_attempt', 'auto_start', 'sim_open', 'sim_run']
+const FEATURE_EVENTS = ['refine_attempt', 'auto_start', 'sim_open', 'sim_run', 'event_rate_toggle']
 // path ของหน้าแอดมิน — ตรงกับเงื่อนไขที่ไม่ส่ง GA ใน index.html
 const ADMIN_PATH = /^\/(dashboard|login)(\/|$)/
 

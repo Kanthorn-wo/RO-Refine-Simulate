@@ -272,6 +272,7 @@ const EVENT_LABELS = {
   auto_start:     { label: 'เริ่ม Auto',      hint: 'กดเริ่มตีบวกอัตโนมัติ 1 รอบ' },
   sim_open:       { label: 'เปิดหน้าจำลอง',   hint: 'เปิดหน้าต่างจำลองความน่าจะเป็น' },
   sim_run:        { label: 'รันการจำลอง',     hint: 'กดรันการจำลองในหน้าต่างจำลอง' },
+  event_rate_toggle: { label: 'สลับ Event Rate Up', hint: 'กดเปิด/ปิดโหมด Event (จากแผงตีบวกหรือหัวตารางอัตรา)' },
 }
 
 function ChartTooltip({ active, payload, label }) {

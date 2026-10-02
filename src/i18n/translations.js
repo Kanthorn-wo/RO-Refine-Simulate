@@ -44,6 +44,11 @@ export const TRANSLATIONS = {
     start_level_label: 'เริ่มที่ระดับตีบวก',
     auto_tag: '(Auto)',
 
+    // Event toggle (แผงตีบวก)
+    event_toggle_hint: 'เปิดเมื่อเซิร์ฟเวอร์มีกิจกรรมเพิ่มเรท — เพิ่ม % ตีติดและลดจำนวน BSB',
+    event_toggle_hint_gain_prefix: 'เปิดเมื่อมีกิจกรรม — ระดับนี้',
+    event_toggle_hint_on: 'เปิดอยู่ — ระดับนี้ {on}% (ปกติ {off}%)',
+
     // BSB
     bsb_active_hint: 'ใช้ได้ — กันลดระดับ/ไอเทมหายเมื่อล้มเหลว',
     bsb_range_hint: 'ใช้ได้เฉพาะช่วง +7 → +14',
@@ -288,6 +293,10 @@ export const TRANSLATIONS = {
     auto_tag: '(Auto)',
 
     // BSB
+    event_toggle_hint: 'Turn on during a server rate-up event — higher success % and fewer BSB',
+    event_toggle_hint_gain_prefix: 'Turn on during an event — this level',
+    event_toggle_hint_on: 'On — this level {on}% (normally {off}%)',
+
     bsb_active_hint: 'Active — prevents loss on fail',
     bsb_range_hint: 'Only in range +7 → +14',
     bsb_per_level: 'BSB per level',

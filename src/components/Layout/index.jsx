@@ -695,6 +695,15 @@ const Container = () => {
   const currentRate = getRate(isEventRate, useCash, useEnriched, itemType, currentLevel - 1);
   // Banner shows the same next-attempt rate as the refine button (keep them in sync)
   const bannerRate = currentRate;
+  // สวิตช์ Event ในแผงตีบวก โชว์ว่าระดับนี้เรทเปลี่ยนเท่าไร (ไม่ต่าง = โชว์คำอธิบายทั่วไป)
+  const rateNoEvent = getRate(false, useCash, useEnriched, itemType, currentLevel - 1);
+  const rateEvent = getRate(true, useCash, useEnriched, itemType, currentLevel - 1);
+  const eventHelpsNow = Number.isFinite(rateEvent) && rateEvent > rateNoEvent;
+  // เปลี่ยนโหมด Event + ยิง GA4 (source = ปุ่มไหน: แผงตีบวก / หัวตารางอัตรา) เฉพาะตอนค่าเปลี่ยนจริง
+  const changeEventRate = (on, source) => {
+    if (on !== isEventRate) trackEvent('event_rate_toggle', { enabled: on ? 1 : 0, source });
+    setIsEventRate(on);
+  };
 
   useEffect(() => {
     ALL_FRAMES.forEach((src) => {
@@ -734,7 +743,7 @@ const Container = () => {
         active={isEventRate}
         collapsed={eventBarCollapsed}
         onToggle={() => setEventBarCollapsed((c) => !c)}
-        onClose={() => setIsEventRate(false)}
+        onClose={() => changeEventRate(false, 'event_banner')}
       />
     )}
     {/* pb กันเนื้อหาท้ายหน้าโดน FAB (FloatingMenu) บังบน mobile */}
@@ -790,7 +799,7 @@ const Container = () => {
           <div role="group" aria-label={t('aria_rate_mode')} className="inline-flex gap-1 rounded-xl border border-line/80 bg-app/70 p-1 shadow-inner shadow-black/50">
             <button
               type="button"
-              onClick={() => setIsEventRate(false)}
+              onClick={() => changeEventRate(false, 'rate_table')}
               aria-pressed={!isEventRate}
               className={`cursor-pointer rounded-lg px-3 py-1.5 text-sm font-semibold transition-all duration-150 ${
                 !isEventRate
@@ -802,7 +811,7 @@ const Container = () => {
             </button>
             <button
               type="button"
-              onClick={() => setIsEventRate(true)}
+              onClick={() => changeEventRate(true, 'rate_table')}
               aria-pressed={isEventRate}
               className={`flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold transition-all duration-150 ${
                 isEventRate
@@ -1037,6 +1046,35 @@ const Container = () => {
             </select>
             <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-warn">▾</span>
           </div>
+        </div>
+
+        {/* Toggle Event Rate Up — state เดียวกับปุ่มหัวตารางอัตรา; อยู่ในแผงตีบวกเพราะมีผลกับการตีจริง (เรท + จำนวน BSB) */}
+        <div
+          className={`mt-3 flex items-center justify-between gap-3 rounded-xl border px-4 py-3 transition-colors ${
+            isEventRate ? 'border-amber-500/60 bg-sunken' : 'border-line-soft/60 bg-sunken'
+          }`}
+        >
+          <div>
+            <div className="flex items-center gap-1.5 text-sm font-semibold text-body">
+              <svg viewBox="0 0 24 24" fill="currentColor" className={`h-4 w-4 text-warn ${isEventRate ? 'animate-pulse' : ''}`} aria-hidden="true">
+                <path d="M12 2c.6 3.2-.6 4.9-2.1 6.4C8.3 10 7 11.6 7 14a5 5 0 0 0 10 0c0-1.2-.4-2.3-1-3.2-.9 1-2 1.4-2 1.4.8-2.6.3-5.5-2-8.2z" />
+              </svg>
+              {t('event_rate_up')}
+            </div>
+            <div className="mt-0.5 text-xs text-dim">
+              {!eventHelpsNow
+                ? t('event_toggle_hint')
+                : isEventRate
+                  ? t('event_toggle_hint_on', { on: Math.floor(rateEvent), off: Math.floor(rateNoEvent) })
+                  : <>{t('event_toggle_hint_gain_prefix')} <span className="font-bold text-warn">{Math.floor(rateNoEvent)}% → {Math.floor(rateEvent)}%</span></>}
+            </div>
+          </div>
+          <Toggle
+            checked={isEventRate}
+            onChange={(v) => changeEventRate(v, 'refine_panel')}
+            activeColor="bg-orange-500"
+            ariaLabel={t('event_rate_up')}
+          />
         </div>
 
         {/* Toggle BSB */}

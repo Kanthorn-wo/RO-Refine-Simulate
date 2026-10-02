@@ -15,6 +15,13 @@
 
 export const CHANGELOG = [
   {
+    version: '1.11.11',
+    date: '2026-10-02',
+    items: [
+      { type: 'improve', text: 'เพิ่มสวิตช์ Event Rate Up ในแผงตีบวก พร้อมบอกว่าเรทระดับนี้เพิ่มเท่าไรเมื่อเปิด Event', textEn: 'Added an Event Rate Up switch to the refine panel that shows how much the current level’s rate improves during an event' },
+    ],
+  },
+  {
     version: '1.11.9',
     date: '2026-08-19',
     items: [
