@@ -48,7 +48,7 @@ export default async function handler(req, res) {
     })
     const property = `properties/${GA_PROPERTY_ID}`
 
-    const [totalsRes, tsRes, hourlyRes, pagesRes, devicesRes, countriesRes, eventsRes, newReturnRes, channelsRes, citiesRes] = await Promise.all([
+    const [totalsRes, tsRes, hourlyRes, pagesRes, devicesRes, countriesRes, eventsRes, newReturnRes, channelsRes, citiesRes, eventToggleRes] = await Promise.all([
       client.runReport({
         property,
         dateRanges: [RANGE],
@@ -129,6 +129,15 @@ export default async function handler(req, res) {
         metrics: [{ name: 'activeUsers' }],
         orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
       }),
+      // สวิตช์ Event Rate Up แยกตามปุ่มที่กด × เปิด/ปิด — ใช้ custom dimension source/enabled ที่ลงทะเบียนใน GA4 Admin
+      // (ไม่ย้อนหลัง: ก่อนลงทะเบียนเป็น "(not set)") — ล้มแล้วคืน null ไม่ให้ทั้งหน้า Analytics พังเพราะรายงานเสริมนี้
+      client.runReport({
+        property,
+        dateRanges: [RANGE],
+        dimensions: [{ name: 'customEvent:source' }, { name: 'customEvent:enabled' }],
+        metrics: [{ name: 'eventCount' }],
+        dimensionFilter: { filter: { fieldName: 'eventName', stringFilter: { value: 'event_rate_toggle' } } },
+      }).catch(() => null),
     ])
 
     const totalRow = totalsRes[0].rows?.[0]?.metricValues || []
@@ -233,6 +242,19 @@ export default async function handler(req, res) {
       .map((r) => ({ city: r.dimensionValues?.[0]?.value, users: num(r.metricValues?.[0]?.value) }))
       .filter((c) => c.city && c.city !== '(not set)')
 
+    // { source, on, off } ต่อปุ่ม — enabled มาเป็น string "1"/"0"
+    let eventRateToggle = null
+    if (eventToggleRes) {
+      const bySource = {}
+      for (const r of eventToggleRes[0].rows || []) {
+        const source = r.dimensionValues?.[0]?.value || '(not set)'
+        const on = r.dimensionValues?.[1]?.value === '1'
+        const row = (bySource[source] ||= { source, on: 0, off: 0 })
+        row[on ? 'on' : 'off'] += num(r.metricValues?.[0]?.value)
+      }
+      eventRateToggle = Object.values(bySource).sort((a, b) => b.on - a.on)
+    }
+
     res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600')
     return res.status(200).json({
       range: { startDate: firstDate, endDate: 'today' },
@@ -246,6 +268,7 @@ export default async function handler(req, res) {
       channels,
       audience,
       events,
+      eventRateToggle,
     })
   } catch (err) {
     return res.status(500).json({ error: err?.message || 'GA report failed' })

@@ -81,6 +81,7 @@ const NAV_SECTIONS = {
     { id: 'an-kpi',      label: 'ภาพรวม (KPI)' },
     { id: 'an-trend',    label: 'แนวโน้ม' },
     { id: 'an-usage',    label: 'การใช้งาน/อุปกรณ์' },
+    { id: 'an-event-toggle', label: 'สวิตช์ Event Rate Up' },
     { id: 'an-audience', label: 'ผู้ใช้/ช่องทางที่มา' },
     { id: 'an-pages',    label: 'หน้ายอดนิยม' },
     { id: 'an-geo',      label: 'ประเทศ/เมือง' },
@@ -275,6 +276,14 @@ const EVENT_LABELS = {
   event_rate_toggle: { label: 'สลับ Event Rate Up', hint: 'กดเปิด/ปิดโหมด Event (จากแผงตีบวกหรือหัวตารางอัตรา)' },
 }
 
+// param source ของ event_rate_toggle (changeEventRate ใน Layout) — "(not set)" = ก่อนลงทะเบียน custom dimension ใน GA4
+const EVENT_TOGGLE_SOURCES = {
+  refine_panel: { label: 'สวิตช์ในแผงตีบวก', hint: 'สวิตช์ใหม่ข้างปุ่ม BSB' },
+  rate_table:   { label: 'ปุ่มหัวตารางอัตรา', hint: 'ปุ่มสลับ ปกติ/Event เหนือตารางอัตรา' },
+  event_banner: { label: 'ปุ่มปิดบนแบนเนอร์', hint: 'กดปิดจากแบนเนอร์ Event ด้านบน' },
+  '(not set)':  { label: 'ไม่ระบุ',            hint: 'กดก่อนเริ่มแยกปุ่ม (2 ต.ค. 2026)' },
+}
+
 function ChartTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null
   return (
@@ -378,6 +387,11 @@ function AnalyticsContent({ session, scrollTo }) {
     { type: 'ผู้ใช้ใหม่',  users: audience.newUsers || 0 },
   ]
   const audienceTotal = (audience.newUsers || 0) + (audience.returningUsers || 0)
+  // แถวต่อปุ่มของสวิตช์ Event Rate Up (null = GA ดึงรายงานนี้ไม่ได้)
+  const eventToggleRows = (data?.eventRateToggle || []).map((r) => {
+    const meta = EVENT_TOGGLE_SOURCES[r.source]
+    return { ...r, label: meta?.label || r.source, hint: `${meta ? `${meta.hint} · ` : ''}กดปิด ${fmt(r.off)} ครั้ง` }
+  })
 
   if (loading) return <LoadingState />
   if (error && !loading) return (
@@ -455,6 +469,16 @@ function AnalyticsContent({ session, scrollTo }) {
           </div>
         </Panel>
       </div>
+
+      <Panel id="an-event-toggle" title="สวิตช์ Event Rate Up — กดเปิดจากปุ่มไหน"
+        subtitle="แท่ง = จำนวนครั้งที่กดเปิด · ตัวเล็กใต้ชื่อ = ครั้งที่กดปิด · เริ่มแยกปุ่มตั้งแต่ 2 ต.ค. 2026 (GA อัปเดตช้า 24–48 ชม.)">
+        {data.eventRateToggle === null ? (
+          <p className="text-sm text-slate-500">ดึงข้อมูลแยกปุ่มจาก GA ไม่ได้</p>
+        ) : (
+          <Leaderboard items={eventToggleRows} valueKey="on" labelKey="label"
+            hintMap={Object.fromEntries(eventToggleRows.map((r) => [r.label, r.hint]))} />
+        )}
+      </Panel>
 
       <div id="an-audience" className="scroll-mt-20 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Panel title="ผู้ใช้ใหม่ vs กลับมาซ้ำ" subtitle="ผู้ใช้ใหม่ = เข้าเว็บครั้งแรก · กลับมาซ้ำ = เคยเข้ามาแล้วกลับมาอีก">
@@ -1168,7 +1192,7 @@ export default function DashboardView({ session }) {
   }
 
   return (
-    <div className="min-h-screen w-full bg-slate-950 text-slate-100 flex">
+    <div className="dashboard-root min-h-screen w-full bg-slate-950 text-slate-100 flex">
       {/* glow */}
       <div className="pointer-events-none fixed inset-0 opacity-60"
         style={{ background: 'radial-gradient(800px 400px at 20% -5%, rgba(99,102,241,0.18), transparent), radial-gradient(700px 400px at 100% 0%, rgba(16,185,129,0.10), transparent)' }} />

@@ -111,6 +111,36 @@ html {
   scrollbar-gutter: stable;
 }
 
+/* scrollbar ของ dashboard (dark-only) — บาง พื้นโปร่ง thumb สี slate จาง เข้มขึ้นตอน hover กล่องนั้น
+   scrollbar-color = Chrome/Firefox, ::-webkit-scrollbar = Safari (Chrome ข้ามเมื่อมี scrollbar-color) */
+html:has(.dashboard-root),
+.dashboard-root * {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(148 163 184 / 0.25) transparent;
+}
+html:has(.dashboard-root):hover,
+.dashboard-root *:hover {
+  scrollbar-color: rgb(148 163 184 / 0.45) transparent;
+}
+html:has(.dashboard-root)::-webkit-scrollbar,
+.dashboard-root ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+html:has(.dashboard-root)::-webkit-scrollbar-track,
+.dashboard-root ::-webkit-scrollbar-track {
+  background: transparent;
+}
+html:has(.dashboard-root)::-webkit-scrollbar-thumb,
+.dashboard-root ::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: rgb(148 163 184 / 0.25);
+}
+html:has(.dashboard-root)::-webkit-scrollbar-thumb:hover,
+.dashboard-root ::-webkit-scrollbar-thumb:hover {
+  background: rgb(148 163 184 / 0.45);
+}
+
 body {
   margin: 0;
   min-width: 320px;
