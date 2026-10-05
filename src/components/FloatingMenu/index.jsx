@@ -5,7 +5,7 @@ import { getTheme, toggleTheme } from '../../utils/theme';
 const REPORT_FORM_URL =
   'https://docs.google.com/forms/d/e/1FAIpQLSegZdTgvGgHiekYN-JiMeVtwvSvCbfvzLagkJa8ZSzQZpWFzw/viewform';
 
-const FloatingMenu = ({ onOpenPatchNotes, suppressed = false }) => {
+const FloatingMenu = ({ onOpenPatchNotes, onOpenTour, suppressed = false }) => {
   const [open, setOpen] = useState(false);
   const [theme, setTheme] = useState(getTheme());
   const [scrollHidden, setScrollHidden] = useState(false);
@@ -81,6 +81,23 @@ const FloatingMenu = ({ onOpenPatchNotes, suppressed = false }) => {
         </svg>
       ),
     },
+    // ปุ่ม "วิธีใช้" เฉพาะหน้าที่มีทัวร์ (ส่ง onOpenTour มา)
+    ...(onOpenTour ? [{
+      key: 'tour',
+      label: t('menu_tour'),
+      btnClass: 'border-emerald-400/40 bg-card/95 text-success hover:bg-emerald-400 hover:text-slate-900',
+      onClick: () => {
+        setOpen(false);
+        onOpenTour();
+      },
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
+      ),
+    }] : []),
     {
       key: 'report',
       label: t('menu_report'),

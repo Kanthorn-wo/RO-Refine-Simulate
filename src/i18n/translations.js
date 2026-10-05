@@ -12,7 +12,6 @@ export const TRANSLATIONS = {
     stone_normal_label: 'หินปกติ',
     rate_show_all: 'ดูตารางเต็ม (+11 ~ +20)',
     rate_show_less: 'ย่อตาราง (แสดงถึง +10)',
-    aria_rate_mode: 'โหมดอัตรา',
 
     // Item type selector
     aria_item_mode: 'โหมดเลือกไอเทม',
@@ -231,6 +230,30 @@ export const TRANSLATIONS = {
     usage_today: 'คนใช้วันนี้',
     online_now: 'กำลังออนไลน์',
 
+    // Hero CTA
+    hero_cta: 'ลองตีบวกเลย',
+
+    // Tour (วิธีใช้)
+    tour_next: 'ถัดไป',
+    tour_prev: 'ย้อนกลับ',
+    tour_done: 'เข้าใจแล้ว',
+    tour_item_title: '1. เลือกประเภทไอเทม',
+    tour_item_desc: 'เริ่มจากเลือกว่าจะตีบวกอะไร เช่น อาวุธหรือเกราะเลเวลต่าง ๆ แต่ละประเภทมีอัตราสำเร็จไม่เท่ากัน หรือจะค้นหาจากเลข ID ของไอเทมก็ได้',
+    tour_event_title: '2. เปิดเรท Event ตอนตีจริง',
+    tour_event_desc: 'สวิตช์นี้ใช้เปิด Event Rate Up ตอนตีบวกจริง เมื่อเปิด เรทสำเร็จจะสูงขึ้น และจำนวน BSB ที่ต้องใช้จะเปลี่ยนตาม ควรเปิดเฉพาะตอนที่เซิร์ฟเวอร์มีกิจกรรมจริง',
+    tour_stone_title: '3. เลือกหิน และ BSB',
+    tour_stone_desc: 'กดเลือกหินด้านบนของกรอบตีบวก: Normal ล้มแล้วไอเทมหาย, Enriched เรทสูงกว่าและช่วย +1 ถึง +10, HD ล้มแล้วลดระดับ ส่วน BSB เปิดได้ที่การ์ดด้านซ้ายช่วง +7 ถึง +14 เพื่อกันไอเทมหายตอนล้ม',
+    tour_refine_title: '4. กดตีบวก',
+    tour_refine_desc: 'กดปุ่มในกรอบนี้เพื่อตีทีละครั้ง จะเห็นเรทสำเร็จและผลทันที ส่วนอัตราสำเร็จของทุกระดับดูได้ในตารางด้านบนของหน้า',
+    tour_auto_title: '5. โหมด Auto',
+    tour_auto_desc: 'เปิดสวิตช์นี้ให้ระบบตีต่อเนื่องจนถึงเป้าหมาย ตั้งระดับเริ่ม-เป้า เลือกหินแต่ละช่วง และให้หยุดเองเมื่อเสี่ยงไอเทมหายได้',
+    tour_sim_title: '6. Simulator หาค่าเฉลี่ย',
+    tour_sim_desc: 'อยากรู้ว่าตีถึงเป้าต้องใช้แร่กี่ก้อน? กดเปิดแถบนี้ให้ระบบจำลองหลายร้อยรอบ แล้วดูค่าเฉลี่ย ค่าต่ำสุด-สูงสุด และกราฟการกระจาย',
+    menu_tour: 'วิธีใช้',
+
+
+
+
     // Cookie consent
     cookie_title: 'ช่วยเราพัฒนาเว็บได้ไหม?',
     cookie_desc: 'เราใช้คุกกี้วิเคราะห์ (Google Analytics) เพื่อดูว่าฟีเจอร์ไหนมีคนใช้ จะได้ปรับปรุงให้ตรงใจผู้เล่นมากขึ้น — เก็บแบบไม่ระบุตัวตน และไม่ใช้เพื่อโฆษณา',
@@ -260,7 +283,6 @@ export const TRANSLATIONS = {
     stone_normal_label: 'Normal',
     rate_show_all: 'Show full table (+11 ~ +20)',
     rate_show_less: 'Collapse (up to +10)',
-    aria_rate_mode: 'Rate mode',
 
     // Item type selector
     aria_item_mode: 'Item selection mode',
@@ -477,6 +499,30 @@ export const TRANSLATIONS = {
     usage_stone: 'Ores used',
     usage_today: 'Users today',
     online_now: 'online now',
+
+    // Hero CTA
+    hero_cta: 'Try refining now',
+
+    // Tour
+    tour_next: 'Next',
+    tour_prev: 'Back',
+    tour_done: 'Got it',
+    tour_item_title: '1. Choose the item type',
+    tour_item_desc: 'Start by picking what you want to refine, such as a weapon or armor level. Each type has different success rates. You can also search by item ID.',
+    tour_event_title: '2. Turn on Event rates for real refining',
+    tour_event_desc: 'This switch enables Event Rate Up for your actual refining. When on, success rates go up and the BSB amount required changes too. Only turn it on when your server really has the event.',
+    tour_stone_title: '3. Pick a stone and BSB',
+    tour_stone_desc: 'Choose a stone at the top of the refine frame: Normal loses the item on failure, Enriched has better rates for +1 to +10, HD lowers the level instead. BSB is toggled in the left card for +7 to +14 and protects the item on failure.',
+    tour_refine_title: '4. Hit refine',
+    tour_refine_desc: 'Press the button in this frame to refine one step at a time and see the rate and result right away. Success rates for every level are in the table at the top of the page.',
+    tour_auto_title: '5. Auto mode',
+    tour_auto_desc: 'Turn this on to let the simulator keep refining until your target. Set start and target levels, choose stones per range, and stop automatically when an item is at risk.',
+    tour_sim_title: '6. Average Simulator',
+    tour_sim_desc: 'Want to know how many ores you need to reach a target? Open this bar to run hundreds of simulated rounds and see the average, min/max and the distribution chart.',
+    menu_tour: 'How to use',
+
+
+
 
     // Cookie consent
     cookie_title: 'Help us improve the site?',

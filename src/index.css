@@ -298,3 +298,17 @@ html.light body {
     animation: none !important;
   }
 }
+
+/* ปุ่มเชิญชวนบน hero: ring เรืองแสงขยายออก + ลูกศรเด้ง */
+@media (prefers-reduced-motion: no-preference) {
+  .hero-cta { animation: hero-cta-ring 2s ease-out infinite; }
+  .hero-cta-arrow { animation: hero-cta-bounce 1s ease-in-out infinite; }
+}
+@keyframes hero-cta-ring {
+  0% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.75), 0 10px 15px rgba(0, 0, 0, 0.6); }
+  70%, 100% { box-shadow: 0 0 0 16px rgba(251, 191, 36, 0), 0 10px 15px rgba(0, 0, 0, 0.6); }
+}
+@keyframes hero-cta-bounce {
+  0%, 100% { transform: translateY(-2px); }
+  50% { transform: translateY(3px); }
+}

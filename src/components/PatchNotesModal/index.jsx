@@ -32,10 +32,13 @@ const CHANGE_TYPE_STYLE = {
   improve: 'bg-sky-500/15 text-info border-sky-500/30',
 };
 
-const PatchNotesModal = ({ openTrigger = 0, holdOpen = false }) => {
+const PatchNotesModal = ({ openTrigger = 0, holdOpen = false, onVisibilityChange }) => {
   const [open, setOpen] = useState(false);
   const [acknowledged, setAcknowledged] = useState(false);
   const { lang, t } = useLang();
+
+  // แจ้ง parent ว่า modal เปิดอยู่ไหม (Tour รอจนปิดก่อนเริ่ม)
+  useEffect(() => { onVisibilityChange?.(open); }, [open, onVisibilityChange]);
 
   // รอ cookie consent bar ตัดสินใจก่อน กัน 2 modal ซ้อนทับกันตอนเข้าเว็บครั้งแรก (holdOpen = cookie bar ยังโชว์อยู่)
   useEffect(() => {

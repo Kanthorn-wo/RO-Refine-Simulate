@@ -612,6 +612,12 @@ const Container = () => {
     }
   };
 
+  // ปุ่ม CTA บน hero: เลื่อนไปกล่องตีบวก (ไม่เปลี่ยนค่าที่ผู้เล่นตั้งไว้)
+  const handleHeroStart = () => {
+    trackEvent('hero_cta_click');
+    document.getElementById('refine-area')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   const selectItemType = (type) => {
     setAutoRunning(false);
     setItemType(type);
@@ -700,8 +706,8 @@ const Container = () => {
   const rateEvent = getRate(true, useCash, useEnriched, itemType, currentLevel - 1);
   const eventHelpsNow = Number.isFinite(rateEvent) && rateEvent > rateNoEvent;
   // เปลี่ยนโหมด Event + ยิง GA4 (source = ปุ่มไหน: แผงตีบวก / หัวตารางอัตรา) เฉพาะตอนค่าเปลี่ยนจริง
-  const changeEventRate = (on, source) => {
-    if (on !== isEventRate) trackEvent('event_rate_toggle', { enabled: on ? 1 : 0, source });
+  const changeEventRate = (on) => {
+    if (on !== isEventRate) trackEvent('event_rate_toggle');
     setIsEventRate(on);
   };
 
@@ -743,7 +749,7 @@ const Container = () => {
         active={isEventRate}
         collapsed={eventBarCollapsed}
         onToggle={() => setEventBarCollapsed((c) => !c)}
-        onClose={() => changeEventRate(false, 'event_banner')}
+        onClose={() => changeEventRate(false)}
       />
     )}
     {/* pb กันเนื้อหาท้ายหน้าโดน FAB (FloatingMenu) บังบน mobile */}
@@ -751,7 +757,7 @@ const Container = () => {
       {/* ไม่มี spacer แล้ว — แถบ Event overlay สไลด์ลงจากบน (fixed) ไม่ดัน content (กัน layout shift) */}
       {/* Hero Banner + ปุ่มเปลี่ยนภาษา ซ้อนมุมขวาบน (ตำแหน่งมาตรฐานของ language switch) */}
       <div className="relative">
-        <HeroBanner />
+        <HeroBanner onStart={handleHeroStart} />
         <div
           role="group"
           aria-label={t('lang_toggle_label')}
@@ -795,36 +801,6 @@ const Container = () => {
           <h2 id="rate-table-heading" className="m-0 text-base font-bold text-warn">
             {t('rate_table_title')} — {isEventRate ? t('event_rate_up') : t('no_event')} · {useEnriched ? 'Enriched' : useCash ? 'HD' : t('stone_normal_label')}
           </h2>
-          {/* สวิตช์โหมดเรท — ทำให้เห็นชัดว่ากดได้: ราง inset + ปุ่ม active นูน + hover เด้ง */}
-          <div role="group" aria-label={t('aria_rate_mode')} className="inline-flex gap-1 rounded-xl border border-line/80 bg-app/70 p-1 shadow-inner shadow-black/50">
-            <button
-              type="button"
-              onClick={() => changeEventRate(false, 'rate_table')}
-              aria-pressed={!isEventRate}
-              className={`cursor-pointer rounded-lg px-3 py-1.5 text-sm font-semibold transition-all duration-150 ${
-                !isEventRate
-                  ? 'bg-slate-200 text-slate-900 shadow-md shadow-black/40'
-                  : 'text-dim hover:-translate-y-px hover:bg-line-soft/70 hover:text-body active:translate-y-0 active:scale-95'
-              }`}
-            >
-              {t('no_event')}
-            </button>
-            <button
-              type="button"
-              onClick={() => changeEventRate(true, 'rate_table')}
-              aria-pressed={isEventRate}
-              className={`flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold transition-all duration-150 ${
-                isEventRate
-                  ? 'event-fire-bar text-white shadow-md shadow-orange-900/60 ring-1 ring-amber-300/70'
-                  : 'text-warn ring-1 ring-amber-400/40 hover:-translate-y-px hover:bg-amber-500/15 hover:text-warn hover:ring-amber-300/70 active:translate-y-0 active:scale-95'
-              }`}
-            >
-              <svg viewBox="0 0 24 24" fill="currentColor" className={`h-3.5 w-3.5 ${isEventRate ? 'animate-pulse' : ''}`} aria-hidden="true">
-                <path d="M12 2c.6 3.2-.6 4.9-2.1 6.4C8.3 10 7 11.6 7 14a5 5 0 0 0 10 0c0-1.2-.4-2.3-1-3.2-.9 1-2 1.4-2 1.4.8-2.6.3-5.5-2-8.2z" />
-              </svg>
-              {t('event_rate_up')}
-            </button>
-          </div>
         </div>
         <div className="w-full overflow-x-auto">
           <table className="w-full min-w-[520px] table-fixed border-collapse text-sm">
@@ -881,7 +857,7 @@ const Container = () => {
 
       {/* แถวเดสก์ท็อป: กล่อง option (ซ้าย) + กล่องตีบวก (ขวา) */}
       <Reveal>
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-stretch">
+      <div id="refine-area" className="flex scroll-mt-16 flex-col gap-5 lg:flex-row lg:items-stretch">
       {/* การ์ดควบคุม */}
       <div className="rounded-2xl border border-line-soft/60 bg-card/90 p-5 shadow-lg shadow-black/30 lg:flex-1">
         {/* ประเภทไอเท็ม */}
@@ -1050,6 +1026,7 @@ const Container = () => {
 
         {/* Toggle Event Rate Up — state เดียวกับปุ่มหัวตารางอัตรา; อยู่ในแผงตีบวกเพราะมีผลกับการตีจริง (เรท + จำนวน BSB) */}
         <div
+          data-tour="event-toggle"
           className={`mt-3 flex items-center justify-between gap-3 rounded-xl border px-4 py-3 transition-colors ${
             isEventRate ? 'border-amber-500/60 bg-sunken' : 'border-line-soft/60 bg-sunken'
           }`}
@@ -1071,7 +1048,7 @@ const Container = () => {
           </div>
           <Toggle
             checked={isEventRate}
-            onChange={(v) => changeEventRate(v, 'refine_panel')}
+            onChange={(v) => changeEventRate(v)}
             activeColor="bg-orange-500"
             ariaLabel={t('event_rate_up')}
           />
@@ -1122,6 +1099,7 @@ const Container = () => {
 
         {/* Toggle + เป้าหมาย Auto ตีบวก */}
         <div
+          data-tour="auto"
           className={`mt-3 rounded-xl border px-4 py-3 transition-colors ${
             autoRefine ? 'border-indigo-500/50 bg-sunken' : 'border-line-soft/60 bg-sunken'
           }`}
@@ -1362,7 +1340,7 @@ const Container = () => {
       <div className="flex flex-col items-center gap-3 rounded-2xl border border-line-soft/60 bg-card/90 p-5 shadow-lg shadow-black/30 lg:flex-1 lg:justify-center">
 
         {/* Animation frame */}
-        <div className="relative w-full overflow-hidden rounded-xl" style={{ maxWidth: 350, aspectRatio: '262 / 301', fontFamily: 'Tahoma, Geneva, sans-serif' }}>
+        <div data-tour="refine-box" className="relative w-full overflow-hidden rounded-xl" style={{ maxWidth: 350, aspectRatio: '262 / 301', fontFamily: 'Tahoma, Geneva, sans-serif' }}>
 
           {mode === 'wait' && renderFrames(WAITING_FRAMES, 'wait')}
           {mode === 'process' && renderFrames(PROCESSING_FRAMES, 'process')}
@@ -1440,7 +1418,7 @@ const Container = () => {
           </div>
 
           {/* Stone selector slots */}
-          <div className="absolute z-[3] flex items-end justify-center"
+          <div data-tour="stone-slots" className="absolute z-[3] flex items-end justify-center"
             style={{ top:'11%', left:'50%', transform:'translateX(-50%)', gap:4, pointerEvents: autoRefine ? 'none' : 'auto', opacity: autoRefine ? 0.5 : 1 }}>
             {(() => {
               const stones = [
@@ -1581,7 +1559,9 @@ const Container = () => {
 
       {/* Simulator หาค่าเฉลี่ย (Monte Carlo) — ซ่อนใน panel slide เหนือสถิติ Session */}
       <Reveal>
+        <div data-tour="simulator">
         <SimulatorPanel itemType={itemType} isEventRate={isEventRate} bsbTable={bsbTable} apiItem={showItemInfo && apiItem && apiItem.type === itemType ? apiItem : null} />
+        </div>
       </Reveal>
 
       {/* สรุปจำนวนครั้งที่ตี */}

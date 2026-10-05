@@ -15,6 +15,15 @@
 
 export const CHANGELOG = [
   {
+    version: '1.12.0',
+    date: '2026-10-05',
+    items: [
+      { type: 'feature', text: 'เพิ่มทัวร์แนะนำวิธีใช้ 6 ขั้น เปิดให้ผู้เล่นใหม่อัตโนมัติครั้งเดียว และเปิดดูซ้ำได้จากปุ่ม "วิธีใช้" ที่เมนูมุมขวาล่าง', textEn: 'Added a 6-step guided tour that opens once for new players and can be replayed from the "How to use" button in the bottom-right menu' },
+      { type: 'improve', text: 'เพิ่มปุ่ม "ลองตีบวกเลย" บน banner กดแล้วเลื่อนลงไปที่กล่องตีบวกทันที', textEn: 'Added a "Try refining now" button on the banner that scrolls straight down to the refine box' },
+      { type: 'improve', text: 'เหลือสวิตช์ Event Rate Up ที่เดียวในแผงตีบวก (เอาปุ่มสลับที่หัวตารางอัตราออกเพราะซ้ำซ้อน)', textEn: 'Kept a single Event Rate Up switch in the refine panel (removed the duplicate toggle above the rate table)' },
+    ],
+  },
+  {
     version: '1.11.11',
     date: '2026-10-02',
     items: [
