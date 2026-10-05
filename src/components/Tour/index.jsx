@@ -17,6 +17,14 @@ const STEPS = [
 
 const readDone = () => { try { return localStorage.getItem(STORAGE_KEY) === '1' } catch { return false } }
 const writeDone = () => { try { localStorage.setItem(STORAGE_KEY, '1') } catch { /* ignore */ } }
+// จำค่าไม่ได้ (โหมดส่วนตัว/บล็อก storage) = ห้ามเปิดเอง ไม่งั้นจะขึ้นทุกครั้งที่เข้าเว็บ
+const canRemember = () => {
+  try {
+    localStorage.setItem(`${STORAGE_KEY}_probe`, '1')
+    localStorage.removeItem(`${STORAGE_KEY}_probe`)
+    return true
+  } catch { return false }
+}
 
 // ทัวร์แนะนำการใช้งาน (driver.js โหลดแบบ lazy เฉพาะตอนเริ่ม)
 // - autoStart: เปิดเองครั้งเดียวสำหรับผู้ใช้ใหม่ เมื่อไม่ถูกบล็อกโดย cookie bar / patch notes
@@ -75,8 +83,12 @@ export default function Tour({ autoStart, blocked, openTrigger }) {
 
   // เปิดเองครั้งเดียวสำหรับผู้ใช้ใหม่ — รอจน cookie bar / patch notes ปิดก่อน
   useEffect(() => {
-    if (!autoStart || blocked || readDone()) return
-    const id = setTimeout(() => start('auto'), AUTO_START_DELAY_MS)
+    if (!autoStart || blocked || readDone() || !canRemember()) return
+    const id = setTimeout(() => {
+      // บันทึกว่าเปิดแล้วตั้งแต่ตอนเริ่ม — รีเฟรช/ปิดแท็บกลางทางก็ไม่เด้งซ้ำ (ดูซ้ำได้จากปุ่ม "วิธีใช้")
+      writeDone()
+      start('auto')
+    }, AUTO_START_DELAY_MS)
     return () => clearTimeout(id)
   }, [autoStart, blocked])
 
