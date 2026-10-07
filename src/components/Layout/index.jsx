@@ -647,8 +647,8 @@ const Container = () => {
     return () => clearTimeout(id);
   }, [isEventRate]);
 
-  // id มาจากรายการที่เลือกใน dropdown ค้นชื่อ (ItemSearch)
-  const handleFetchItem = async (itemId) => {
+  // id (+ armorLevel เกราะเลเวล 2) มาจากรายการที่เลือกใน dropdown ค้นชื่อ (ItemSearch)
+  const handleFetchItem = async (itemId, armorLevel) => {
     const id = String(itemId ?? '').trim();
     if (!id || apiLoading) return;
     setApiLoading(true);
@@ -657,7 +657,8 @@ const Container = () => {
       const res = await fetch(`/api/item?id=${encodeURIComponent(id)}`);
       if (!res.ok) throw new Error(t('api_error_http', { status: res.status }));
       const data = await res.json();
-      let lvl = Number(data.itemLevel) || 1;
+      // API ปัจจุบันส่ง type ('Weapon'/'Armor') + weaponLevel (itemTypeId/itemLevel เป็นฟิลด์เก่า ไม่ส่งมาแล้ว)
+      let lvl = Number(data.itemLevel) || Number(data.weaponLevel) || 1;
       if (
         data.itemLevel == null &&
         data.itemTypeId === 2 &&
@@ -667,10 +668,10 @@ const Container = () => {
         lvl = 2;
       }
       let mapped;
-      if (data.itemTypeId === 1 || (data.itemTypeId == null && data.attack > 0)) {
+      if (data.itemTypeId === 1 || data.type === 'Weapon' || (data.itemTypeId == null && data.attack > 0)) {
         mapped = `weapon${Math.min(Math.max(lvl, 1), 5)}`;
-      } else if (data.itemTypeId === 2 || (data.itemTypeId == null && data.defense > 0)) {
-        mapped = `armor${Math.min(Math.max(lvl, 1), 2)}`;
+      } else if (data.itemTypeId === 2 || data.type === 'Armor' || (data.itemTypeId == null && data.defense > 0)) {
+        mapped = `armor${Math.min(Math.max(armorLevel || lvl, 1), 2)}`;
       } else {
         throw new Error(t('api_error_not_refinable'));
       }

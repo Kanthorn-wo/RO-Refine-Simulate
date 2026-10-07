@@ -37,3 +37,4 @@ memory/
 # .maintenance/
 # logs/
 # metrics/
+scripts/.item-availability-cache.json

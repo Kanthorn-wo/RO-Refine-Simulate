@@ -5,7 +5,7 @@ const MAX_RESULTS = 30;
 const iconSrc = id => `https://static.divine-pride.net/images/items/item/${id}.png`;
 
 // ค้นไอเทมด้วยชื่อ แล้วแสดงเป็น dropdown รูป + ชื่อ
-// รายชื่อ [id, name] โหลด lazy ตอน focus ครั้งแรก (แยก chunk ไม่หนัก bundle หลัก)
+// รายชื่อ [id, name, armorLevel?] โหลด lazy ตอน focus ครั้งแรก (แยก chunk ไม่หนัก bundle หลัก)
 function searchItems(list, query) {
   const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
   if (!tokens.length) return [];
@@ -42,10 +42,10 @@ export default function ItemSearch({ value, onChange, onSelect, placeholder }) {
     return () => document.removeEventListener('mousedown', onDocDown);
   }, []);
 
-  const pick = ([id, name]) => {
+  const pick = ([id, name, armorLevel]) => {
     onChange(name);
     setOpen(false);
-    onSelect(String(id));
+    onSelect(String(id), armorLevel);
   };
 
   const handleKeyDown = e => {
