@@ -20,6 +20,7 @@ import { useLang } from '../../contexts/LangContext';
 import { trackEvent } from '../../utils/analytics';
 import { recordRefine, recordAction, recordRefineDetail } from '../../utils/usageStats';
 import UsageStats from '../UsageStats';
+import ItemSearch from '../ItemSearch';
 
 // ค้นไอเทมจาก ID ผ่าน serverless proxy /api/item (ซ่อน divine-pride API key ไว้ฝั่ง server)
 
@@ -646,8 +647,9 @@ const Container = () => {
     return () => clearTimeout(id);
   }, [isEventRate]);
 
-  const handleFetchItem = async () => {
-    const id = itemIdInput.trim();
+  // id มาจากรายการที่เลือกใน dropdown ค้นชื่อ (ItemSearch)
+  const handleFetchItem = async (itemId) => {
+    const id = String(itemId ?? '').trim();
     if (!id || apiLoading) return;
     setApiLoading(true);
     setApiError('');
@@ -907,38 +909,12 @@ const Container = () => {
           </div>
         ) : (
           <div>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                inputMode="numeric"
-                value={itemIdInput}
-                onChange={e => setItemIdInput(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') handleFetchItem(); }}
-                placeholder={t('item_id_placeholder')}
-                className="w-full rounded-xl border border-line bg-sunken px-4 py-2.5 text-body outline-none transition-colors hover:border-amber-400/70 focus-visible:border-amber-400 focus-visible:ring-2 focus-visible:ring-amber-300/40"
-              />
-              <button
-                type="button"
-                onClick={handleFetchItem}
-                disabled={apiLoading || !itemIdInput.trim()}
-                className="shrink-0 rounded-xl bg-amber-400 px-4 py-2.5 font-bold text-slate-900 transition-colors hover:bg-amber-300 disabled:cursor-not-allowed disabled:bg-line-soft disabled:text-faint"
-              >
-                {apiLoading ? t('searching') : t('search_btn')}
-              </button>
-            </div>
-
-            <p className="mt-2 text-xs text-dim">
-              {t('copy_id_hint_pre')}{' '}
-              <a
-                href="https://www.divine-pride.net/database/item"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-semibold text-warn underline decoration-dotted underline-offset-2 hover:text-warn"
-              >
-                divine-pride.net
-              </a>
-              {' '}{t('copy_id_hint_post')}
-            </p>
+            <ItemSearch
+              value={itemIdInput}
+              onChange={setItemIdInput}
+              onSelect={handleFetchItem}
+              placeholder={t('item_id_placeholder')}
+            />
 
             {apiError && (
               <p className="mt-2 text-sm text-red-400">{apiError}</p>

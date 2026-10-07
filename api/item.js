@@ -14,7 +14,10 @@ export default async function handler(req, res) {
   if (!key) return res.status(500).json({ error: 'DIVINE_PRIDE_API_KEY ยังไม่ได้ตั้ง' })
 
   try {
-    const r = await fetch(`https://www.divine-pride.net/api/database/Item/${id}?apiKey=${key}`)
+    // ไม่ส่ง x-server = divine-pride ใช้ kROM (ชื่อเกาหลี) → ระบุ thROG (ไทย Global) + en
+    const r = await fetch(`https://www.divine-pride.net/api/database/Item/${id}?apiKey=${key}`, {
+      headers: { 'Accept-Language': 'en', 'x-server': 'thROG' },
+    })
     if (!r.ok) return res.status(r.status).json({ error: `upstream ${r.status}` })
     const data = await r.json()
     res.setHeader('cache-control', 's-maxage=86400, stale-while-revalidate=604800')

@@ -15,6 +15,13 @@
 
 export const CHANGELOG = [
   {
+    version: '1.13.0',
+    date: '2026-10-07',
+    items: [
+      { type: 'feature', text: 'ค้นหาไอเทมด้วยชื่อได้แล้ว พิมพ์ชื่อแล้วเลือกจากรายการที่มีรูปไอเทม ไม่ต้องหา Item ID เอง', textEn: 'You can now search items by name — type a name and pick from a list with item icons, no need to look up the Item ID.' },
+    ],
+  },
+  {
     version: '1.12.0',
     date: '2026-10-05',
     items: [
