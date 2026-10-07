@@ -208,6 +208,7 @@ Deploy หลักใช้ **Vercel** (auto build จาก push master, root 
 - log entry เพิ่ม field: `resultType`, `dropAmount`, `rollData: {successPct, failPct, rollPct, isSuccess}`, `fromLevel`, `toLevel` — ใช้ render badge และ roll detail โดยไม่ต้อง parse string msg
 
 ## ประวัติ version (ย้ายจาก CLAUDE.md)
+- 1.13.1 (2026-10-07) — index ค้นไอเทมกรองเหลือเฉพาะไอเทมที่มีบน thROG (5,163 ชิ้น, ตัด Shadowgear) + จัดอาวุธ/เกราะจาก `type`/`weaponLevel`/เลเวลเกราะใน index (เดิมเกราะเลเวล 2 และอาวุธเลเวล 2-5 ถูกจัดเป็นเลเวล 1) ; ไม่มี CHANGELOG
 - 1.13.0 (2026-10-07) — ค้นไอเทมด้วยชื่อ (`ItemSearch` combobox + index `refinableItems.json` จาก rAthena, ตัดการกรอก Item ID ออก) ; `/api/item` ส่ง `x-server: thROG` + `Accept-Language: en` (เดิมได้ชื่อเกาหลี) มี CHANGELOG
 - 1.12.1 (2026-10-05) — กันทัวร์เปิดเองซ้ำ (ไม่เปิดเองถ้า localStorage เขียนไม่ได้, จดว่าดูแล้วตั้งแต่ตอนเริ่ม) ; ไม่มี CHANGELOG (แก้ของฟีเจอร์ที่ประกาศวันเดียวกัน)
 - 1.12.0 (2026-10-05) — ทัวร์แนะนำวิธีใช้ (driver.js, 6 ขั้น, เปิดเองสำหรับผู้ใช้ใหม่) + ปุ่ม CTA "ลองตีบวกเลย" บน banner + ถอดปุ่มสลับ Event ที่หัวตารางอัตรา และเลิก track event_rate_toggle แยกปุ่ม (เหลือ event ธรรมดา) + เพิ่ม hero_cta_click ใน dashboard ; มี CHANGELOG ; ลองทำ achievement / leaderboard / ภารกิจประจำวัน / การ์ดแชร์ / หน้า budget ระหว่างทางแต่ถอดออกหมดก่อน push
