@@ -48,6 +48,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `handleAutoStartChange` sync stack ทันทีแบบ event handler (ไม่ใช่ useEffect — กัน stale closure)
 - Log/stats (`log`, `oreUsed`, `bsbUsedTotal`) สะสมข้าม session จนกด "ล้าง Session" — ตั้งใจ
 - `toggleHasMeaning(...)` ใน `stones.js` — เงื่อนไข toggle "หยุด Auto ถ้าเสี่ยงหาย" (3 ข้อ: หายได้ + rate < 100% + BSB ไม่คุ้มครบช่วง) แก้เงื่อนไขต้องแก้ที่ฟังก์ชันนี้
+- **ห้าม fetch `divine-pride.net/api` ตรง ๆ** — เรียกผ่าน `api/_lib/divinePride.js` (`dpGet`/`dpItem`/`dpWithBackoff`) เท่านั้น: Divine Pride จำกัด **1 request/วินาที ห้ามขนาน โดน rate limit ต้องหยุดยิงตาม `Retry-After`** (ฝ่าฝืนอาจโดนแบน) ตัวช่วยต่อคิวข้ามทุก instance/Action/สคริปต์ด้วยตาราง `dp_gate` (`docs/sql/dp-gate.sql`) และล้มเร็วเมื่อโดนจำกัด — อย่าเพิ่ม retry วนเองหรือยิงขนาน (`Promise.all`) ไปที่ API นี้
 - แก้ host/เรียกบริการใหม่ต้องอัปเดต CSP ใน `vercel.json` ด้วย ไม่งั้นโดนบล็อก (ทดสอบได้เฉพาะบน Vercel จริง)
 - ห้ามแก้ชื่อไฟล์ sprite frame โดยไม่อัปเดต `getFrameSrc` (`frames.js`) ให้ตรง
 - Layout กว้าง `max-w-5xl` + `pb-16 sm:pb-4` (กัน FloatingMenu บังท้ายหน้า mobile)

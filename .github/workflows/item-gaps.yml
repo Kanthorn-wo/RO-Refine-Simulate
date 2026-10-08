@@ -38,6 +38,9 @@ jobs:
       - name: Find missing items
         env:
           DIVINE_PRIDE_API_KEY: ${{ secrets.DIVINE_PRIDE_API_KEY }}
+          # คิวกลาง dp_gate (docs/sql/dp-gate.sql): ให้ Action ต่อคิว 1 req/วินาทีร่วมกับเว็บจริง ไม่ยิงขนานกัน
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           INPUT_SINCE: ${{ github.event.inputs.since }}
         run: |
           if [ -n "$INPUT_SINCE" ]; then

@@ -9,36 +9,38 @@
 // API ไม่บอกว่า "ตีบวกได้" หรือไม่ → ผลเป็นรายชื่อผู้ต้องสงสัยให้คนตัดสินเอง
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
+import { dpGet, dpWithBackoff, DivinePrideLimitError } from '../api/_lib/divinePride.js'
 
-const key = process.env.DIVINE_PRIDE_API_KEY
-if (!key) throw new Error('DIVINE_PRIDE_API_KEY ยังไม่ได้ตั้ง')
+if (!process.env.DIVINE_PRIDE_API_KEY) throw new Error('DIVINE_PRIDE_API_KEY ยังไม่ได้ตั้ง')
 
 const arg = name => process.argv.find(a => a.startsWith(`--${name}=`))?.split('=')[1]
 const since = arg('since') || '2008-01-01'
 const outPath = arg('out') || `reports/item-gaps/${new Date().toISOString().slice(0, 10)}.json`
-const DELAY_MS = 1200
 const RATHENA_DB = 'https://raw.githubusercontent.com/rathena/rathena/master/db/re'
-const sleep = ms => new Promise(r => setTimeout(r, ms))
 
-async function dpGet(path, server) {
-  for (let attempt = 0; attempt < 12; attempt++) {
-    const res = await fetch(`https://www.divine-pride.net/api/database/${path}${path.includes('?') ? '&' : '?'}apiKey=${key}`, {
-      headers: { 'x-server': server, 'Accept-Language': 'en' },
+// เรียก divine-pride ผ่านตัวคุมอัตรากลาง (api/_lib/divinePride.js): ≤ 1 req/วินาที ข้ามทุกผู้เรียก, ไม่ขนาน,
+// โดน rate limit → หยุดยิงแล้วรอตาม Retry-After (ลองใหม่จำกัดจำนวนครั้ง เกินแล้วสคริปต์หยุด)
+// คืน data (null ถ้าไอเทมนั้นไม่มีข้อมูล/ไม่พบ)
+async function dpData(path, server) {
+  try {
+    const { data } = await dpWithBackoff(() => dpGet(path, { server, maxWaitMs: 120000 }), {
+      onWait: (sec, attempt) => console.log(`โดน rate limit — รอ ${sec} วินาที แล้วลองใหม่ (ครั้งที่ ${attempt})`),
     })
-    const data = await res.json().catch(() => null)
-    // rate limit ตอบมาในเนื้อหา (ไม่ใช่แค่ status) → รอแล้วลองใหม่
-    if (res.status === 429 || data?.reason === 'Rate limit exceeded') { await sleep(60000 * (attempt + 1)); continue }
-    if (!data || data.status === 'error') throw new Error(`${path}: ${JSON.stringify(data)}`)
-    await sleep(DELAY_MS)
     return data
+  } catch (err) {
+    if (err instanceof DivinePrideLimitError) {
+      console.error(`หยุด: ยังโดน rate limit หลังรอแล้ว (${err.message}) — ไม่ยิงต่อ ไม่เขียนรายงาน รันใหม่ภายหลัง`)
+      process.exit(2)
+    }
+    throw err
   }
-  throw new Error(`${path}: rate limit ไม่หายหลังลองหลายรอบ`)
 }
 
 // 1) id ทั้งหมดของ thROG
 const thIds = new Set()
 for (let start = new Date(`${since}T00:00:00Z`); start < new Date(); start = new Date(start.getTime() + 14 * 86400000)) {
-  const data = await dpGet(`latestupdates?type=item&startDate=${start.toISOString().slice(0, 10)}`, 'thROG')
+  const data = await dpData(`latestupdates?type=item&startDate=${start.toISOString().slice(0, 10)}`, 'thROG')
+  if (!data) throw new Error('latestupdates ไม่มีข้อมูล')
   for (const x of data.results || []) thIds.add(x.id)
 }
 console.log(`thROG ids since ${since}: ${thIds.size}`)
@@ -61,11 +63,11 @@ console.log(`ไม่อยู่ใน rAthena และยังไม่อ�
 const found = []
 let checked = 0
 for (const id of candidates) {
-  const d = await dpGet(`Item/${id}`, 'thROG')
+  const d = (await dpData(`Item/${id}`, 'thROG')) || {}
   if (d.type === 'Armor' || d.type === 'Weapon') {
     let name = d.displayName, nameFrom = 'thROG'
     if (/^Item #\d+$/.test(name || '')) {
-      const alt = await dpGet(`Item/${id}`, 'iRO')
+      const alt = (await dpData(`Item/${id}`, 'iRO')) || {}
       if (alt.displayName && !/^Item #\d+$/.test(alt.displayName)) { name = alt.displayName; nameFrom = 'iRO' } else { nameFrom = null }
     }
     // ชุด Costume ตีบวกไม่ได้ → ไม่ต้องรายงาน
