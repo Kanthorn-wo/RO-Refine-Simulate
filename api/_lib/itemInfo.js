@@ -53,3 +53,43 @@ export function isRefinableCandidate({ type, subType, name, description }) {
   if (/costume/i.test(stripColorCodes(description))) return false
   return mentionsRefine(description)
 }
+
+// ค่าประเภท/เลเวลของแถว extra_items จากข้อมูลดิบ (ใช้ร่วม API add กับ Action): เกราะ = armor_level 1|2, อาวุธ = weapon_level 1–5
+export function normalizeItemKind({ itemType, armorLevel, weaponLevel }) {
+  const item_type = itemType === 'Weapon' || itemType === 'Armor' ? itemType : null
+  const weapon = Number(weaponLevel)
+  return {
+    item_type,
+    armor_level: Number(armorLevel) >= 2 ? 2 : 1,
+    weapon_level: item_type === 'Weapon' && weapon >= 1 && weapon <= 5 ? weapon : null,
+  }
+}
+
+// วิเคราะห์ไอเทมจากข้อมูล divine-pride ของ thROG + iRO (ตัวเดียวกันทั้ง lookup ใน dashboard และ Action หาไอเทมใหม่)
+// ชื่อ/ช่อง/ประเภทเอาจากเซิร์ฟที่มี (thROG ของไอเทมไทยบางชิ้นไม่มีชื่อ → ใช้ iRO), description มีเฉพาะ iRO
+// คืน null ถ้าสองเซิร์ฟไม่มีชื่อจริง
+export function describeItem(thai, global) {
+  const nameOf = (d) => (d && (d.displayName || d.name)) || ''
+  const source = [thai, global].find((d) => nameOf(d) && !PLACEHOLDER_NAME.test(nameOf(d)))
+  if (!source) return null
+  const pick = (field) => (thai && thai[field]) || (global && global[field]) || null
+  const type = pick('type')
+  const subType = pick('subType')
+  const description = (global && global.description) || (thai && thai.description) || ''
+  const requiredLevel = (thai && thai.requiredLevel) ?? (global && global.requiredLevel) ?? null
+  const weaponLevel = Number(pick('weaponLevel')) || null
+  const name = nameOf(source)
+  return {
+    label: buildLabel(name, pick('slots')),
+    nameFrom: source === thai ? 'thROG' : 'iRO',
+    type,
+    subType,
+    requiredLevel,
+    weaponLevel,
+    armorLevel: type === 'Armor' ? resolveArmorLevel(description, requiredLevel) : 1,
+    levelUncertain: isLevelUncertain({ type, description, requiredLevel, weaponLevel }),
+    // บอกแนวโน้มเฉย ๆ (API ไม่ระบุว่าตีบวกได้หรือไม่) ให้คนตัดสินใจเอง
+    refinable: isRefinableCandidate({ type, subType, name, description }),
+    availableOnThai: !!(thai && thai.isAvailableOnServer),
+  }
+}

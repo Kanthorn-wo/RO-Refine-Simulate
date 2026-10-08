@@ -58,3 +58,7 @@ on conflict (id) do nothing;
 -- เลเวลไม่แน่ใจ: ไม่มีทั้ง Armor Level ใน description / weaponLevel จาก API / requiredLevel เกิน 200 (ระบบเดาเป็น 1)
 -- Action ใส่ true → ไอเทมเข้าคิว pending เสมอแม้เปิดโหมดผ่านอัตโนมัติ; อนุมัติ/เพิ่มด้วยมือแล้วเคลียร์เป็น false
 alter table public.extra_items add column if not exists level_uncertain boolean not null default false;
+
+-- ประเภท/เลเวลอาวุธ (แสดงใน dashboard + ตัวกรอง อาวุธ/เกราะ): เกราะใช้ armor_level เดิม, อาวุธใช้ weapon_level (1–5)
+alter table public.extra_items add column if not exists item_type text check (item_type in ('Weapon', 'Armor'));
+alter table public.extra_items add column if not exists weapon_level smallint check (weapon_level between 1 and 5);

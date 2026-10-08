@@ -13,7 +13,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
 import { dpGet, dpWithBackoff, DivinePrideLimitError } from '../api/_lib/divinePride.js'
-import { PLACEHOLDER_NAME, resolveArmorLevel, isLevelUncertain, isRefinableCandidate, buildLabel } from '../api/_lib/itemInfo.js'
+import { describeItem, normalizeItemKind } from '../api/_lib/itemInfo.js'
 
 if (!process.env.DIVINE_PRIDE_API_KEY) throw new Error('DIVINE_PRIDE_API_KEY ยังไม่ได้ตั้ง')
 
@@ -92,19 +92,10 @@ for (const id of candidates) {
   const d = (await dpData(`Item/${id}`, 'thROG')) || {}
   if (d.type === 'Armor' || d.type === 'Weapon') {
     // thROG ไม่ส่ง description (และไอเทมไทยบางชิ้นไม่มีชื่อ) → ขอจาก iRO ด้วย
-    const alt = (await dpData(`Item/${id}`, 'iRO')) || {}
-    const named = [d, alt].find(x => x.displayName && !PLACEHOLDER_NAME.test(x.displayName))
-    const description = alt.description || d.description || ''
-    const label = named ? buildLabel(named.displayName, named.slots) : null
-    const refinable = !!named && isRefinableCandidate({ type: d.type, subType: d.subType || alt.subType, name: named.displayName, description })
+    const info = describeItem(d, (await dpData(`Item/${id}`, 'iRO')) || {})
     // ชุด Costume ตีบวกไม่ได้ → ไม่ต้องรายงาน
-    if (!/^costume /i.test(named?.displayName || '')) {
-      found.push({
-        id, name: label, nameFrom: named ? (named === d ? 'thROG' : 'iRO') : null, type: d.type, subType: d.subType || alt.subType || null,
-        location: d.location || null, weaponLevel: d.weaponLevel || null, isAvailableOnServer: d.isAvailableOnServer === true,
-        refinable, levelUncertain: isLevelUncertain({ type: d.type, description, requiredLevel: d.requiredLevel ?? alt.requiredLevel, weaponLevel: d.weaponLevel || alt.weaponLevel }),
-        armorLevel: d.type === 'Armor' ? resolveArmorLevel(description, d.requiredLevel ?? alt.requiredLevel) : 1,
-      })
+    if (!/^costume /i.test(info?.label || '')) {
+      found.push({ id, location: d.location || null, isAvailableOnServer: d.isAvailableOnServer === true, ...(info || { label: null, type: d.type, refinable: false }) })
     }
   }
   if (++checked % 100 === 0) console.log(`${checked}/${candidates.length} — อาวุธ/เกราะที่พบ: ${found.length}`)
@@ -117,7 +108,8 @@ let autoApprovedCount = 0
 const rows = toAdd.map(x => {
   const canAuto = autoApprove && !x.levelUncertain && autoApprovedCount < MAX_AUTO_APPROVE
   if (canAuto) autoApprovedCount++
-  return { id: x.id, label: x.name, armor_level: x.armorLevel === 2 ? 2 : 1, level_uncertain: x.levelUncertain, source: 'auto', status: canAuto ? 'approved' : 'pending' }
+  const kind = normalizeItemKind({ itemType: x.type, armorLevel: x.armorLevel, weaponLevel: x.weaponLevel })
+  return { id: x.id, label: x.label, ...kind, level_uncertain: x.levelUncertain, source: 'auto', status: canAuto ? 'approved' : 'pending' }
 })
 const uncertainCount = toAdd.filter(x => x.levelUncertain).length
 console.log(`เลเวลไม่แน่ใจ ${uncertainCount} รายการ → เข้าคิวรออนุมัติ`)

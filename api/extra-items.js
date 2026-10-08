@@ -6,7 +6,7 @@
 // ENV: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_ANON_KEY, DASHBOARD_ALLOWED_EMAILS, DIVINE_PRIDE_API_KEY
 
 import { getUser, isOwner } from './_lib/auth.js'
-import { PLACEHOLDER_NAME, resolveArmorLevel, isLevelUncertain, isRefinableCandidate, buildLabel } from './_lib/itemInfo.js'
+import { describeItem, normalizeItemKind } from './_lib/itemInfo.js'
 import { dpItem, DivinePrideLimitError } from './_lib/divinePride.js'
 
 const STATUSES = ['approved', 'pending', 'denied']
@@ -39,36 +39,13 @@ async function readBody(req) {
   })
 }
 
-// ดึงข้อมูลไอเทมจาก divine-pride ตาม server ผ่านตัวคุมอัตรา (คืน null ถ้าไม่มีข้อมูล; โดน rate limit = throw DivinePrideLimitError)
-async function fetchDivinePrideItem(id, server) {
-  const { data } = await dpItem(id, { server, lang: 'en' })
-  return data
-}
-
-// prefill ตอนเพิ่มด้วย Item ID: ชื่อ/ช่อง/ประเภทจาก thROG (ไม่มีชื่อก็ใช้ iRO), เลเวลเกราะจาก description ของ iRO (thROG ไม่ส่ง description)
+// prefill ตอนเพิ่มด้วย Item ID: ขอ thROG แล้ว iRO ตามลำดับ (ทีละคำขอผ่านตัวคุมอัตรา; โดน rate limit = throw DivinePrideLimitError)
+// คืนผลวิเคราะห์ + ข้อมูลดิบครบทุก field ให้ dashboard โชว์ไว้ตรวจก่อนบันทึก; ไม่มีชื่อจริงทั้งสองเซิร์ฟ = null
 async function lookupItem(id) {
-  const thai = await fetchDivinePrideItem(id, 'thROG')
-  const global = await fetchDivinePrideItem(id, 'iRO')
-  const named = [thai, global].find((d) => d && d.name && !PLACEHOLDER_NAME.test(d.name))
-  if (!named) return null
-  const slots = (thai && thai.slots) || (global && global.slots) || 0
-  const description = (global && global.description) || (thai && thai.description) || ''
-  // requiredLevel จากเซิร์ฟที่มีค่า (thROG ของไอเทมไทยบางชิ้นว่าง → ใช้ของ iRO)
-  const requiredLevel = (thai && thai.requiredLevel) ?? (global && global.requiredLevel) ?? null
-  return {
-    id: Number(id),
-    label: buildLabel(named.displayName && /\[\d+\]$/.test(named.displayName) ? named.displayName : named.name, slots),
-    armorLevel: resolveArmorLevel(description, requiredLevel),
-    requiredLevel,
-    levelUncertain: isLevelUncertain({ type: named.type, description, requiredLevel, weaponLevel: (thai && thai.weaponLevel) || (global && global.weaponLevel) }),
-    type: named.type || null,
-    subType: named.subType || null,
-    // บอกแนวโน้มเฉยๆ (API ไม่ระบุว่าตีบวกได้หรือไม่) ให้คนตัดสินใจเอง
-    refinableGuess: isRefinableCandidate({ type: named.type, subType: named.subType, name: named.name, description }),
-    availableOnThai: !!(thai && thai.isAvailableOnServer),
-    // ข้อมูลดิบครบทุก field จาก divine-pride (ให้ dashboard โชว์ทั้งหมดไว้ตรวจก่อนบันทึก)
-    raw: { thROG: thai, iRO: global },
-  }
+  const thai = (await dpItem(id, { server: 'thROG', lang: 'en' })).data
+  const global = (await dpItem(id, { server: 'iRO', lang: 'en' })).data
+  const info = describeItem(thai, global)
+  return info && { id: Number(id), ...info, raw: { thROG: thai, iRO: global } }
 }
 
 const rowToItem = (r) => [Number(r.id), r.label, ...(r.armor_level === 2 ? [2] : [])]
@@ -88,7 +65,7 @@ export default async function handler(req, res) {
       if (!isOwner(user)) return res.status(403).json({ error: 'ไม่มีสิทธิ์เข้าถึง' })
       try {
         const [itemsRes, settingRes] = await Promise.all([
-          sbFetch(`extra_items?select=id,label,armor_level,level_uncertain,status,source,created_at,updated_at&order=updated_at.desc&limit=${MAX_ROWS}`),
+          sbFetch(`extra_items?select=id,label,armor_level,item_type,weapon_level,level_uncertain,status,source,created_at,updated_at&order=updated_at.desc&limit=${MAX_ROWS}`),
           sbFetch('site_settings?select=value&key=eq.item_auto_approve'),
         ])
         if (!itemsRes.ok || !settingRes.ok) return res.status(502).json({ error: 'read failed' })
@@ -147,13 +124,13 @@ export default async function handler(req, res) {
       if (action === 'add') {
         const label = String(body.label || '').trim()
         if (!label || label.length > MAX_LABEL) return res.status(400).json({ error: 'invalid label' })
-        const armorLevel = Number(body.armorLevel) === 2 ? 2 : 1
+        const kind = normalizeItemKind(body)
         const status = body.status === undefined ? 'approved' : String(body.status)
         if (!STATUSES.includes(status)) return res.status(400).json({ error: 'invalid status' })
         const r = await sbFetch('extra_items?on_conflict=id', {
           method: 'POST',
           headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-          body: JSON.stringify({ id: Number(id), label, armor_level: armorLevel, status, source: 'manual', level_uncertain: false, updated_at: new Date().toISOString() }),
+          body: JSON.stringify({ id: Number(id), label, ...kind, status, source: 'manual', level_uncertain: false, updated_at: new Date().toISOString() }),
         })
         if (!r.ok) return res.status(502).json({ error: 'write failed' })
         return res.status(200).json({ ok: true })

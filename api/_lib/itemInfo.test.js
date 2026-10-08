@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseArmorLevel, resolveArmorLevel, isLevelUncertain, mentionsRefine, buildLabel, isRefinableCandidate } from './itemInfo.js'
+import { parseArmorLevel, resolveArmorLevel, isLevelUncertain, normalizeItemKind, describeItem, mentionsRefine, buildLabel, isRefinableCandidate } from './itemInfo.js'
 
 describe('parseArmorLevel', () => {
   it('อ่านเลเวลจากบรรทัด Armor Level (มีรหัสสี)', () => {
@@ -96,5 +96,37 @@ describe('isLevelUncertain — เลเวลที่ระบบเดา', (
     expect(isLevelUncertain({ type: 'Armor', description: '', requiredLevel: 201 })).toBe(false)
     expect(isLevelUncertain({ type: 'Weapon', description: '', requiredLevel: 250 })).toBe(false)
     expect(isLevelUncertain({ type: 'Armor', description: '', requiredLevel: 200 })).toBe(true)
+  })
+})
+
+describe('normalizeItemKind', () => {
+  it('เกราะ: armor_level 1|2, ไม่มี weapon_level', () => {
+    expect(normalizeItemKind({ itemType: 'Armor', armorLevel: 2, weaponLevel: 4 })).toEqual({ item_type: 'Armor', armor_level: 2, weapon_level: null })
+  })
+  it('อาวุธ: weapon_level 1–5 เท่านั้น นอกช่วง = null', () => {
+    expect(normalizeItemKind({ itemType: 'Weapon', weaponLevel: 4 }).weapon_level).toBe(4)
+    expect(normalizeItemKind({ itemType: 'Weapon', weaponLevel: 9 }).weapon_level).toBeNull()
+  })
+  it('ประเภทแปลก/ว่าง = null', () => {
+    expect(normalizeItemKind({ itemType: 'Card' }).item_type).toBeNull()
+    expect(normalizeItemKind({}).armor_level).toBe(1)
+  })
+})
+
+describe('describeItem', () => {
+  const thai = { displayName: 'Falling Star Shield [1]', slots: 1, type: 'Armor', subType: 'Shield', isAvailableOnServer: true, requiredLevel: 200, description: '' }
+  const global = { displayName: 'Falling Star Shield [1]', type: 'Armor', description: 'Armor Level : ^7777772^000000\nFor every 2 refine level, ATK + 10' }
+  it('รวมชื่อ/ประเภทจาก thROG และ description จาก iRO', () => {
+    expect(describeItem(thai, global)).toMatchObject({ label: 'Falling Star Shield [1]', nameFrom: 'thROG', type: 'Armor', armorLevel: 2, levelUncertain: false, refinable: true, availableOnThai: true })
+  })
+  it('thROG ไม่มีชื่อจริง → ใช้ชื่อ iRO', () => {
+    const info = describeItem({ displayName: 'Item #1', type: 'Armor' }, global)
+    expect(info).toMatchObject({ label: 'Falling Star Shield [1]', nameFrom: 'iRO' })
+  })
+  it('ไม่มีชื่อจริงทั้งสองเซิร์ฟ = null', () => {
+    expect(describeItem({ displayName: 'Item #1' }, null)).toBeNull()
+  })
+  it('อาวุธ: ใช้ weaponLevel ของ API', () => {
+    expect(describeItem({ displayName: 'Cool Sword [2]', type: 'Weapon', weaponLevel: 4 }, null)).toMatchObject({ type: 'Weapon', weaponLevel: 4, levelUncertain: false })
   })
 })

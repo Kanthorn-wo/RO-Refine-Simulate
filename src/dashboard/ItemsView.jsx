@@ -1,137 +1,30 @@
 import { useEffect, useMemo, useState } from 'react'
 import Toggle from '../components/Toggle'
-import ItemIcon from './ItemIcon'
+import AddItemPanel from './items/AddItemPanel'
+import { ItemDetail } from './items/RawDetails'
+import { SOURCE_FILTERS, STATUS_FILTERS, TYPE_FILTERS, buildRows, countByStatus, filterRows } from './items/itemRows'
+import { btnNeutral, btnOk, btnWarn, inputCls } from './items/consts'
+import { EmptyNote, FilterTabs, ItemRow, Panel, Skeleton } from './items/ui'
 
-// แท็บ "ไอเทม": จัดการรายชื่อไอเทมเสริมของช่องค้นหาไอเทม (ตาราง extra_items ผ่าน /api/extra-items)
-//   - ตั้งค่าโหมดอนุมัติ (item_auto_approve ผ่าน /api/settings): ผ่านอัตโนมัติ หรือรอกดอนุมัติเอง
-//   - คิวรออนุมัติ (pending) จาก Action, เพิ่มเองด้วย Item ID (prefill ชื่อ/เลเวลเกราะ), รายการทั้งหมด
+// แท็บ "ไอเทม": จัดการรายชื่อไอเทมของช่องค้นหาไอเทม (ตาราง extra_items ผ่าน /api/extra-items + รายชื่อหลัก refinableItems.json)
+//   - โหมดอนุมัติ (item_auto_approve ผ่าน /api/settings): ผ่านอัตโนมัติ หรือรอกดอนุมัติเอง
+//   - คิวรออนุมัติ (pending) จาก Action, เพิ่มเองด้วย Item ID (AddItemPanel), รายการทั้งหมด (กรอง/ค้น/ดูรายละเอียด/ซ่อน)
+// ชิ้นส่วนอยู่ใน ./items/ (ui = ป้าย/ปุ่ม/แถว, itemRows = รวมแถว+ตัวกรอง, RawDetails = ข้อมูลดิบ, AddItemPanel = ฟอร์มเพิ่ม)
 
-const STATUS_META = {
-  approved: { label: 'อนุมัติแล้ว', cls: 'bg-emerald-500/15 text-emerald-400' },
-  pending:  { label: 'รออนุมัติ',  cls: 'bg-amber-500/15 text-amber-400' },
-  denied:   { label: 'ซ่อนอยู่',   cls: 'bg-rose-500/15 text-rose-400' },
-}
-const SOURCE_LABEL = { manual: 'เพิ่มเอง', auto: 'ระบบหาเจอ', index: 'รายชื่อหลัก' }
-const SOURCE_FILTERS = [
-  { id: 'all', label: 'ทุกที่มา' },
-  { id: 'extra', label: 'เสริม (เพิ่มเอง/ระบบหาเจอ)' },
-  { id: 'index', label: 'รายชื่อหลัก' },
-]
-const STATUS_FILTERS = [
-  { id: 'all', label: 'ทั้งหมด' },
-  { id: 'approved', label: 'อนุมัติแล้ว' },
-  { id: 'pending', label: 'รออนุมัติ' },
-  { id: 'denied', label: 'ซ่อนอยู่' },
-]
 const LIST_PAGE = 50
-
-function Skeleton({ h = 'h-40' }) {
-  return <div className={`animate-pulse rounded-2xl bg-white/[0.04] ${h}`} />
-}
-
-function Panel({ id, title, hint, action, children }) {
-  return (
-    <div id={id} className="scroll-mt-20 rounded-2xl border border-white/5 bg-white/[0.03] p-5 backdrop-blur-sm">
-      <div className="mb-4 flex items-start justify-between gap-3">
-        <div>
-          <h2 className="text-sm font-semibold text-slate-100">{title}</h2>
-          {hint && <p className="mt-0.5 text-[11px] text-slate-500">{hint}</p>}
-        </div>
-        {action}
-      </div>
-      {children}
-    </div>
-  )
-}
-
-const StatusBadge = ({ status }) => {
-  const meta = STATUS_META[status] || { label: status, cls: 'bg-white/5 text-slate-400' }
-  return <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${meta.cls}`}>{meta.label}</span>
-}
-
-const UncertainBadge = () => (
-  <span title="ไม่มีข้อมูลเลเวลจาก API ระบบเดาเป็น Lv1/W1 — ตรวจเลเวลก่อนอนุมัติ" className="shrink-0 rounded-full bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-300">เลเวลไม่แน่ใจ</span>
-)
-
-const LevelBadge = ({ level }) => (
-  <span className="shrink-0 rounded-full bg-indigo-500/15 px-1.5 py-0.5 text-[10px] font-medium text-indigo-300">เกราะ Lv{level}</span>
-)
-
-// ค่าของ field จาก divine-pride: description มีรหัสสี ^RRGGBB และขึ้นบรรทัดใหม่ → ตัดรหัสสี/คงบรรทัด, object/array → JSON
-const FIELD_VALUE_LIMIT = 2000
-function FieldValue({ name, value }) {
-  if (value === null || value === undefined || value === '') return <span className="text-slate-600">—</span>
-  if (typeof value === 'object') {
-    const json = JSON.stringify(value, null, 1)
-    const cut = json.length > FIELD_VALUE_LIMIT
-    return (
-      <pre className="max-h-48 overflow-auto whitespace-pre-wrap break-all rounded-md bg-black/30 p-2 text-[11px] text-slate-300">
-        {cut ? `${json.slice(0, FIELD_VALUE_LIMIT)}\n… (ตัด ${json.length - FIELD_VALUE_LIMIT} ตัวอักษร)` : json}
-      </pre>
-    )
-  }
-  if (name === 'description' || name === 'unidDescription') {
-    return <span className="whitespace-pre-wrap break-words">{String(value).replace(/\^[0-9A-Fa-f]{6}/g, '').replace(/\r/g, '')}</span>
-  }
-  return <span className="break-all">{String(value)}</span>
-}
-
-// ข้อมูลดิบทั้งหมดของไอเทมจาก divine-pride (เลือกดูตามเซิร์ฟ) — ไว้ตรวจก่อนตัดสินใจเพิ่ม/ซ่อน
-function RawDetails({ raw }) {
-  const sources = ['thROG', 'iRO'].filter((k) => raw && raw[k])
-  const [source, setSource] = useState(sources[0] || 'thROG')
-  if (!sources.length) return null
-  const data = raw[source] || raw[sources[0]]
-  const entries = Object.entries(data)
-  return (
-    <details className="rounded-lg border border-white/5 bg-black/20">
-      <summary className="cursor-pointer select-none px-3 py-2 text-xs font-medium text-slate-300">
-        ดูข้อมูลทั้งหมดจาก Divine Pride ({entries.length} field)
-      </summary>
-      <div className="border-t border-white/5 p-3">
-        <div className="mb-2 flex gap-1">
-          {sources.map((k) => (
-            <button key={k} onClick={() => setSource(k)}
-              className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${source === k ? 'bg-indigo-500/25 text-indigo-200' : 'text-slate-400 hover:text-slate-200'}`}>
-              {k === 'thROG' ? 'เซิร์ฟไทย (thROG)' : 'iRO'}
-            </button>
-          ))}
-        </div>
-        <dl className="max-h-96 divide-y divide-white/5 overflow-y-auto text-xs">
-          {entries.map(([key, value]) => (
-            <div key={key} className="grid grid-cols-[9rem_1fr] gap-3 py-1.5">
-              <dt className="break-all font-mono text-slate-500">{key}</dt>
-              <dd className="min-w-0 text-slate-300"><FieldValue name={key} value={value} /></dd>
-            </div>
-          ))}
-        </dl>
-      </div>
-    </details>
-  )
-}
-
-const btnBase = 'rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40'
-const btnOk = `${btnBase} border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20`
-const btnWarn = `${btnBase} border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20`
-const btnNeutral = `${btnBase} border-white/10 bg-white/[0.04] text-slate-300 hover:bg-white/[0.08]`
+const jsonPost = (url, headers, payload) => fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', ...headers }, body: JSON.stringify(payload) })
 
 export default function ItemsView({ session, scrollTo }) {
   const [data, setData] = useState(null) // { items, autoApprove }
+  const [indexItems, setIndexItems] = useState([]) // รายชื่อหลัก [[id, label, armorLevel?]]
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
-  const [busyId, setBusyId] = useState(null)       // id ที่กำลังบันทึก / 'mode' = กำลังสลับโหมด
+  const [busyId, setBusyId] = useState(null) // id ที่กำลังบันทึก / 'mode' = กำลังสลับโหมด / 'add' = กำลังเพิ่ม
   const [confirmDeleteId, setConfirmDeleteId] = useState(null)
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [query, setQuery] = useState('')
-  const [sourceFilter, setSourceFilter] = useState('all')
-  const [indexItems, setIndexItems] = useState([])   // รายชื่อหลัก refinableItems.json: [[id, label, armorLevel?]]
-  const [detail, setDetail] = useState(null)         // { id, loading?, data?, error? } — ดูรายละเอียดทีละชิ้น (ยิง API ทีละคำขอตามกติกา rate limit)
+  const [detail, setDetail] = useState(null) // { id, loading?, data?, error? } — ดูรายละเอียดทีละชิ้น (ยิง API ทีละคำขอตามกติกา rate limit)
+  const [filters, setFilters] = useState({ status: 'all', type: 'all', source: 'all', query: '' })
   const [shown, setShown] = useState(LIST_PAGE)
-  // ฟอร์มเพิ่มเอง
-  const [addId, setAddId] = useState('')
-  const [lookup, setLookup] = useState(null)       // ผล lookup ที่ผู้ใช้แก้ได้ { id, label, armorLevel, ... }
-  const [looking, setLooking] = useState(false)
 
   const token = session?.access_token
   const authHeaders = useMemo(() => (token ? { Authorization: `Bearer ${token}` } : {}), [token])
@@ -161,35 +54,31 @@ export default function ItemsView({ session, scrollTo }) {
 
   // เรียก action ของ /api/extra-items (POST, owner) — คืน JSON หรือ throw ข้อความ error
   const callApi = async (payload) => {
-    const res = await fetch('/api/extra-items', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...authHeaders },
-      body: JSON.stringify(payload),
-    })
+    const res = await jsonPost('/api/extra-items', authHeaders, payload)
     const body = await res.json().catch(() => ({}))
     if (!res.ok) throw new Error(body.error || `ไม่สำเร็จ (${res.status})`)
     return body
   }
 
+  // รันการเขียน → โหลดรายการใหม่ → แจ้งผล; คืน true เมื่อสำเร็จ
   const run = async (id, fn, successMsg) => {
     setBusyId(id); setError(''); setNotice('')
     try {
       await fn()
       await load()
       if (successMsg) setNotice(successMsg)
+      return true
     } catch (err) {
       setError(err.message)
+      return false
     } finally {
       setBusyId(null)
     }
   }
+  const save = (payload, successMsg) => run(payload.id, () => callApi(payload), successMsg)
 
   const toggleAutoApprove = (next) => run('mode', async () => {
-    const res = await fetch('/api/settings', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...authHeaders },
-      body: JSON.stringify({ key: 'item_auto_approve', value: next }),
-    })
+    const res = await jsonPost('/api/settings', authHeaders, { key: 'item_auto_approve', value: next })
     if (!res.ok) {
       const body = await res.json().catch(() => ({}))
       throw new Error(body.error || `บันทึกโหมดไม่สำเร็จ (${res.status})`)
@@ -197,15 +86,19 @@ export default function ItemsView({ session, scrollTo }) {
   }, next ? 'เปิดโหมดผ่านอัตโนมัติแล้ว' : 'เปลี่ยนเป็นโหมดรออนุมัติเองแล้ว')
 
   const setStatus = (item, status) =>
-    run(item.id, () => callApi({ action: 'setStatus', id: String(item.id), status }),
-      status === 'approved' ? `อนุมัติ “${item.label}” แล้ว` : `ซ่อน “${item.label}” แล้ว`)
+    save({ action: 'setStatus', id: String(item.id), status }, status === 'approved' ? `อนุมัติ “${item.label}” แล้ว` : `ซ่อน “${item.label}” แล้ว`)
 
   // ไอเทมจากรายชื่อหลักอยู่ในไฟล์ ลบไม่ได้ → "ซ่อน" = บันทึกแถว denied ลงตาราง (ลบแถวนี้ภายหลัง = กลับมาแสดงตามเดิม)
   const hideIndexItem = (item) =>
-    run(item.id, () => callApi({ action: 'add', id: String(item.id), label: item.label, armorLevel: item.armor_level, status: 'denied' }),
+    save({ action: 'add', id: String(item.id), label: item.label, armorLevel: item.armor_level, itemType: item.item_type, weaponLevel: item.weapon_level, status: 'denied' },
       `ซ่อน “${item.label}” แล้ว`)
 
-  // ดูข้อมูลดิบครบทุก field ของไอเทม (thROG + iRO) — ใช้ action lookup เดิม
+  const removeItem = (item) => {
+    setConfirmDeleteId(null)
+    return save({ action: 'delete', id: String(item.id) }, `ลบ “${item.label}” ออกจากรายการแล้ว`)
+  }
+
+  // ดูข้อมูลดิบครบทุก field (action lookup เดิม) ทีละชิ้น
   const toggleDetail = async (item) => {
     if (detail?.id === item.id) { setDetail(null); return }
     setDetail({ id: item.id, loading: true })
@@ -216,72 +109,13 @@ export default function ItemsView({ session, scrollTo }) {
     }
   }
 
-  const removeItem = (item) => {
-    setConfirmDeleteId(null)
-    return run(item.id, () => callApi({ action: 'delete', id: String(item.id) }), `ลบ “${item.label}” ออกจากรายการแล้ว`)
-  }
-
-  const doLookup = async () => {
-    const id = addId.trim()
-    setNotice(''); setError(''); setLookup(null)
-    if (!/^\d{1,8}$/.test(id)) { setError('Item ID ต้องเป็นตัวเลข 1–8 หลัก'); return }
-    setLooking(true)
-    try {
-      setLookup(await callApi({ action: 'lookup', id }))
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLooking(false)
-    }
-  }
-
-  const saveLookup = (status) => run('add', async () => {
-    await callApi({ action: 'add', id: String(lookup.id), label: lookup.label, armorLevel: lookup.armorLevel, status })
-    setLookup(null); setAddId('')
-  }, status === 'approved' ? 'เพิ่มเข้าช่องค้นหาแล้ว' : 'ซ่อนไอเทมนี้จากช่องค้นหาแล้ว')
+  const setFilter = (key) => (value) => { setFilters((f) => ({ ...f, [key]: value })); setShown(LIST_PAGE) }
 
   const items = useMemo(() => data?.items || [], [data])
   const pending = useMemo(() => items.filter((x) => x.status === 'pending'), [items])
-  // ตารางเสริม + รายชื่อหลักที่ยังไม่มีแถวในตาราง (แถวในตารางทับรายชื่อหลักด้วย id เดียวกัน เช่น ถูกซ่อน)
-  const rows = useMemo(() => {
-    const extraIds = new Set(items.map((x) => x.id))
-    const indexRows = indexItems.filter(([id]) => !extraIds.has(id))
-      .map(([id, label, lvl]) => ({ id, label, armor_level: lvl === 2 ? 2 : 1, status: 'approved', source: 'index' }))
-    return [...items, ...indexRows]
-  }, [items, indexItems])
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    return rows.filter((x) => (statusFilter === 'all' || x.status === statusFilter)
-      && (sourceFilter === 'all' || (sourceFilter === 'index' ? x.source === 'index' : x.source !== 'index'))
-      && (!q || x.label.toLowerCase().includes(q) || String(x.id).includes(q)))
-  }, [rows, statusFilter, sourceFilter, query])
-  const counts = useMemo(() => rows.reduce((acc, x) => ({ ...acc, [x.status]: (acc[x.status] || 0) + 1 }), {}), [rows])
-
-  // ปุ่ม + กล่องรายละเอียดของแถว (ใช้ทั้งคิวรออนุมัติและรายการทั้งหมด)
-  const detailButton = (item) => (
-    <button className={btnNeutral} disabled={detail?.loading && detail.id !== item.id} onClick={() => toggleDetail(item)}>
-      {detail?.id === item.id ? 'ซ่อนรายละเอียด' : 'รายละเอียด'}
-    </button>
-  )
-  const detailBlock = (item) => {
-    if (detail?.id !== item.id) return null
-    return (
-      <div className="basis-full space-y-2">
-        {detail.loading && <p className="text-xs text-slate-500">กำลังดึงข้อมูลจาก Divine Pride (ทีละคำขอ อาจรอสักครู่)…</p>}
-        {detail.error && <p className="text-xs text-rose-400">{detail.error}</p>}
-        {detail.data && (
-          <>
-            <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
-              <span>{detail.data.type || '-'} / {detail.data.subType || '-'}</span>
-              <span>requiredLevel {detail.data.requiredLevel ?? '-'}</span>
-              {detail.data.levelUncertain && <UncertainBadge />}
-            </div>
-            <RawDetails key={detail.id} raw={detail.data.raw} />
-          </>
-        )}
-      </div>
-    )
-  }
+  const rows = useMemo(() => buildRows(items, indexItems), [items, indexItems])
+  const filtered = useMemo(() => filterRows(rows, filters), [rows, filters])
+  const counts = useMemo(() => countByStatus(rows), [rows])
 
   if (loading) return (
     <div className="space-y-6"><Skeleton h="h-24" /><Skeleton h="h-40" /><Skeleton h="h-56" /><Skeleton h="h-72" /></div>
@@ -295,6 +129,12 @@ export default function ItemsView({ session, scrollTo }) {
   )
 
   const autoApprove = !!data.autoApprove
+  const detailButton = (item) => (
+    <button className={btnNeutral} disabled={detail?.loading && detail.id !== item.id} onClick={() => toggleDetail(item)}>
+      {detail?.id === item.id ? 'ซ่อนรายละเอียด' : 'รายละเอียด'}
+    </button>
+  )
+  const detailBox = (item) => detail?.id === item.id && <ItemDetail state={detail} />
 
   return (
     <div className="space-y-6">
@@ -316,7 +156,7 @@ export default function ItemsView({ session, scrollTo }) {
             </div>
             <p className="mt-0.5 text-xs text-slate-500">
               {autoApprove
-                ? 'ไอเทมที่หาเจอขึ้นในช่องค้นหาทันที (ลบ/ซ่อนทีหลังได้ในรายการด้านล่าง)'
+                ? 'ไอเทมที่หาเจอขึ้นในช่องค้นหาทันที (ลบ/ซ่อนทีหลังได้ในรายการด้านล่าง) — ยกเว้นที่เลเวลไม่แน่ใจ จะเข้าคิวรออนุมัติเสมอ'
                 : 'ไอเทมที่หาเจอจะเข้าคิว “รออนุมัติ” ด้านล่าง จนกว่าจะกดอนุมัติ'}
             </p>
           </div>
@@ -326,156 +166,58 @@ export default function ItemsView({ session, scrollTo }) {
 
       {/* ── คิวรออนุมัติ ── */}
       <Panel id="items-pending" title={`รออนุมัติ (${pending.length})`} hint="ไอเทมที่ระบบหาเจอ รอให้คุณตัดสินใจ">
-        {pending.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-white/10 px-4 py-6 text-center text-xs text-slate-500">ไม่มีรายการรออนุมัติ</p>
-        ) : (
+        {pending.length === 0 ? <EmptyNote>ไม่มีรายการรออนุมัติ</EmptyNote> : (
           <ul className="space-y-2">
             {pending.map((item) => (
-              <li key={item.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-white/5 bg-white/[0.02] p-3">
-                <ItemIcon id={item.id} size={32} />
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="truncate text-sm font-medium text-slate-200">{item.label}</span>
-                    {item.armor_level === 2 && <LevelBadge level={2} />}
-                    {item.level_uncertain && <UncertainBadge />}
-                  </div>
-                  <p className="text-[11px] text-slate-500">#{item.id} · {SOURCE_LABEL[item.source] || item.source}</p>
-                </div>
-                <div className="flex shrink-0 gap-2">
-                  {detailButton(item)}
-                  <button className={btnOk} disabled={busyId === item.id} onClick={() => setStatus(item, 'approved')}>อนุมัติ</button>
-                  <button className={btnWarn} disabled={busyId === item.id} onClick={() => setStatus(item, 'denied')}>ปฏิเสธ</button>
-                </div>
-                {detailBlock(item)}
-              </li>
+              <ItemRow key={item.id} item={item} variant="card" actions={<>
+                {detailButton(item)}
+                <button className={btnOk} disabled={busyId === item.id} onClick={() => setStatus(item, 'approved')}>อนุมัติ</button>
+                <button className={btnWarn} disabled={busyId === item.id} onClick={() => setStatus(item, 'denied')}>ปฏิเสธ</button>
+              </>}>
+                {detailBox(item)}
+              </ItemRow>
             ))}
           </ul>
         )}
       </Panel>
 
       {/* ── เพิ่มเอง ── */}
-      <Panel id="items-add" title="เพิ่ม/ซ่อนไอเทมเอง" hint="กรอก Item ID แล้วระบบดึงชื่อและเลเวลเกราะมาให้ตรวจก่อนบันทึก (“ซ่อน” ใช้กับไอเทมที่อยู่ในรายชื่อหลักอยู่แล้ว)">
-        <div className="flex flex-wrap gap-2">
-          <input
-            value={addId}
-            onChange={(e) => setAddId(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') doLookup() }}
-            inputMode="numeric"
-            placeholder="Item ID เช่น 460166"
-            className="min-w-0 flex-1 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-200 outline-none placeholder:text-slate-600 focus:border-indigo-400/60"
-          />
-          <button className={btnNeutral} onClick={doLookup} disabled={looking || !addId.trim()}>{looking ? 'กำลังค้น…' : 'ค้นข้อมูล'}</button>
-        </div>
-
-        {lookup && (
-          <div className="mt-4 space-y-3 rounded-xl border border-white/5 bg-white/[0.02] p-4">
-            <div className="flex items-center gap-3">
-              <ItemIcon id={lookup.id} size={40} />
-              <div className="min-w-0 flex-1">
-                <input
-                  value={lookup.label}
-                  onChange={(e) => setLookup({ ...lookup, label: e.target.value })}
-                  maxLength={120}
-                  aria-label="ชื่อที่แสดงในช่องค้นหา"
-                  className="w-full rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm text-slate-200 outline-none focus:border-indigo-400/60"
-                />
-                <p className="mt-1 text-[11px] text-slate-500">#{lookup.id} · {lookup.type || 'ไม่ทราบประเภท'}{lookup.subType ? ` / ${lookup.subType}` : ''}</p>
-              </div>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 text-[11px]">
-              <span className={`rounded-full px-2 py-0.5 ${lookup.refinableGuess ? 'bg-emerald-500/15 text-emerald-400' : 'bg-amber-500/15 text-amber-400'}`}>
-                {lookup.refinableGuess ? 'คำอธิบายพูดถึง refine (น่าจะตีบวกได้)' : 'ไม่พบสัญญาณว่าตีบวกได้ — ตรวจเองก่อน'}
-              </span>
-              {lookup.levelUncertain && <UncertainBadge />}
-              <span className={`rounded-full px-2 py-0.5 ${lookup.availableOnThai ? 'bg-emerald-500/15 text-emerald-400' : 'bg-white/5 text-slate-400'}`}>
-                {lookup.availableOnThai ? 'มีบนเซิร์ฟไทย' : 'API ไม่ยืนยันว่ามีบนเซิร์ฟไทย'}
-              </span>
-              {lookup.existingStatus && <span className="rounded-full bg-white/5 px-2 py-0.5 text-slate-400">มีในรายการแล้ว: {STATUS_META[lookup.existingStatus]?.label}</span>}
-            </div>
-            <RawDetails key={lookup.id} raw={lookup.raw} />
-            <label className="flex items-center gap-2 text-xs text-slate-400">
-              เลเวลเกราะ
-              <select
-                value={lookup.armorLevel}
-                onChange={(e) => setLookup({ ...lookup, armorLevel: Number(e.target.value) })}
-                className="rounded-lg border border-white/10 bg-slate-900 px-2 py-1 text-slate-200 [color-scheme:dark]"
-              >
-                <option value={1}>1</option>
-                <option value={2}>2</option>
-              </select>
-              <span className="text-slate-600">(จากบรรทัด Armor Level ในคำอธิบาย; ไม่มี = 1)</span>
-            </label>
-            <div className="flex flex-wrap gap-2">
-              <button className={btnOk} disabled={busyId === 'add' || !lookup.label.trim()} onClick={() => saveLookup('approved')}>เพิ่มเข้าช่องค้นหา</button>
-              <button className={btnWarn} disabled={busyId === 'add' || !lookup.label.trim()} onClick={() => saveLookup('denied')}>ซ่อนจากช่องค้นหา</button>
-              <button className={btnNeutral} onClick={() => setLookup(null)}>ยกเลิก</button>
-            </div>
-          </div>
-        )}
-      </Panel>
+      <AddItemPanel callApi={callApi} onSave={save} onError={setError} saving={busyId === 'add'} />
 
       {/* ── รายการทั้งหมด ── */}
       <Panel id="items-all" title={`รายการทั้งหมด (${rows.length})`} hint="รายชื่อหลัก (ไฟล์) + ไอเทมเสริมจาก dashboard — “ซ่อนอยู่” = ไม่แสดงในช่องค้นหา; รายชื่อหลักลบไม่ได้ ใช้ “ซ่อน” (ลบแถวที่ซ่อนไว้ = กลับมาแสดง)">
         <div className="mb-3 flex flex-wrap items-center gap-2">
-          <div className="flex gap-1 rounded-lg bg-white/[0.03] p-0.5">
-            {STATUS_FILTERS.map((f) => (
-              <button key={f.id} onClick={() => { setStatusFilter(f.id); setShown(LIST_PAGE) }}
-                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${statusFilter === f.id ? 'bg-indigo-500/25 text-indigo-200' : 'text-slate-400 hover:text-slate-200'}`}>
-                {f.label}{f.id !== 'all' && counts[f.id] ? ` ${counts[f.id]}` : ''}
-              </button>
-            ))}
-          </div>
-          <div className="flex gap-1 rounded-lg bg-white/[0.03] p-0.5">
-            {SOURCE_FILTERS.map((f) => (
-              <button key={f.id} onClick={() => { setSourceFilter(f.id); setShown(LIST_PAGE) }}
-                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${sourceFilter === f.id ? 'bg-indigo-500/25 text-indigo-200' : 'text-slate-400 hover:text-slate-200'}`}>
-                {f.label}
-              </button>
-            ))}
-          </div>
+          <FilterTabs options={STATUS_FILTERS} value={filters.status} onChange={setFilter('status')} counts={counts} />
+          <FilterTabs options={TYPE_FILTERS} value={filters.type} onChange={setFilter('type')} />
+          <FilterTabs options={SOURCE_FILTERS} value={filters.source} onChange={setFilter('source')} />
           <input
-            value={query}
-            onChange={(e) => { setQuery(e.target.value); setShown(LIST_PAGE) }}
+            value={filters.query}
+            onChange={(e) => setFilter('query')(e.target.value)}
             placeholder="ค้นชื่อหรือ ID"
-            className="min-w-0 flex-1 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs text-slate-200 outline-none placeholder:text-slate-600 focus:border-indigo-400/60 sm:max-w-xs"
+            className={`${inputCls} min-w-0 flex-1 px-3 py-1.5 text-xs sm:max-w-xs`}
           />
         </div>
 
-        {filtered.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-white/10 px-4 py-6 text-center text-xs text-slate-500">ไม่มีรายการ</p>
-        ) : (
+        {filtered.length === 0 ? <EmptyNote>ไม่มีรายการ</EmptyNote> : (
           <ul className="divide-y divide-white/5">
             {filtered.slice(0, shown).map((item) => (
-              <li key={item.id} className="flex flex-wrap items-center gap-3 py-2.5">
-                <ItemIcon id={item.id} size={28} />
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="truncate text-sm text-slate-200">{item.label}</span>
-                    {item.armor_level === 2 && <LevelBadge level={2} />}
-                    {item.level_uncertain && <UncertainBadge />}
-                    <StatusBadge status={item.status} />
-                  </div>
-                  <p className="text-[11px] text-slate-500">#{item.id} · {SOURCE_LABEL[item.source] || item.source}</p>
-                </div>
-                <div className="flex shrink-0 gap-2">
-                  {detailButton(item)}
-                  {item.source === 'index' ? (
-                    <button className={btnWarn} disabled={busyId === item.id} onClick={() => hideIndexItem(item)}>ซ่อน</button>
-                  ) : (<>
+              <ItemRow key={item.id} item={item} showStatus actions={<>
+                {detailButton(item)}
+                {item.source === 'index' ? (
+                  <button className={btnWarn} disabled={busyId === item.id} onClick={() => hideIndexItem(item)}>ซ่อน</button>
+                ) : (<>
                   {item.status !== 'approved' && <button className={btnOk} disabled={busyId === item.id} onClick={() => setStatus(item, 'approved')}>อนุมัติ</button>}
                   {item.status !== 'denied' && <button className={btnWarn} disabled={busyId === item.id} onClick={() => setStatus(item, 'denied')}>ซ่อน</button>}
-                  {confirmDeleteId === item.id ? (
-                    <>
-                      <button className={btnWarn} disabled={busyId === item.id} onClick={() => removeItem(item)}>ยืนยันลบ</button>
-                      <button className={btnNeutral} onClick={() => setConfirmDeleteId(null)}>ยกเลิก</button>
-                    </>
-                  ) : (
+                  {confirmDeleteId === item.id ? (<>
+                    <button className={btnWarn} disabled={busyId === item.id} onClick={() => removeItem(item)}>ยืนยันลบ</button>
+                    <button className={btnNeutral} onClick={() => setConfirmDeleteId(null)}>ยกเลิก</button>
+                  </>) : (
                     <button className={btnNeutral} disabled={busyId === item.id} onClick={() => setConfirmDeleteId(item.id)}>ลบ</button>
                   )}
-                  </>)}
-                </div>
-                {detailBlock(item)}
-              </li>
+                </>)}
+              </>}>
+                {detailBox(item)}
+              </ItemRow>
             ))}
           </ul>
         )}
