@@ -1,7 +1,7 @@
 // Vercel Serverless: รายชื่อไอเทมเสริมสำหรับช่องค้นหาไอเทม (ตาราง extra_items) — จัดการผ่าน dashboard แท็บ "ไอเทม"
 //   GET            → public: { add: [[id,label,armorLevel?]], deny: [id] }  (approved = เพิ่มเข้าช่องค้นหา, denied = ซ่อน)
 //   GET ?flag=1    → public: { searchEnabled } สวิตช์เปิดช่องค้นหาหน้าเว็บ (default false) — no-store เพื่อให้ปิดแล้วมีผลทันที (ใช้กับ useItemSearchFlag)
-//   GET ?all=1     → owner : ทุกแถว + โหมดอนุมัติ (autoApprove) + searchEnabled — no-store
+//   GET ?all=1     → owner : ทุกแถว + โหมดอนุมัติ (autoApprove) — no-store
 //   POST (owner)   → { action: 'lookup' | 'add' | 'setStatus' | 'delete', ... }
 // โหมดอนุมัติ (item_auto_approve) เขียนผ่าน /api/settings; Action (scripts/find-missing-items.mjs) เขียนตารางตรง
 // ENV: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_ANON_KEY, DASHBOARD_ALLOWED_EMAILS, DIVINE_PRIDE_API_KEY
@@ -79,15 +79,14 @@ export default async function handler(req, res) {
       if (!user) return res.status(401).json({ error: 'unauthorized' })
       if (!isOwner(user)) return res.status(403).json({ error: 'ไม่มีสิทธิ์เข้าถึง' })
       try {
-        const [itemsRes, settingRes, searchRes] = await Promise.all([
+        const [itemsRes, settingRes] = await Promise.all([
           sbFetch(`extra_items?select=id,label,armor_level,item_type,weapon_level,level_uncertain,status,source,created_at,updated_at&order=updated_at.desc&limit=${MAX_ROWS}`),
           sbFetch('site_settings?select=value&key=eq.item_auto_approve'),
-          sbFetch(SEARCH_FLAG_QUERY),
         ])
         if (!itemsRes.ok || !settingRes.ok) return res.status(502).json({ error: 'read failed' })
         const items = await itemsRes.json()
         res.setHeader('cache-control', 'no-store')
-        return res.status(200).json({ items, autoApprove: isOn(await settingRes.json()), searchEnabled: searchRes.ok && isOn(await searchRes.json()) })
+        return res.status(200).json({ items, autoApprove: isOn(await settingRes.json()) })
       } catch {
         return res.status(502).json({ error: 'read failed' })
       }

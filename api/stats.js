@@ -232,7 +232,7 @@ export default async function handler(req, res) {
       const reqs = [
         sbFetch('usage_counters?select=metric,count&metric=in.(refine_total,stone_total,bsb_total)'),
         sbFetch(`usage_daily?select=metric,count&day=eq.${today}&metric=in.(refine,stone,bsb,visits,visits_new,visits_returning,auto,simulate)`),
-        sbFetch('site_settings?select=key,value&key=in.(show_stats,show_online,track_online)'),
+        sbFetch('site_settings?select=key,value&key=in.(show_stats,show_online,track_online,item_search_enabled)'),
         sbFetch('usage_visitors?select=vid&limit=1', { headers: { Prefer: 'count=exact' } }),
       ]
       let dailyIdx = -1
@@ -253,6 +253,8 @@ export default async function handler(req, res) {
       const showStats = showRow ? showRow.value !== false : true // default = แสดง
       const onlineRow = settings.find((x) => x.key === 'show_online')
       const showOnline = onlineRow ? onlineRow.value !== false : true // default = แสดง
+      const searchRow = settings.find((x) => x.key === 'item_search_enabled')
+      const itemSearchEnabled = !!(searchRow && searchRow.value === true) // default = ปิด (ต่างจาก flag อื่น)
       const trackRow = settings.find((x) => x.key === 'track_online')
       const trackOnline = trackRow ? trackRow.value !== false : true // default = track
       // จำนวนผู้ใช้ไม่ซ้ำทั้งหมด (all-time) จาก content-range header ของ count=exact
@@ -275,6 +277,7 @@ export default async function handler(req, res) {
         showStats,
         showOnline,
         trackOnline,
+        itemSearchEnabled,
       }
 
       if (range) {

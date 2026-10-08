@@ -13,6 +13,7 @@ import RefineAnalytics from './RefineAnalytics'
 import Toggle from '../components/Toggle'
 import UserActivityModal from './UserActivityModal'
 import EventDetailModal, { DetailBadge } from './EventDetailModal'
+import { notifyItemSearchChanged } from '../utils/useItemSearchFlag'
 
 const ACCENT = '#818cf8'
 const ACCENT2 = '#34d399'
@@ -103,7 +104,6 @@ const NAV_SECTIONS = {
     { id: 'usage-settings',         label: 'ตั้งค่าแสดงผล',    subTab: 'settings' },
   ],
   items: [
-    { id: 'items-search',  label: 'เปิด/ปิดช่องค้นหา' },
     { id: 'items-mode',    label: 'โหมดอนุมัติ' },
     { id: 'items-pending', label: 'รออนุมัติ' },
     { id: 'items-add',     label: 'เพิ่ม/ซ่อนไอเทม' },
@@ -130,6 +130,11 @@ function tabFromHash() {
 
 /* ─── icons (analytics section) ─── */
 const Icon = {
+  search: (p) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" />
+    </svg>
+  ),
   users: (p) => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
@@ -904,6 +909,7 @@ function UsageContent({ session, usageTab, setUsageTab, scrollTo, onTrackOnlineC
       await post(key, next)
       // สะท้อนค่าที่เขียนสำเร็จทันที ก่อนลอง cascade ต่อ — กัน UI ค้างค่าเก่าถ้า cascade ล้มเหลวกลางทาง (server เขียนตัวแรกไปแล้วจริง)
       setData((d) => ({ ...d, [field]: next }))
+      if (key === 'item_search_enabled') notifyItemSearchChanged() // แจ้งผู้เล่นที่เปิดหน้าอยู่แบบ realtime
       if (key === 'track_online') onTrackOnlineChange(next) // badge ออนไลน์บน header อัปเดตทันที
       // ปิดระบบนับ = ปิด "แสดงให้ผู้เล่นเห็น" ตามด้วย (cascade) — เปิดระบบนับไม่ดึงกลับ ต้องเปิด show เอง
       if (key === 'track_online' && next === false && data.showOnline !== false) {
@@ -1068,7 +1074,10 @@ function UsageContent({ session, usageTab, setUsageTab, scrollTo, onTrackOnlineC
           ) : (
             <div className="space-y-3">
               {/* ── ตัวเลขสถิติ ── */}
-              {[{ key: 'show_stats', field: 'showStats', icon: Icon.eye, title: 'ตัวเลขสถิติรวม', desc: 'แถบ ตีบวก / ใช้แร่ / คนใช้วันนี้ ใต้แบนเนอร์', onLabel: 'แสดงอยู่', offLabel: 'ซ่อนอยู่' }].map((s) => {
+              {[
+                { key: 'show_stats', field: 'showStats', icon: Icon.eye, title: 'ตัวเลขสถิติรวม', desc: 'แถบ ตีบวก / ใช้แร่ / คนใช้วันนี้ ใต้แบนเนอร์', onLabel: 'แสดงอยู่', offLabel: 'ซ่อนอยู่' },
+                { key: 'item_search_enabled', field: 'itemSearchEnabled', icon: Icon.search, title: 'ช่องค้นหาไอเทม', desc: 'ผู้เล่นพิมพ์ชื่อไอเทมเพื่อเลือก (ปิด = ข้อความ “ปิดปรับปรุงชั่วคราว” และเลือกประเภทเอง) — มีผลทันที ผู้เล่นที่ใช้อยู่ถูกดีดกลับไปเลือกประเภทเอง; จัดการรายชื่อไอเทมที่แท็บ “ไอเทม”', onLabel: 'เปิดอยู่', offLabel: 'ปิดปรับปรุง' },
+              ].map((s) => {
                 const on = !!data?.[s.field]
                 return (
                   <div key={s.key} className={`flex items-center justify-between gap-4 rounded-xl border p-4 transition-colors ${on ? 'border-emerald-500/25 bg-emerald-500/[0.04]' : 'border-white/5 bg-white/[0.02]'}`}>
@@ -1132,7 +1141,7 @@ function UsageContent({ session, usageTab, setUsageTab, scrollTo, onTrackOnlineC
             </div>
           )}
           <p className="mt-3 text-xs text-slate-500">
-            ปิดไว้ได้ตอนตัวเลขยังน้อย แล้วค่อยเปิดเมื่อดูน่าเชื่อถือ — การเปลี่ยนมีผลกับผู้เล่นภายใน ~1 นาที (cache)
+            ปิดไว้ได้ตอนตัวเลขยังน้อย แล้วค่อยเปิดเมื่อดูน่าเชื่อถือ — การเปลี่ยนของสถิติ/ออนไลน์มีผลกับผู้เล่นภายใน ~1 นาที (cache) ส่วนช่องค้นหาไอเทมมีผลทันที
           </p>
         </Panel>
       )}

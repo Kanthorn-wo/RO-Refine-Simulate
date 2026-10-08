@@ -4,7 +4,6 @@ import AddItemPanel from './items/AddItemPanel'
 import { ItemDetail } from './items/RawDetails'
 import { DEFAULT_FILTERS, SOURCE_FILTERS, STATUS_FILTERS, TYPE_FILTERS, buildRows, countFacets, filterRows } from './items/itemRows'
 import { btnNeutral, btnOk, btnWarn, inputCls } from './items/consts'
-import { notifyItemSearchChanged } from '../utils/useItemSearchFlag'
 import { EmptyNote, FilterTabs, ItemRow, Panel, Skeleton, Spinner } from './items/ui'
 
 // แท็บ "ไอเทม": จัดการรายชื่อไอเทมของช่องค้นหาไอเทม (ตาราง extra_items ผ่าน /api/extra-items + รายชื่อหลัก refinableItems.json)
@@ -89,10 +88,7 @@ export default function ItemsView({ session, scrollTo }) {
     }
   }, successMsg)
   const toggleAutoApprove = (next) => saveSetting('mode', 'item_auto_approve', next, next ? 'เปิดโหมดผ่านอัตโนมัติแล้ว' : 'เปลี่ยนเป็นโหมดรออนุมัติเองแล้ว')
-  const toggleSearch = async (next) => {
-    const ok = await saveSetting('search', 'item_search_enabled', next, next ? 'เปิดช่องค้นหาไอเทมหน้าเว็บแล้ว' : 'ปิดช่องค้นหาไอเทมหน้าเว็บแล้ว (ผู้เล่นที่ใช้อยู่ถูกดีดกลับไปเลือกประเภทเอง)')
-    if (ok) notifyItemSearchChanged() // แจ้งผู้เล่นที่เปิดหน้าอยู่แบบ realtime
-  }
+
 
   const setStatus = (item, status) =>
     save({ action: 'setStatus', id: String(item.id), status }, status === 'approved' ? `อนุมัติ “${item.label}” แล้ว` : `ซ่อน “${item.label}” แล้ว`)
@@ -154,7 +150,6 @@ export default function ItemsView({ session, scrollTo }) {
   )
 
   const autoApprove = !!data.autoApprove
-  const searchEnabled = !!data.searchEnabled
   const detailButton = (item) => (
     <button className={`${btnNeutral} inline-flex min-w-[5.5rem] items-center justify-center`} disabled={lookupBusy} onClick={() => toggleDetail(item)}
       aria-busy={detail?.id === item.id && detail.loading} aria-label={detail?.id === item.id && detail.loading ? 'กำลังโหลด' : undefined}>
@@ -170,26 +165,6 @@ export default function ItemsView({ session, scrollTo }) {
           {error || notice}
         </div>
       )}
-
-      {/* ── เปิด/ปิดช่องค้นหาหน้าเว็บ ── */}
-      <Panel id="items-search" title="ช่องค้นหาไอเทมหน้าเว็บ" hint="ผู้เล่นพิมพ์ชื่อไอเทมเพื่อเลือกแทนการเลือกประเภทเอง — เปิด/ปิดได้ทันทีโดยไม่ต้อง deploy">
-        <div className={`flex items-center justify-between gap-4 rounded-xl border p-4 transition-colors ${searchEnabled ? 'border-emerald-500/25 bg-emerald-500/[0.04]' : 'border-white/5 bg-white/[0.02]'}`}>
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-medium text-slate-200">เปิดช่องค้นหาให้ผู้เล่น</span>
-              <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${searchEnabled ? 'bg-emerald-500/15 text-emerald-400' : 'bg-white/5 text-slate-500'}`}>
-                {searchEnabled ? 'เปิดอยู่' : 'ปิดปรับปรุง'}
-              </span>
-            </div>
-            <p className="mt-0.5 text-xs text-slate-500">
-              {searchEnabled
-                ? 'ผู้เล่นค้นชื่อและเลือกไอเทมได้ (เลือกแล้วระบบดึงข้อมูลจาก Divine Pride 1 คำขอต่อครั้ง ผ่านคิวควบคุมอัตรา)'
-                : 'ผู้เล่นเห็นข้อความ “ปิดปรับปรุงชั่วคราว” และเลือกประเภทไอเทมเองได้ตามปกติ'}
-            </p>
-          </div>
-          <Toggle checked={searchEnabled} onChange={toggleSearch} disabled={busyId === 'search'} activeColor="bg-emerald-500" ariaLabel="เปิดช่องค้นหาไอเทมหน้าเว็บ" />
-        </div>
-      </Panel>
 
       {/* ── โหมดอนุมัติ ── */}
       <Panel id="items-mode" title="โหมดอนุมัติไอเทมใหม่" hint="ไอเทมที่ระบบ (GitHub Action) หาเจอเอง จะถูกใส่เข้าช่องค้นหาตามโหมดนี้">
