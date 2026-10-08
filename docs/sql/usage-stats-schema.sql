@@ -68,7 +68,7 @@ grant  execute on function public.bump_daily(date, text, bigint) to service_role
 create table if not exists public.usage_events (
   id         bigint generated always as identity primary key,
   created_at timestamptz not null default now(),
-  type           text not null,             -- 'refine' | 'visit' | 'auto' | 'simulate'
+  type           text not null,             -- 'refine' | 'visit' | 'auto' | 'simulate' | 'item_miss'
   count          integer not null default 1,
   vid            text,                       -- ID สุ่ม anonymous ของผู้ใช้ (nullable — event เก่า/ไม่มีก็ได้)
   visitor_status text,                       -- เฉพาะ visit: 'new' | 'returning' (nullable)

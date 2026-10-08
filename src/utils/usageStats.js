@@ -143,6 +143,12 @@ export function recordAction(type, meta = null) {
   post(ENDPOINT, { event: type, vid: getVisitorId(), ...(meta && { meta }) })
 }
 
+// บันทึกคำค้นไอเทมที่ไม่เจอผลลัพธ์ (ไม่ใช่ action — ไม่เข้าตัวนับ, server เก็บเป็น event ใน feed) ไว้ดูว่ารายชื่อไอเทมขาดอะไร
+export function recordItemSearchMiss(query) {
+  if (typeof query !== 'string' || !query.trim()) return
+  post(ENDPOINT, { item_miss: query.trim().slice(0, 60), vid: getVisitorId() })
+}
+
 export async function fetchUsage() {
   try {
     const r = await fetch(ENDPOINT)

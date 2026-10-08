@@ -49,6 +49,7 @@ const EVENT_META = {
   auto:     { label: 'รัน Auto', dot: '#fbbf24' },
   simulate: { label: 'รันจำลอง',   dot: '#34d399' },
   visit:    { label: 'เข้าเว็บ',   dot: '#f472b6' },
+  item_miss: { label: 'ค้นไอเทมไม่เจอ', dot: '#fb923c' },
 }
 const VISIT_STATUS_LABEL = { new: 'คนใหม่', returning: 'คนเก่า', bot: 'Bot' }
 
@@ -93,7 +94,8 @@ function EventRow({ e, now }) {
       <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: meta.dot }} />
       <div className="flex min-w-0 flex-1 items-center gap-2">
         <span className="text-slate-200">{meta.label}</span>
-        {e.meta && <DetailBadge onClick={() => setShowDetail(true)} />}
+        {e.meta && e.type !== 'item_miss' && <DetailBadge onClick={() => setShowDetail(true)} />}
+        {e.type === 'item_miss' && e.meta?.query && <span className="truncate text-xs text-orange-300">“{e.meta.query}”</span>}
         {e.type === 'visit' && e.status && (
           <span className={`text-xs ${e.status === 'new' ? 'text-cyan-400' : e.status === 'bot' ? 'text-amber-400' : 'text-violet-400'}`}>
             ({VISIT_STATUS_LABEL[e.status] || e.status})

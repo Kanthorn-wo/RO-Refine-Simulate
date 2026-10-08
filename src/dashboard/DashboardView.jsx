@@ -527,6 +527,7 @@ const EVENT_META = {
   auto:     { label: 'รัน Auto',   dot: '#fbbf24' },
   simulate: { label: 'รันจำลอง',     dot: '#34d399' },
   visit:    { label: 'มีคนเข้าเว็บ', dot: '#f472b6' },
+  item_miss: { label: 'ค้นไอเทมไม่เจอ', dot: '#fb923c' },
 }
 const PAGE_SIZES = [10, 25, 50]
 const EVENT_FILTERS = [
@@ -535,6 +536,7 @@ const EVENT_FILTERS = [
   { id: 'auto',     label: 'Auto' },
   { id: 'simulate', label: 'จำลอง' },
   { id: 'visit',    label: 'เข้าเว็บ' },
+  { id: 'item_miss', label: 'ค้นไม่เจอ' },
 ]
 
 const FEED_PAGE = 200 // จำนวน event ต่อการโหลด 1 ครั้ง (API cap 200 ต่อหน้า)
@@ -709,7 +711,8 @@ function ActivityFeed({ session }) {
                         <span className="inline-flex items-center gap-2 text-slate-200">
                           <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: meta.dot }} />
                           <span className="truncate">{meta.label}</span>
-                          {ev.meta && <DetailBadge onClick={() => setDetailEv(ev)} />}
+                          {ev.meta && ev.type !== 'item_miss' && <DetailBadge onClick={() => setDetailEv(ev)} />}
+                          {ev.type === 'item_miss' && ev.meta?.query && <span className="truncate text-xs text-orange-300">“{ev.meta.query}”</span>}
                           {ev.type === 'visit' && ev.status && (
                             <span className={`shrink-0 text-xs ${ev.status === 'new' ? 'text-cyan-400' : ev.status === 'bot' ? 'text-amber-400' : 'text-violet-400'}`}>
                               ({ev.status === 'new' ? 'คนใหม่' : ev.status === 'bot' ? 'Bot' : 'คนเก่า'})

@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLang } from '../../contexts/LangContext';
+import { recordItemSearchMiss } from '../../utils/usageStats';
 
 const MAX_RESULTS = 30;
+const MISS_MIN_LENGTH = 3;   // สั้นกว่านี้ถือว่ายังพิมพ์ไม่จบ
+const MISS_DELAY_MS = 1500;  // รอให้หยุดพิมพ์ก่อนค่อยนับว่า "ไม่เจอ"
+const MISS_SESSION_CAP = 20; // กันยิงถี่ใน 1 session
 const iconSrc = id => `https://static.divine-pride.net/images/items/item/${id}.png`;
 
 // ค้นไอเทมด้วยชื่อ แล้วแสดงเป็น dropdown รูป + ชื่อ
@@ -27,8 +31,22 @@ export default function ItemSearch({ value, onChange, onSelect, placeholder }) {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
   const wrapRef = useRef(null);
+  const reportedMisses = useRef(new Set());
 
   const results = list && value.trim() ? searchItems(list, value) : [];
+
+  // ค้นแล้วไม่เจอ (หยุดพิมพ์แล้ว) → ส่งคำค้นไปเก็บสถิติ 1 ครั้งต่อคำต่อ session
+  const missQuery = list && results.length === 0 ? value.trim().toLowerCase() : '';
+  useEffect(() => {
+    if (missQuery.length < MISS_MIN_LENGTH) return;
+    const timer = setTimeout(() => {
+      const reported = reportedMisses.current;
+      if (reported.has(missQuery) || reported.size >= MISS_SESSION_CAP) return;
+      reported.add(missQuery);
+      recordItemSearchMiss(missQuery);
+    }, MISS_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [missQuery]);
 
   const loadList = () => {
     if (list) return;

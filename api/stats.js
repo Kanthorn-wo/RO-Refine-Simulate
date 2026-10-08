@@ -357,6 +357,9 @@ export default async function handler(req, res) {
 
       // activity feed: 1 event ต่อ 1 batch (ตี = รวบทั้ง batch กัน row บวมจาก auto) — แนบ vid ของผู้ใช้
       const events = []
+      // คำค้นไอเทมที่ไม่เจอผลลัพธ์ (ItemSearch) — ไว้ดูว่ารายชื่อไอเทมขาดอะไร: ไม่นับเข้าตัวนับ/สถิติ, bot ไม่เก็บ
+      const missQuery = typeof body.item_miss === 'string' ? body.item_miss.replace(/\p{Cc}/gu, '').trim().slice(0, 60) : ''
+      if (missQuery && !isBot) events.push({ type: 'item_miss', count: 1, vid, meta: { query: missQuery } })
       if (refine) events.push({ type: 'refine', count: refine, vid })
       if (body.visit) events.push({ type: 'visit', count: 1, vid, visitor_status: visitorStatus })
       if (action) {
