@@ -132,6 +132,7 @@ export default function ItemsView({ session, scrollTo }) {
   const rows = useMemo(() => buildRows(items, indexItems), [items, indexItems])
   const filtered = useMemo(() => filterRows(rows, filters), [rows, filters])
   const counts = useMemo(() => countFacets(rows, filters), [rows, filters])
+  const baseCounts = useMemo(() => countFacets(rows, DEFAULT_FILTERS), [rows]) // จำนวนตอนไม่กรอง — ไว้จองความกว้างปุ่มตัวกรอง
   const filtersActive = Object.keys(DEFAULT_FILTERS).some((k) => filters[k] !== DEFAULT_FILTERS[k])
 
   if (loading) return (
@@ -217,9 +218,9 @@ export default function ItemsView({ session, scrollTo }) {
             )}
             <span className="ml-auto text-[11px] text-slate-500">แสดง {Math.min(shown, filtered.length).toLocaleString('th-TH')} จาก {filtered.length.toLocaleString('th-TH')} รายการ</span>
           </div>
-          <FilterTabs label="สถานะ" options={STATUS_FILTERS} value={filters.status} onChange={setFilter('status')} counts={counts.status} />
-          <FilterTabs label="ประเภท" options={TYPE_FILTERS} value={filters.type} onChange={setFilter('type')} counts={counts.type} />
-          <FilterTabs label="ที่มา" options={SOURCE_FILTERS} value={filters.source} onChange={setFilter('source')} counts={counts.source} />
+          <FilterTabs label="สถานะ" options={STATUS_FILTERS} value={filters.status} onChange={setFilter('status')} counts={counts.status} sizeCounts={baseCounts.status} />
+          <FilterTabs label="ประเภท" options={TYPE_FILTERS} value={filters.type} onChange={setFilter('type')} counts={counts.type} sizeCounts={baseCounts.type} />
+          <FilterTabs label="ที่มา" options={SOURCE_FILTERS} value={filters.source} onChange={setFilter('source')} counts={counts.source} sizeCounts={baseCounts.source} />
         </div>
 
         {filtered.length === 0 ? <EmptyNote>ไม่มีรายการ</EmptyNote> : (

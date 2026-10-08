@@ -49,9 +49,12 @@ export const EmptyNote = ({ children }) => (
   <p className="rounded-xl border border-dashed border-white/10 px-4 py-6 text-center text-xs text-slate-500">{children}</p>
 )
 
-// แถวตัวกรอง: ป้ายกลุ่มทางซ้าย + ปุ่มเลือกทางขวา (options: [{ id, label, level? }], counts: จำนวนต่อ id — แสดง "ชื่อ (จำนวน)" ทุกตัวเลือก)
-// ตัวเลือก level = เลเวลของอาวุธ/เกราะ แสดงด้วยสีป้ายเดียวกับในรายการ; ตัวเลือกที่ถูกเลือกมีพื้นหลังเด่น
-export function FilterTabs({ label, options, value, onChange, counts }) {
+// แถวตัวกรอง: ป้ายกลุ่มทางซ้าย + ปุ่มเลือกทางขวา (options: [{ id, label, level? }])
+// counts = จำนวนต่อ id ตอนนี้ (แสดง "ชื่อ (จำนวน)" ทุกตัวเลือก), sizeCounts = จำนวนตอนไม่กรอง ใช้กันความกว้างปุ่ม:
+// ปุ่มจองความกว้างตามข้อความที่ยาวสุด (เลขตอนไม่กรอง) + ขอบโปร่งใสตลอด → เลือก/เปลี่ยนตัวกรองแล้ว layout ไม่ขยับ
+// ตัวเลือก level = เลเวลของอาวุธ/เกราะ แสดงด้วยสีป้ายเดียวกับในรายการ; ตัวที่เลือกมีขอบเด่น
+const countText = (counts, id) => (counts ? ` (${(counts[id] || 0).toLocaleString('th-TH')})` : '')
+export function FilterTabs({ label, options, value, onChange, counts, sizeCounts }) {
   return (
     <div className="flex items-start gap-3">
       <span className="w-14 shrink-0 pt-1.5 text-[11px] font-medium text-slate-500">{label}</span>
@@ -61,8 +64,9 @@ export function FilterTabs({ label, options, value, onChange, counts }) {
           const tone = o.level ? ITEM_TYPE_BADGE_CLS[o.id] : 'bg-white/[0.04] text-slate-300'
           return (
             <button key={o.id} onClick={() => onChange(o.id)} aria-pressed={active}
-              className={`rounded-full px-2.5 py-1 text-xs font-medium transition ${tone} ${active ? 'ring-1 ring-current' : 'opacity-60 hover:opacity-100'}`}>
-              {o.label}{counts ? ` (${(counts[o.id] || 0).toLocaleString('th-TH')})` : ''}
+              className={`inline-grid rounded-full border px-2.5 py-1 text-xs font-medium tabular-nums transition ${tone} ${active ? 'border-current' : 'border-transparent opacity-60 hover:opacity-100'}`}>
+              <span aria-hidden="true" className="invisible col-start-1 row-start-1 whitespace-nowrap">{o.label}{countText(sizeCounts || counts, o.id)}</span>
+              <span className="col-start-1 row-start-1 whitespace-nowrap text-center">{o.label}{countText(counts, o.id)}</span>
             </button>
           )
         })}
