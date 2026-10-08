@@ -8,6 +8,7 @@ import { useOnlineCount } from '../utils/useOnlineCount'
 import { bkkToday, bkkDaysAgo } from '../utils/date'
 import MonitorView from './MonitorView'
 import OverviewView from './OverviewView'
+import ItemsView from './ItemsView'
 import RefineAnalytics from './RefineAnalytics'
 import Toggle from '../components/Toggle'
 import UserActivityModal from './UserActivityModal'
@@ -47,6 +48,11 @@ const NavIc = {
       <path d="M3 3v18h18" /><path d="M7 14l3-4 4 3 5-7" />
     </svg>
   ),
+  items: (p) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="M21 8l-9-5-9 5v8l9 5 9-5V8z" /><path d="M3 8l9 5 9-5M12 13v8" />
+    </svg>
+  ),
   menu: (p) => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
       <path d="M4 6h16M4 12h16M4 18h16" />
@@ -63,6 +69,7 @@ const NAV_ITEMS = [
   { id: 'overview',  label: 'ภาพรวม',    sub: 'ผู้เข้าชมทำอะไรบ้าง', icon: NavIc.overview },
   { id: 'analytics', label: 'Analytics', sub: 'GA4 ผู้ใช้งาน', icon: NavIc.analytics },
   { id: 'usage',     label: 'Usage',     sub: 'สถิติการใช้งานรวม', icon: NavIc.usage },
+  { id: 'items',     label: 'ไอเทม',     sub: 'จัดการรายชื่อไอเทมในช่องค้นหา', icon: NavIc.items },
   { id: 'monitor',   label: 'Monitor',   sub: 'สุขภาพเว็บไซต์',  icon: NavIc.monitor },
 ]
 
@@ -94,6 +101,12 @@ const NAV_SECTIONS = {
     { id: 'refine-leaderboard',     label: 'อันดับไอเทม',      subTab: 'refine' },
     { id: 'refine-log',             label: 'ประวัติการตีบวก',  subTab: 'refine' },
     { id: 'usage-settings',         label: 'ตั้งค่าแสดงผล',    subTab: 'settings' },
+  ],
+  items: [
+    { id: 'items-mode',    label: 'โหมดอนุมัติ' },
+    { id: 'items-pending', label: 'รออนุมัติ' },
+    { id: 'items-add',     label: 'เพิ่ม/ซ่อนไอเทม' },
+    { id: 'items-all',     label: 'รายการทั้งหมด' },
   ],
   monitor: [
     { id: 'monitor-kpi',        label: 'ภาพรวม (KPI)' },
@@ -1277,6 +1290,7 @@ export default function DashboardView({ session }) {
           {activeTab === 'overview'  && <OverviewView     session={session} scrollTo={scrollTo} />}
           {activeTab === 'analytics' && <AnalyticsContent session={session} scrollTo={scrollTo} />}
           {activeTab === 'usage'     && <UsageContent     session={session} scrollTo={scrollTo} usageTab={usageTab} setUsageTab={setUsageTab} onTrackOnlineChange={setTrackOnline} />}
+          {activeTab === 'items'     && <ItemsView        session={session} scrollTo={scrollTo} />}
           {activeTab === 'monitor'   && <MonitorView      session={session} scrollTo={scrollTo} />}
         </main>
       </div>

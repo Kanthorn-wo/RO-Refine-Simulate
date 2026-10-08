@@ -10,6 +10,24 @@ const iconSrc = id => `https://static.divine-pride.net/images/items/item/${id}.p
 
 // ค้นไอเทมด้วยชื่อ แล้วแสดงเป็น dropdown รูป + ชื่อ
 // รายชื่อ [id, name, armorLevel?] โหลด lazy ตอน focus ครั้งแรก (แยก chunk ไม่หนัก bundle หลัก)
+// รวมกับรายการที่จัดการใน dashboard (/api/extra-items): add = เพิ่มเข้าช่องค้นหา, deny = ซ่อน (แม้อยู่ใน index ไฟล์)
+// API ใช้ไม่ได้ = ค้นจาก index ไฟล์อย่างเดียว
+async function loadItemList() {
+  const staticList = (await import('../../constants/refinableItems.json')).default;
+  try {
+    const res = await fetch('/api/extra-items');
+    if (!res.ok) return staticList;
+    const { add, deny } = await res.json();
+    if (!Array.isArray(add) || !Array.isArray(deny)) return staticList;
+    const denied = new Set(deny);
+    const merged = new Map();
+    for (const item of staticList) if (!denied.has(item[0])) merged.set(item[0], item);
+    for (const item of add) merged.set(item[0], item); // รายการจาก dashboard ทับของเดิม (เช่น แก้ชื่อ/เลเวลเกราะ)
+    return [...merged.values()].sort((a, b) => a[0] - b[0]);
+  } catch {
+    return staticList;
+  }
+}
 function searchItems(list, query) {
   const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
   if (!tokens.length) return [];
@@ -50,7 +68,7 @@ export default function ItemSearch({ value, onChange, onSelect, placeholder }) {
 
   const loadList = () => {
     if (list) return;
-    import('../../constants/refinableItems.json').then(m => setList(m.default));
+    loadItemList().then(setList);
   };
 
   // ปิด dropdown เมื่อคลิกนอกกล่อง

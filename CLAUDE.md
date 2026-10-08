@@ -27,7 +27,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `src/components/Layout/index.jsx` — **ไฟล์หลัก** รวม state ทั้งหมดใน `Container` เดียว: `handleRefine`, auto loop, sprite animation, เสียง, ตาราง/ปุ่ม/log
 - Pure helpers แยกโมดูล: `src/constants/refineRates.js` (`RATE_TABLES`, `getRate`), `src/utils/stones.js`, `src/constants/ores.js`, `src/constants/frames.js`, `src/utils/simulate.js` (Monte Carlo engine), `src/utils/analytics.js`
 - i18n: `src/i18n/translations.js` + `src/contexts/LangContext.jsx` — ทุก text ผ่าน `useLang()`/`t(key)` ห้าม hardcode ภาษา; ภาษากำหนดจาก URL (`/en` = อังกฤษ)
-- Dashboard (admin): `src/dashboard/*` + serverless `api/*.js` — tab: ภาพรวม (default, `OverviewView` + RPC `overview_stats`) / Analytics / Usage / Monitor — ดูรายละเอียด/ENV ใน `docs/architecture.md`
+- Dashboard (admin): `src/dashboard/*` + serverless `api/*.js` — tab: ภาพรวม (default, `OverviewView` + RPC `overview_stats`) / Analytics / Usage / ไอเทม (`ItemsView` + `api/extra-items.js`: จัดการรายชื่อไอเทมในช่องค้นหา + โหมดอนุมัติอัตโนมัติ/manual) / Monitor — ดูรายละเอียด/ENV ใน `docs/architecture.md`
 - Vite alias `assets` → `src/assets` (รูป/เสียง); sprite frame ใช้ public path `/images/...` ตรง ๆ
 
 ## กติกา refine ที่ห้ามจำผิด

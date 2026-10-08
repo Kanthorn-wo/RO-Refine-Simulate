@@ -6,7 +6,7 @@
 
 import { getUser, isOwner } from './_lib/auth.js'
 
-const ALLOWED_KEYS = ['show_stats', 'show_online', 'track_online']
+const ALLOWED_KEYS = ['show_stats', 'show_online', 'track_online', 'item_auto_approve']
 
 async function readBody(req) {
   if (req.body && typeof req.body === 'object') return req.body

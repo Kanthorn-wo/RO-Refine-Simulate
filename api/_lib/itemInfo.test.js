@@ -1,0 +1,64 @@
+import { describe, it, expect } from 'vitest'
+import { parseArmorLevel, mentionsRefine, buildLabel, isRefinableCandidate } from './itemInfo.js'
+
+describe('parseArmorLevel', () => {
+  it('อ่านเลเวลจากบรรทัด Armor Level (มีรหัสสี)', () => {
+    expect(parseArmorLevel('Type : ^777777Shield^000000\nArmor Level : ^7777772^000000\nRequired Level : 200')).toBe(2)
+  })
+  it('Armor Level : 1 = 1', () => {
+    expect(parseArmorLevel('Armor Level : ^7777771^000000')).toBe(1)
+  })
+  it('ไม่มีบรรทัด Armor Level = เลเวล 1', () => {
+    expect(parseArmorLevel('Type : ^777777Shield^000000\nDef : 250')).toBe(1)
+    expect(parseArmorLevel('')).toBe(1)
+    expect(parseArmorLevel(undefined)).toBe(1)
+  })
+  it('เลเวลสูงกว่า 2 ถูกจำกัดที่ 2 (ตาราง extra_items รองรับ 1|2)', () => {
+    expect(parseArmorLevel('Armor Level : ^7777773^000000')).toBe(2)
+  })
+})
+
+describe('mentionsRefine', () => {
+  it('เจอคำว่า refine (ไม่สนตัวพิมพ์)', () => {
+    expect(mentionsRefine('For every 2 REFINE level, ATK + 10')).toBe(true)
+    expect(mentionsRefine('When refined to +7 or higher')).toBe(true)
+  })
+  it('ไม่มี = false', () => {
+    expect(mentionsRefine('MaxHP + 10%')).toBe(false)
+    expect(mentionsRefine(null)).toBe(false)
+  })
+})
+
+describe('buildLabel', () => {
+  it('ต่อ [slots] ท้ายชื่อ', () => {
+    expect(buildLabel('Scarlet Hero Cape', 1)).toBe('Scarlet Hero Cape [1]')
+  })
+  it('ไม่ซ้ำ [n] ถ้าชื่อมีอยู่แล้ว', () => {
+    expect(buildLabel('Red Flower Hat [1]', 1)).toBe('Red Flower Hat [1]')
+  })
+  it('ไม่มีช่อง = ชื่อเฉย ๆ', () => {
+    expect(buildLabel('Light and Darkness Wing', 0)).toBe('Light and Darkness Wing')
+  })
+})
+
+describe('isRefinableCandidate', () => {
+  const base = { type: 'Armor', subType: 'Shield', name: "Guardian's Shield", description: 'For every 2 refine level, ATK + 10' }
+  it('เกราะ/อาวุธที่ description พูดถึง refine = ใช่', () => {
+    expect(isRefinableCandidate(base)).toBe(true)
+    expect(isRefinableCandidate({ ...base, type: 'Weapon', subType: 'Dagger' })).toBe(true)
+  })
+  it('ตัดเครื่องประดับ / Costume / NFS', () => {
+    expect(isRefinableCandidate({ ...base, subType: 'Accessory' })).toBe(false)
+    expect(isRefinableCandidate({ ...base, subType: 'Costume Headgear' })).toBe(false)
+    expect(isRefinableCandidate({ ...base, name: '[NFS]Doram Shield' })).toBe(false)
+    expect(isRefinableCandidate({ ...base, description: 'A costume cloak. refine ...' })).toBe(false)
+  })
+  it('ตัดชื่อกลวง / ชื่อไม่ใช่อังกฤษ / ไม่ใช่อาวุธเกราะ', () => {
+    expect(isRefinableCandidate({ ...base, name: 'Item #460122' })).toBe(false)
+    expect(isRefinableCandidate({ ...base, name: '의상 스텔라 서클' })).toBe(false)
+    expect(isRefinableCandidate({ ...base, type: 'Consumable' })).toBe(false)
+  })
+  it('ไม่พูดถึง refine = ไม่ใช่', () => {
+    expect(isRefinableCandidate({ ...base, description: 'MaxHP + 10%' })).toBe(false)
+  })
+})
