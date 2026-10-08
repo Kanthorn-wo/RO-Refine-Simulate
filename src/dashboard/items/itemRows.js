@@ -1,4 +1,5 @@
 import itemMeta from '../../constants/refinableItemMeta.json'
+import { ITEM_TYPE_LABEL, itemTypeId } from '../../constants/itemTypes'
 
 // รวมรายชื่อหลัก (refinableItems.json) + ไอเทมเสริมจากตาราง extra_items เป็นแถวเดียวกันสำหรับแท็บ "ไอเทม" + ตัวกรอง
 // รูปแถว: { id, label, armor_level, item_type: 'Weapon'|'Armor'|null, weapon_level, status, source: 'manual'|'auto'|'index', level_uncertain }
@@ -9,11 +10,16 @@ export const STATUS_FILTERS = [
   { id: 'pending', label: 'รออนุมัติ' },
   { id: 'denied', label: 'ซ่อนอยู่' },
 ]
+// ตัวกรองประเภท: อาวุธทั้งหมด + อาวุธ Lv.1–5, เกราะทั้งหมด + เกราะ Lv.1–2 (id เลเวลตรงกับ ITEM_TYPE_LABEL; level = ตัวเลือกย่อยที่แสดงสีป้ายตามเลเวล)
+const levelOptions = (prefix) => Object.keys(ITEM_TYPE_LABEL).filter((id) => id.startsWith(prefix)).map((id) => ({ id, label: ITEM_TYPE_LABEL[id], level: true }))
 export const TYPE_FILTERS = [
   { id: 'all', label: 'ทุกประเภท' },
-  { id: 'Weapon', label: 'อาวุธ' },
-  { id: 'Armor', label: 'เกราะ' },
+  { id: 'Weapon', label: 'อาวุธทั้งหมด' },
+  ...levelOptions('weapon'),
+  { id: 'Armor', label: 'เกราะทั้งหมด' },
+  ...levelOptions('armor'),
 ]
+export const DEFAULT_FILTERS = { status: 'all', type: 'all', source: 'all', query: '' }
 export const SOURCE_FILTERS = [
   { id: 'all', label: 'ทุกที่มา' },
   { id: 'extra', label: 'เสริม (เพิ่มเอง/ระบบหาเจอ)' },
@@ -36,18 +42,24 @@ export function buildRows(extraItems, indexItems) {
 }
 
 const sourceKey = (x) => (x.source === 'index' ? 'index' : 'extra')
+// ตัวเลือกประเภทที่แถวนี้ตรง: ประเภทรวม ('Weapon'|'Armor') + เลเวล ('weapon4' ...) — ไม่รู้ประเภท = ไม่ตรงอะไรเลย
+const typeKeys = (x) => {
+  if (!x.item_type) return []
+  const levelId = itemTypeId(x.item_type, x.item_type === 'Weapon' ? x.weapon_level : x.armor_level)
+  return levelId ? [x.item_type, levelId] : [x.item_type]
+}
 
 // เงื่อนไขของแต่ละตัวกรอง (all = ผ่านทุกแถว) — ใช้ร่วมกันทั้งการกรองและการนับจำนวน
 const matchers = {
   status: (x, v) => v === 'all' || x.status === v,
-  type: (x, v) => v === 'all' || x.item_type === v,
+  type: (x, v) => v === 'all' || typeKeys(x).includes(v),
   source: (x, v) => v === 'all' || sourceKey(x) === v,
   query: (x, v) => {
     const q = v.trim().toLowerCase()
     return !q || x.label.toLowerCase().includes(q) || String(x.id).includes(q)
   },
 }
-const FACETS = { status: (x) => x.status, type: (x) => x.item_type, source: sourceKey }
+const FACETS = { status: (x) => [x.status], type: typeKeys, source: (x) => [sourceKey(x)] }
 
 export function filterRows(rows, filters) {
   return rows.filter((x) => Object.keys(matchers).every((k) => matchers[k](x, filters[k])))
@@ -60,9 +72,8 @@ export function countFacets(rows, filters) {
   for (const x of rows) {
     for (const facet of Object.keys(FACETS)) {
       if (!Object.keys(matchers).every((k) => k === facet || matchers[k](x, filters[k]))) continue
-      const key = FACETS[facet](x)
       counts[facet].all++
-      if (key) counts[facet][key] = (counts[facet][key] || 0) + 1
+      for (const key of FACETS[facet](x)) counts[facet][key] = (counts[facet][key] || 0) + 1
     }
   }
   return counts

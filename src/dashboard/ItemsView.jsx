@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Toggle from '../components/Toggle'
 import AddItemPanel from './items/AddItemPanel'
 import { ItemDetail } from './items/RawDetails'
-import { SOURCE_FILTERS, STATUS_FILTERS, TYPE_FILTERS, buildRows, countFacets, filterRows } from './items/itemRows'
+import { DEFAULT_FILTERS, SOURCE_FILTERS, STATUS_FILTERS, TYPE_FILTERS, buildRows, countFacets, filterRows } from './items/itemRows'
 import { btnNeutral, btnOk, btnWarn, inputCls } from './items/consts'
 import { EmptyNote, FilterTabs, ItemRow, Panel, Skeleton } from './items/ui'
 
@@ -23,7 +23,7 @@ export default function ItemsView({ session, scrollTo }) {
   const [busyId, setBusyId] = useState(null) // id ที่กำลังบันทึก / 'mode' = กำลังสลับโหมด / 'add' = กำลังเพิ่ม
   const [confirmDeleteId, setConfirmDeleteId] = useState(null)
   const [detail, setDetail] = useState(null) // { id, loading?, data?, error? } — ดูรายละเอียดทีละชิ้น (ยิง API ทีละคำขอตามกติกา rate limit)
-  const [filters, setFilters] = useState({ status: 'all', type: 'all', source: 'all', query: '' })
+  const [filters, setFilters] = useState(DEFAULT_FILTERS)
   const [shown, setShown] = useState(LIST_PAGE)
 
   const token = session?.access_token
@@ -116,6 +116,7 @@ export default function ItemsView({ session, scrollTo }) {
   const rows = useMemo(() => buildRows(items, indexItems), [items, indexItems])
   const filtered = useMemo(() => filterRows(rows, filters), [rows, filters])
   const counts = useMemo(() => countFacets(rows, filters), [rows, filters])
+  const filtersActive = Object.keys(DEFAULT_FILTERS).some((k) => filters[k] !== DEFAULT_FILTERS[k])
 
   if (loading) return (
     <div className="space-y-6"><Skeleton h="h-24" /><Skeleton h="h-40" /><Skeleton h="h-56" /><Skeleton h="h-72" /></div>
@@ -186,16 +187,22 @@ export default function ItemsView({ session, scrollTo }) {
 
       {/* ── รายการทั้งหมด ── */}
       <Panel id="items-all" title={`รายการทั้งหมด (${rows.length})`} hint="รายชื่อหลัก (ไฟล์) + ไอเทมเสริมจาก dashboard — “ซ่อนอยู่” = ไม่แสดงในช่องค้นหา; รายชื่อหลักลบไม่ได้ ใช้ “ซ่อน” (ลบแถวที่ซ่อนไว้ = กลับมาแสดง)">
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <FilterTabs options={STATUS_FILTERS} value={filters.status} onChange={setFilter('status')} counts={counts.status} />
-          <FilterTabs options={TYPE_FILTERS} value={filters.type} onChange={setFilter('type')} counts={counts.type} />
-          <FilterTabs options={SOURCE_FILTERS} value={filters.source} onChange={setFilter('source')} counts={counts.source} />
-          <input
-            value={filters.query}
-            onChange={(e) => setFilter('query')(e.target.value)}
-            placeholder="ค้นชื่อหรือ ID"
-            className={`${inputCls} min-w-0 flex-1 px-3 py-1.5 text-xs sm:max-w-xs`}
-          />
+        <div className="mb-4 space-y-2.5 rounded-xl border border-white/5 bg-white/[0.02] p-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              value={filters.query}
+              onChange={(e) => setFilter('query')(e.target.value)}
+              placeholder="ค้นชื่อหรือ ID"
+              className={`${inputCls} min-w-0 flex-1 px-3 py-1.5 text-xs sm:max-w-xs`}
+            />
+            {filtersActive && (
+              <button className={btnNeutral} onClick={() => { setFilters(DEFAULT_FILTERS); setShown(LIST_PAGE) }}>ล้างตัวกรอง</button>
+            )}
+            <span className="ml-auto text-[11px] text-slate-500">แสดง {Math.min(shown, filtered.length).toLocaleString('th-TH')} จาก {filtered.length.toLocaleString('th-TH')} รายการ</span>
+          </div>
+          <FilterTabs label="สถานะ" options={STATUS_FILTERS} value={filters.status} onChange={setFilter('status')} counts={counts.status} />
+          <FilterTabs label="ประเภท" options={TYPE_FILTERS} value={filters.type} onChange={setFilter('type')} counts={counts.type} />
+          <FilterTabs label="ที่มา" options={SOURCE_FILTERS} value={filters.source} onChange={setFilter('source')} counts={counts.source} />
         </div>
 
         {filtered.length === 0 ? <EmptyNote>ไม่มีรายการ</EmptyNote> : (

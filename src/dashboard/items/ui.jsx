@@ -1,6 +1,6 @@
 import ItemIcon from '../ItemIcon'
 import ItemTypeBadge from '../ItemTypeBadge'
-import { itemTypeId } from '../../constants/itemTypes'
+import { ITEM_TYPE_BADGE_CLS, itemTypeId } from '../../constants/itemTypes'
 import { SOURCE_LABEL, STATUS_META } from './consts'
 
 // ชิ้นส่วน UI ร่วมของแท็บ "ไอเทม" (ป้าย, ปุ่ม, กลุ่มตัวกรอง, แถวไอเทม, Panel)
@@ -41,16 +41,24 @@ export const EmptyNote = ({ children }) => (
   <p className="rounded-xl border border-dashed border-white/10 px-4 py-6 text-center text-xs text-slate-500">{children}</p>
 )
 
-// กลุ่มปุ่มเลือกตัวกรอง (options: [{ id, label }], counts: จำนวนต่อ id — ถ้าส่งมาจะแสดง "ชื่อ (จำนวน)" ทุกตัวเลือก)
-export function FilterTabs({ options, value, onChange, counts }) {
+// แถวตัวกรอง: ป้ายกลุ่มทางซ้าย + ปุ่มเลือกทางขวา (options: [{ id, label, level? }], counts: จำนวนต่อ id — แสดง "ชื่อ (จำนวน)" ทุกตัวเลือก)
+// ตัวเลือก level = เลเวลของอาวุธ/เกราะ แสดงด้วยสีป้ายเดียวกับในรายการ; ตัวเลือกที่ถูกเลือกมีพื้นหลังเด่น
+export function FilterTabs({ label, options, value, onChange, counts }) {
   return (
-    <div className="flex gap-1 rounded-lg bg-white/[0.03] p-0.5">
-      {options.map((o) => (
-        <button key={o.id} onClick={() => onChange(o.id)}
-          className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${value === o.id ? 'bg-indigo-500/25 text-indigo-200' : 'text-slate-400 hover:text-slate-200'}`}>
-          {o.label}{counts ? ` (${(counts[o.id] || 0).toLocaleString('th-TH')})` : ''}
-        </button>
-      ))}
+    <div className="flex items-start gap-3">
+      <span className="w-14 shrink-0 pt-1.5 text-[11px] font-medium text-slate-500">{label}</span>
+      <div className="flex flex-wrap gap-1.5">
+        {options.map((o) => {
+          const active = value === o.id
+          const tone = o.level ? ITEM_TYPE_BADGE_CLS[o.id] : 'bg-white/[0.04] text-slate-300'
+          return (
+            <button key={o.id} onClick={() => onChange(o.id)} aria-pressed={active}
+              className={`rounded-full px-2.5 py-1 text-xs font-medium transition ${tone} ${active ? 'ring-1 ring-current' : 'opacity-60 hover:opacity-100'}`}>
+              {o.label}{counts ? ` (${(counts[o.id] || 0).toLocaleString('th-TH')})` : ''}
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }
