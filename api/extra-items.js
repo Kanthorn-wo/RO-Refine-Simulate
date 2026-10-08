@@ -62,6 +62,8 @@ async function lookupItem(id) {
     // บอกแนวโน้มเฉยๆ (API ไม่ระบุว่าตีบวกได้หรือไม่) ให้คนตัดสินใจเอง
     refinableGuess: isRefinableCandidate({ type: named.type, subType: named.subType, name: named.name, description }),
     availableOnThai: !!(thai && thai.isAvailableOnServer),
+    // ข้อมูลดิบครบทุก field จาก divine-pride (ให้ dashboard โชว์ทั้งหมดไว้ตรวจก่อนบันทึก)
+    raw: { thROG: thai, iRO: global },
   }
 }
 

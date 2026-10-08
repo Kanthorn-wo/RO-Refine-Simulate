@@ -48,6 +48,59 @@ const LevelBadge = ({ level }) => (
   <span className="shrink-0 rounded-full bg-indigo-500/15 px-1.5 py-0.5 text-[10px] font-medium text-indigo-300">เกราะ Lv{level}</span>
 )
 
+// ค่าของ field จาก divine-pride: description มีรหัสสี ^RRGGBB และขึ้นบรรทัดใหม่ → ตัดรหัสสี/คงบรรทัด, object/array → JSON
+const FIELD_VALUE_LIMIT = 2000
+function FieldValue({ name, value }) {
+  if (value === null || value === undefined || value === '') return <span className="text-slate-600">—</span>
+  if (typeof value === 'object') {
+    const json = JSON.stringify(value, null, 1)
+    const cut = json.length > FIELD_VALUE_LIMIT
+    return (
+      <pre className="max-h-48 overflow-auto whitespace-pre-wrap break-all rounded-md bg-black/30 p-2 text-[11px] text-slate-300">
+        {cut ? `${json.slice(0, FIELD_VALUE_LIMIT)}\n… (ตัด ${json.length - FIELD_VALUE_LIMIT} ตัวอักษร)` : json}
+      </pre>
+    )
+  }
+  if (name === 'description' || name === 'unidDescription') {
+    return <span className="whitespace-pre-wrap break-words">{String(value).replace(/\^[0-9A-Fa-f]{6}/g, '').replace(/\r/g, '')}</span>
+  }
+  return <span className="break-all">{String(value)}</span>
+}
+
+// ข้อมูลดิบทั้งหมดของไอเทมจาก divine-pride (เลือกดูตามเซิร์ฟ) — ไว้ตรวจก่อนตัดสินใจเพิ่ม/ซ่อน
+function RawDetails({ raw }) {
+  const sources = ['thROG', 'iRO'].filter((k) => raw && raw[k])
+  const [source, setSource] = useState(sources[0] || 'thROG')
+  if (!sources.length) return null
+  const data = raw[source] || raw[sources[0]]
+  const entries = Object.entries(data)
+  return (
+    <details className="rounded-lg border border-white/5 bg-black/20">
+      <summary className="cursor-pointer select-none px-3 py-2 text-xs font-medium text-slate-300">
+        ดูข้อมูลทั้งหมดจาก Divine Pride ({entries.length} field)
+      </summary>
+      <div className="border-t border-white/5 p-3">
+        <div className="mb-2 flex gap-1">
+          {sources.map((k) => (
+            <button key={k} onClick={() => setSource(k)}
+              className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${source === k ? 'bg-indigo-500/25 text-indigo-200' : 'text-slate-400 hover:text-slate-200'}`}>
+              {k === 'thROG' ? 'เซิร์ฟไทย (thROG)' : 'iRO'}
+            </button>
+          ))}
+        </div>
+        <dl className="max-h-96 divide-y divide-white/5 overflow-y-auto text-xs">
+          {entries.map(([key, value]) => (
+            <div key={key} className="grid grid-cols-[9rem_1fr] gap-3 py-1.5">
+              <dt className="break-all font-mono text-slate-500">{key}</dt>
+              <dd className="min-w-0 text-slate-300"><FieldValue name={key} value={value} /></dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </details>
+  )
+}
+
 const btnBase = 'rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40'
 const btnOk = `${btnBase} border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20`
 const btnWarn = `${btnBase} border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20`
@@ -272,6 +325,7 @@ export default function ItemsView({ session, scrollTo }) {
               </span>
               {lookup.existingStatus && <span className="rounded-full bg-white/5 px-2 py-0.5 text-slate-400">มีในรายการแล้ว: {STATUS_META[lookup.existingStatus]?.label}</span>}
             </div>
+            <RawDetails key={lookup.id} raw={lookup.raw} />
             <label className="flex items-center gap-2 text-xs text-slate-400">
               เลเวลเกราะ
               <select
