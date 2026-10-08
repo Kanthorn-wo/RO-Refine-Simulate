@@ -21,11 +21,11 @@ import { trackEvent } from '../../utils/analytics';
 import { recordRefine, recordAction, recordRefineDetail } from '../../utils/usageStats';
 import UsageStats from '../UsageStats';
 import ItemSearch from '../ItemSearch';
+import { useItemSearchFlag } from '../../utils/useItemSearchFlag';
 import { isHighTierRequiredLevel } from '../../constants/itemLevels';
 
 // ค้นไอเทมผ่าน serverless proxy /api/item (ซ่อน divine-pride API key ไว้ฝั่ง server)
-// ปิดโหมดค้นหาไอเทมชั่วคราว (ปุ่มกดไม่ได้ + แสดงข้อความปิดปรับปรุง เหลือเลือกประเภทเอง) — เปิดกลับโดยตั้งเป็น true
-const ITEM_SEARCH_ENABLED = false;
+// เปิด/ปิดโหมดค้นหาไอเทมตั้งจาก dashboard (site_settings.item_search_enabled ผ่าน /api/extra-items) — ปิด = ปุ่มกดไม่ได้ + ข้อความปิดปรับปรุง เหลือเลือกประเภทเอง
 
 // ── ระบบช่วงหิน Auto: กำแพงที่จุดเปลี่ยนแร่ ───────────────────────────────
 // กำแพงจุดเปลี่ยนแร่ (destination level): ทุก item เปลี่ยน low→high ที่ +11
@@ -196,6 +196,12 @@ const Container = () => {
   const [itemIdInput, setItemIdInput] = useState('');
   const [apiItem, setApiItem] = useState(null);
   const [apiLoading, setApiLoading] = useState(false);
+  // null = ยังไม่รู้ (กำลังโหลดค่า: ปุ่มกดไม่ได้ ยังไม่โชว์ข้อความปิดปรับปรุง), true/false = ค่าจากหลังบ้านแบบ realtime (ไม่ได้ค่า = ปิด)
+  const itemSearchEnabled = useItemSearchFlag();
+  // ปิดช่องค้นหาระหว่างที่ผู้เล่นใช้อยู่ → ดีดกลับไปเลือกประเภทเอง
+  useEffect(() => {
+    if (itemSearchEnabled === false) setInputMode('dropdown');
+  }, [itemSearchEnabled]);
   const [apiError, setApiError] = useState('');
   const [showItemInfo, setShowItemInfo] = useState(false);
   const [showStoneModal, setShowStoneModal] = useState(false);
@@ -890,10 +896,10 @@ const Container = () => {
               type="button"
               onClick={() => setInputMode('id')}
               aria-pressed={inputMode === 'id'}
-              disabled={!ITEM_SEARCH_ENABLED}
-              title={ITEM_SEARCH_ENABLED ? undefined : t('item_search_maintenance')}
+              disabled={itemSearchEnabled !== true}
+              title={itemSearchEnabled === false ? t('item_search_maintenance') : undefined}
               className={`rounded-lg px-3 py-1 text-xs font-semibold transition-all duration-150 ${
-                !ITEM_SEARCH_ENABLED
+                itemSearchEnabled !== true
                   ? 'cursor-not-allowed text-faint opacity-60'
                   : inputMode === 'id'
                     ? 'cursor-pointer bg-amber-400 font-bold text-slate-900 shadow-md shadow-black/40'
@@ -904,7 +910,7 @@ const Container = () => {
             </button>
           </div>
         </div>
-        {!ITEM_SEARCH_ENABLED && (
+        {itemSearchEnabled === false && (
           <p className="mb-2 text-xs text-warn">{t('item_search_maintenance')}</p>
         )}
 

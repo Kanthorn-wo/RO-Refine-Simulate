@@ -1,6 +1,7 @@
 // Vercel Serverless: รายชื่อไอเทมเสริมสำหรับช่องค้นหาไอเทม (ตาราง extra_items) — จัดการผ่าน dashboard แท็บ "ไอเทม"
 //   GET            → public: { add: [[id,label,armorLevel?]], deny: [id] }  (approved = เพิ่มเข้าช่องค้นหา, denied = ซ่อน)
-//   GET ?all=1     → owner : ทุกแถว + โหมดอนุมัติ (autoApprove) — no-store
+//   GET ?flag=1    → public: { searchEnabled } สวิตช์เปิดช่องค้นหาหน้าเว็บ (default false) — no-store เพื่อให้ปิดแล้วมีผลทันที (ใช้กับ useItemSearchFlag)
+//   GET ?all=1     → owner : ทุกแถว + โหมดอนุมัติ (autoApprove) + searchEnabled — no-store
 //   POST (owner)   → { action: 'lookup' | 'add' | 'setStatus' | 'delete', ... }
 // โหมดอนุมัติ (item_auto_approve) เขียนผ่าน /api/settings; Action (scripts/find-missing-items.mjs) เขียนตารางตรง
 // ENV: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_ANON_KEY, DASHBOARD_ALLOWED_EMAILS, DIVINE_PRIDE_API_KEY
@@ -48,6 +49,10 @@ async function lookupItem(id) {
   return info && { id: Number(id), ...info, raw: { thROG: thai, iRO: global } }
 }
 
+// สวิตช์เปิดช่องค้นหาไอเทมหน้าเว็บ (site_settings.item_search_enabled) — ไม่มีแถว/อ่านไม่ได้ = ปิด
+const SEARCH_FLAG_QUERY = 'site_settings?select=value&key=eq.item_search_enabled'
+const isOn = (rows) => !!(rows[0] && rows[0].value === true)
+
 const rowToItem = (r) => [Number(r.id), r.label, ...(r.armor_level === 2 ? [2] : [])]
 
 export default async function handler(req, res) {
@@ -58,21 +63,31 @@ export default async function handler(req, res) {
 
   // ── GET ──
   if (req.method === 'GET') {
+    if (url.searchParams.get('flag') === '1') {
+      try {
+        const r = await sbFetch(SEARCH_FLAG_QUERY)
+        res.setHeader('cache-control', 'no-store')
+        return res.status(200).json({ searchEnabled: r.ok && isOn(await r.json()) })
+      } catch {
+        return res.status(502).json({ error: 'read failed' })
+      }
+    }
+
     // owner: ทุกแถว + โหมดอนุมัติ
     if (url.searchParams.get('all') === '1') {
       const user = await getUser(req)
       if (!user) return res.status(401).json({ error: 'unauthorized' })
       if (!isOwner(user)) return res.status(403).json({ error: 'ไม่มีสิทธิ์เข้าถึง' })
       try {
-        const [itemsRes, settingRes] = await Promise.all([
+        const [itemsRes, settingRes, searchRes] = await Promise.all([
           sbFetch(`extra_items?select=id,label,armor_level,item_type,weapon_level,level_uncertain,status,source,created_at,updated_at&order=updated_at.desc&limit=${MAX_ROWS}`),
           sbFetch('site_settings?select=value&key=eq.item_auto_approve'),
+          sbFetch(SEARCH_FLAG_QUERY),
         ])
         if (!itemsRes.ok || !settingRes.ok) return res.status(502).json({ error: 'read failed' })
         const items = await itemsRes.json()
-        const setting = await settingRes.json()
         res.setHeader('cache-control', 'no-store')
-        return res.status(200).json({ items, autoApprove: !!(setting[0] && setting[0].value === true) })
+        return res.status(200).json({ items, autoApprove: isOn(await settingRes.json()), searchEnabled: searchRes.ok && isOn(await searchRes.json()) })
       } catch {
         return res.status(502).json({ error: 'read failed' })
       }

@@ -62,3 +62,8 @@ alter table public.extra_items add column if not exists level_uncertain boolean 
 -- ประเภท/เลเวลอาวุธ (แสดงใน dashboard + ตัวกรอง อาวุธ/เกราะ): เกราะใช้ armor_level เดิม, อาวุธใช้ weapon_level (1–5)
 alter table public.extra_items add column if not exists item_type text check (item_type in ('Weapon', 'Armor'));
 alter table public.extra_items add column if not exists weapon_level smallint check (weapon_level between 1 and 5);
+
+-- สวิตช์เปิด/ปิดช่องค้นหาไอเทมหน้าเว็บ (ตั้งจาก dashboard แท็บ "ไอเทม"): false = ปิดปรับปรุง (default), true = เปิด
+insert into public.site_settings (key, value)
+values ('item_search_enabled', 'false'::jsonb)
+on conflict (key) do nothing;

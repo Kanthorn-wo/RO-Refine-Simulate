@@ -103,6 +103,7 @@ const NAV_SECTIONS = {
     { id: 'usage-settings',         label: 'ตั้งค่าแสดงผล',    subTab: 'settings' },
   ],
   items: [
+    { id: 'items-search',  label: 'เปิด/ปิดช่องค้นหา' },
     { id: 'items-mode',    label: 'โหมดอนุมัติ' },
     { id: 'items-pending', label: 'รออนุมัติ' },
     { id: 'items-add',     label: 'เพิ่ม/ซ่อนไอเทม' },
