@@ -2,22 +2,24 @@ import { useState } from 'react'
 import ItemIcon from '../ItemIcon'
 import { RawDetails } from './RawDetails'
 import { STATUS_META, btnNeutral, btnOk, btnWarn, inputCls, selectCls } from './consts'
-import { Panel, UncertainBadge } from './ui'
+import { Panel, Spinner, UncertainBadge } from './ui'
 
 // เพิ่ม/ซ่อนไอเทมด้วย Item ID: ค้นข้อมูลจาก divine-pride (action lookup) → ตรวจ/แก้ชื่อ+เลเวล → บันทึก
-// callApi(payload) → ผล JSON หรือ throw; onSave(payload, successMsg) บันทึกผ่าน parent (โหลดรายการใหม่ + แจ้งผล); onError(msg)
-export default function AddItemPanel({ callApi, onSave, onError, saving }) {
+// lookupItem(id) → ผล lookup (null = parent เมินเพราะมีคำขอค้างอยู่, throw = error); lookupBusy = มีคำขอ lookup ค้างอยู่ (จากปุ่มไหนก็ตาม)
+// onSave(payload, successMsg) บันทึกผ่าน parent (โหลดรายการใหม่ + แจ้งผล); onError(msg)
+export default function AddItemPanel({ lookupItem, lookupBusy, onSave, onError, saving }) {
   const [addId, setAddId] = useState('')
   const [lookup, setLookup] = useState(null) // ผล lookup ที่แก้ได้ { id, label, armorLevel, weaponLevel, type, ... }
   const [looking, setLooking] = useState(false)
 
   const doLookup = async () => {
+    if (lookupBusy) return // กัน Enter/กดซ้ำระหว่างมีคำขอค้างอยู่
     const id = addId.trim()
     setLookup(null)
     if (!/^\d{1,8}$/.test(id)) { onError('Item ID ต้องเป็นตัวเลข 1–8 หลัก'); return }
     setLooking(true)
     try {
-      setLookup(await callApi({ action: 'lookup', id }))
+      setLookup(await lookupItem(id))
     } catch (err) {
       onError(err.message)
     } finally {
@@ -48,7 +50,8 @@ export default function AddItemPanel({ callApi, onSave, onError, saving }) {
           placeholder="Item ID เช่น 460166"
           className={`${inputCls} min-w-0 flex-1 px-3 py-2 text-sm`}
         />
-        <button className={btnNeutral} onClick={doLookup} disabled={looking || !addId.trim()}>{looking ? 'กำลังค้น…' : 'ค้นข้อมูล'}</button>
+        <button className={`${btnNeutral} inline-flex min-w-[5.5rem] items-center justify-center`} onClick={doLookup} disabled={lookupBusy || !addId.trim()}
+          aria-busy={looking} aria-label={looking ? 'กำลังค้น' : undefined}>{looking ? <Spinner /> : 'ค้นข้อมูล'}</button>
       </div>
 
       {lookup && (

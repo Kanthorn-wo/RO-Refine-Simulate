@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Toggle from '../components/Toggle'
 import AddItemPanel from './items/AddItemPanel'
 import { ItemDetail } from './items/RawDetails'
 import { DEFAULT_FILTERS, SOURCE_FILTERS, STATUS_FILTERS, TYPE_FILTERS, buildRows, countFacets, filterRows } from './items/itemRows'
 import { btnNeutral, btnOk, btnWarn, inputCls } from './items/consts'
-import { EmptyNote, FilterTabs, ItemRow, Panel, Skeleton } from './items/ui'
+import { EmptyNote, FilterTabs, ItemRow, Panel, Skeleton, Spinner } from './items/ui'
 
 // แท็บ "ไอเทม": จัดการรายชื่อไอเทมของช่องค้นหาไอเทม (ตาราง extra_items ผ่าน /api/extra-items + รายชื่อหลัก refinableItems.json)
 //   - โหมดอนุมัติ (item_auto_approve ผ่าน /api/settings): ผ่านอัตโนมัติ หรือรอกดอนุมัติเอง
@@ -25,6 +25,8 @@ export default function ItemsView({ session, scrollTo }) {
   const [detail, setDetail] = useState(null) // { id, loading?, data?, error? } — ดูรายละเอียดทีละชิ้น (ยิง API ทีละคำขอตามกติกา rate limit)
   const [filters, setFilters] = useState(DEFAULT_FILTERS)
   const [shown, setShown] = useState(LIST_PAGE)
+  const [lookupBusy, setLookupBusy] = useState(false) // มีคำขอ lookup (ยิง Divine Pride) ค้างอยู่ → ปิดทุกปุ่มที่ยิง API นี้
+  const lookupLock = useRef(false)                  // กันกดซ้ำที่เร็วกว่าการ render (state อัปเดตไม่ทัน)
 
   const token = session?.access_token
   const authHeaders = useMemo(() => (token ? { Authorization: `Bearer ${token}` } : {}), [token])
@@ -98,12 +100,26 @@ export default function ItemsView({ session, scrollTo }) {
     return save({ action: 'delete', id: String(item.id) }, `ลบ “${item.label}” ออกจากรายการแล้ว`)
   }
 
-  // ดูข้อมูลดิบครบทุก field (action lookup เดิม) ทีละชิ้น
+  // lookup ข้อมูลไอเทมจาก Divine Pride — ทีละคำขอเท่านั้น (ทุกปุ่มที่ยิง API นี้ใช้ตัวนี้): ระหว่างค้างอยู่คำขอใหม่ถูกเมิน (คืน null)
+  const lookupItem = async (id) => {
+    if (lookupLock.current) return null
+    lookupLock.current = true
+    setLookupBusy(true)
+    try {
+      return await callApi({ action: 'lookup', id: String(id) })
+    } finally {
+      lookupLock.current = false
+      setLookupBusy(false)
+    }
+  }
+
+  // ดูข้อมูลดิบครบทุก field ของแถว (กดซ้ำ = พับ)
   const toggleDetail = async (item) => {
-    if (detail?.id === item.id) { setDetail(null); return }
+    if (detail?.id === item.id && !detail.loading) { setDetail(null); return }
+    if (lookupLock.current) return
     setDetail({ id: item.id, loading: true })
     try {
-      setDetail({ id: item.id, data: await callApi({ action: 'lookup', id: String(item.id) }) })
+      setDetail({ id: item.id, data: await lookupItem(item.id) })
     } catch (err) {
       setDetail({ id: item.id, error: err.message })
     }
@@ -131,8 +147,9 @@ export default function ItemsView({ session, scrollTo }) {
 
   const autoApprove = !!data.autoApprove
   const detailButton = (item) => (
-    <button className={btnNeutral} disabled={detail?.loading && detail.id !== item.id} onClick={() => toggleDetail(item)}>
-      {detail?.id === item.id ? 'ซ่อนรายละเอียด' : 'รายละเอียด'}
+    <button className={`${btnNeutral} inline-flex min-w-[5.5rem] items-center justify-center`} disabled={lookupBusy} onClick={() => toggleDetail(item)}
+      aria-busy={detail?.id === item.id && detail.loading} aria-label={detail?.id === item.id && detail.loading ? 'กำลังโหลด' : undefined}>
+      {detail?.id === item.id && detail.loading ? <Spinner /> : detail?.id === item.id ? 'ซ่อนรายละเอียด' : 'รายละเอียด'}
     </button>
   )
   const detailBox = (item) => detail?.id === item.id && <ItemDetail state={detail} />
@@ -183,7 +200,7 @@ export default function ItemsView({ session, scrollTo }) {
       </Panel>
 
       {/* ── เพิ่มเอง ── */}
-      <AddItemPanel callApi={callApi} onSave={save} onError={setError} saving={busyId === 'add'} />
+      <AddItemPanel lookupItem={lookupItem} lookupBusy={lookupBusy} onSave={save} onError={setError} saving={busyId === 'add'} />
 
       {/* ── รายการทั้งหมด ── */}
       <Panel id="items-all" title={`รายการทั้งหมด (${rows.length})`} hint="รายชื่อหลัก (ไฟล์) + ไอเทมเสริมจาก dashboard — “ซ่อนอยู่” = ไม่แสดงในช่องค้นหา; รายชื่อหลักลบไม่ได้ ใช้ “ซ่อน” (ลบแถวที่ซ่อนไว้ = กลับมาแสดง)">

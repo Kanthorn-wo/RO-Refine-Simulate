@@ -21,6 +21,14 @@ export const TypeBadge = ({ item }) => (
   <ItemTypeBadge kind={item.item_type} type={itemTypeId(item.item_type, item.item_type === 'Weapon' ? item.weapon_level : item.armor_level)} />
 )
 
+// ไอคอน loading (หมุน) — ใช้แทนข้อความในปุ่มระหว่างรอคำขอ; ผู้ใช้โปรแกรมอ่านหน้าจอได้ยินจาก aria-label ของปุ่ม
+export const Spinner = () => (
+  <svg className="inline-block h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="3" opacity="0.25" />
+    <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+  </svg>
+)
+
 export function Skeleton({ h = 'h-40' }) {
   return <div className={`animate-pulse rounded-2xl bg-white/[0.04] ${h}`} />
 }
