@@ -648,7 +648,7 @@ const Container = () => {
   }, [isEventRate]);
 
   // id (+ armorLevel เกราะเลเวล 2) มาจากรายการที่เลือกใน dropdown ค้นชื่อ (ItemSearch)
-  const handleFetchItem = async (itemId, armorLevel) => {
+  const handleFetchItem = async (itemId, armorLevel, indexName) => {
     const id = String(itemId ?? '').trim();
     if (!id || apiLoading) return;
     setApiLoading(true);
@@ -677,7 +677,8 @@ const Container = () => {
       }
       setApiItem({
         id: data.id,
-        name: data.name,
+        // ไอเทมเซิร์ฟไทยบางชิ้น API ไม่มีชื่อ ("Item #id") → ใช้ชื่อจาก index แทน
+        name: /^Item #\d+$/.test(data.name || '') && indexName ? indexName : data.name,
         aegisName: data.aegisName,
         type: mapped,
         itemLevel: lvl,

@@ -45,7 +45,7 @@ export default function ItemSearch({ value, onChange, onSelect, placeholder }) {
   const pick = ([id, name, armorLevel]) => {
     onChange(name);
     setOpen(false);
-    onSelect(String(id), armorLevel);
+    onSelect(String(id), armorLevel, name);
   };
 
   const handleKeyDown = e => {
