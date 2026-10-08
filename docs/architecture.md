@@ -211,6 +211,7 @@ Deploy หลักใช้ **Vercel** (auto build จาก push master, root 
 - log entry เพิ่ม field: `resultType`, `dropAmount`, `rollData: {successPct, failPct, rollPct, isSuccess}`, `fromLevel`, `toLevel` — ใช้ render badge และ roll detail โดยไม่ต้อง parse string msg
 
 ## ประวัติ version (ย้ายจาก CLAUDE.md)
+- 1.13.4 (2026-10-08) — ปิดโหมดค้นหาไอเทมชั่วคราว (`ITEM_SEARCH_ENABLED = false`, ปุ่มกดไม่ได้ + ข้อความปิดปรับปรุง) เพราะโควตา divine-pride API ถูกแบ่งกับ Action `item-gaps.yml` ; ไม่มี CHANGELOG
 - 1.13.3 (2026-10-08) — เก็บคำค้นไอเทมที่ไม่เจอลง `usage_events` (type `item_miss`, แสดงใน dashboard feed) + GitHub Action `item-gaps.yml` รายงานอาวุธ/เกราะเซิร์ฟไทยที่ index ขาด ; ไม่มี CHANGELOG
 - 1.13.2 (2026-10-08) — เพิ่มรายการไอเทมเสริมของเซิร์ฟไทย (`scripts/extra-items.json`, ชิ้นแรก Falling Star Shield เกราะเลเวล 2) + ใช้ชื่อจาก index เมื่อ API ไม่มีชื่อ ; ไม่มี CHANGELOG
 - 1.13.1 (2026-10-07) — index ค้นไอเทมกรองเหลือเฉพาะไอเทมที่มีบน thROG (5,163 ชิ้น, ตัด Shadowgear) + จัดอาวุธ/เกราะจาก `type`/`weaponLevel`/เลเวลเกราะใน index (เดิมเกราะเลเวล 2 และอาวุธเลเวล 2-5 ถูกจัดเป็นเลเวล 1) ; ไม่มี CHANGELOG
