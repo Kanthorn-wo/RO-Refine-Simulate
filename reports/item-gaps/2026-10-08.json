@@ -1,0 +1,6381 @@
+{
+  "generatedAt": "2026-10-08T05:44:35.351Z",
+  "since": "2008-01-01",
+  "server": "thROG",
+  "thIds": 18484,
+  "candidates": 2266,
+  "found": 637,
+  "note": "ผู้ต้องสงสัยเท่านั้น — API ไม่บอกว่าตีบวกได้หรือไม่ ให้คัดเลือกแล้วเติมเข้า scripts/extra-items.json รูปแบบ [id, \"ชื่อ [slots]\"] (เกราะเลเวล 2 ใส่ 2 ต่อท้าย)",
+  "items": [
+    {
+      "id": 5935,
+      "name": "Der Meisterpinsel",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 5939,
+      "name": "Love Dad Balloon",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 5941,
+      "name": "Item #5941",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 5942,
+      "name": "Item #5942",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 9161,
+      "name": "Item #9161",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Pet Equipment",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 9162,
+      "name": "Item #9162",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Pet Equipment",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 13348,
+      "name": "[NFS]Huuma Shuriken Clearness",
+      "nameFrom": "iRO",
+      "type": "Weapon",
+      "subType": "Huuma Shuriken",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 15350,
+      "name": "Elephangel",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Armor",
+      "location": "Lower",
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 15351,
+      "name": "Item #15351",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 15355,
+      "name": "Item #15355",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 15356,
+      "name": "Item #15356",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 15357,
+      "name": "Item #15357",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 15358,
+      "name": "Item #15358",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 15359,
+      "name": "Item #15359",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 15360,
+      "name": "Item #15360",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 15929,
+      "name": "Item #15929",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 15930,
+      "name": "Item #15930",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 15931,
+      "name": "Item #15931",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 15933,
+      "name": "Item #15933",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 15937,
+      "name": "Item #15937",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 15938,
+      "name": "Item #15938",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 15939,
+      "name": "Item #15939",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 15940,
+      "name": "Item #15940",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 15941,
+      "name": "Item #15941",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 15942,
+      "name": "Item #15942",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 15943,
+      "name": "Item #15943",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 15944,
+      "name": "[NFS]Whistle",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 15946,
+      "name": "Item #15946",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 15971,
+      "name": "Item #15971",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 15972,
+      "name": "[NFS]Happy Bear Balloon",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 15973,
+      "name": "Item #15973",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 15975,
+      "name": "Item #15975",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Middle",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 15986,
+      "name": "Item #15986",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 18794,
+      "name": "Ordinary Black Magician Hat [1]",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 18795,
+      "name": "Night Sparrow Hat [1]",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 18800,
+      "name": "ギの仮面",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Middle",
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 18886,
+      "name": "Rainbow Long Octopus [1]",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 18907,
+      "name": "Drooping Panda Cap [1]",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 18911,
+      "name": "Red Flower Hat [1]",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 18944,
+      "name": "Deviruchi Balloon",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Lower",
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 18967,
+      "name": "Jinn Poring Balloon",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Lower",
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 19182,
+      "name": "Gang Scarf",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Costume Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 19222,
+      "name": "EXE Wing Cap",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Costume Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 19250,
+      "name": "White Clay Filler",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Costume Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 19251,
+      "name": "Bubble Archangeling Hairband",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Costume Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 19278,
+      "name": "Sweetie Helmet",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Costume Headgear",
+      "location": "Upper/Middle",
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 19297,
+      "name": "DJ Kitty",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Costume Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 19301,
+      "name": "Beer Cap",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 19368,
+      "name": "Flowery Vision",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Costume Headgear",
+      "location": "Middle",
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 19374,
+      "name": "Sparkler Fountain",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Costume Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 19413,
+      "name": "Snow Flower",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Costume Headgear",
+      "location": "Middle",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 19414,
+      "name": "Classic Evolved Pipe Box",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Costume Headgear",
+      "location": "Lower",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 20839,
+      "name": "Light and Darkness Wing",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment",
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 22260,
+      "name": "[NFS]Tohil's Shoes",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Shoes",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 22261,
+      "name": "Item #22261",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shoes",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 22262,
+      "name": "Item #22262",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shoes",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 22263,
+      "name": "Item #22263",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shoes",
+      "location": "Shoes",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 22264,
+      "name": "Nameless Swordsman's Boots",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Shoes",
+      "location": "Shoes",
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 26179,
+      "name": "Item #26179",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Rod",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 26180,
+      "name": "Item #26180",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Rod",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 28054,
+      "name": "[NFS]Blade Katar",
+      "nameFrom": "iRO",
+      "type": "Weapon",
+      "subType": "Katar",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 28395,
+      "name": "Item #28395",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": "Accessory",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 28647,
+      "name": "Item #28647",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Book",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 28788,
+      "name": "Item #28788",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Dagger",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 28975,
+      "name": "[NFS]Doram Shield",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Shield",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 28976,
+      "name": "Item #28976",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shield",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 28978,
+      "name": "[NFS] Fallen Warrior Shield",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Shield",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 28981,
+      "name": "Item #28981",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shield",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 28986,
+      "name": "Item #28986",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400102,
+      "name": "Item #400102",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400247,
+      "name": "Item #400247",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400248,
+      "name": "Item #400248",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400249,
+      "name": "Item #400249",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400281,
+      "name": "Item #400281",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400285,
+      "name": "Item #400285",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400288,
+      "name": "Item #400288",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400297,
+      "name": "Item #400297",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400298,
+      "name": "Item #400298",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400302,
+      "name": "Item #400302",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400306,
+      "name": "Item #400306",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400316,
+      "name": "Item #400316",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400317,
+      "name": "Item #400317",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400318,
+      "name": "Item #400318",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400322,
+      "name": "Item #400322",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400323,
+      "name": "Item #400323",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400324,
+      "name": "Item #400324",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400329,
+      "name": "Item #400329",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400330,
+      "name": "Item #400330",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400331,
+      "name": "Item #400331",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400332,
+      "name": "Item #400332",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400333,
+      "name": "Item #400333",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400334,
+      "name": "Item #400334",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400335,
+      "name": "Item #400335",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400346,
+      "name": "Item #400346",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400361,
+      "name": "Item #400361",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400362,
+      "name": "Item #400362",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400364,
+      "name": "Item #400364",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400706,
+      "name": "Item #400706",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Middle",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400734,
+      "name": "Item #400734",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400735,
+      "name": "Item #400735",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400736,
+      "name": "Item #400736",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400737,
+      "name": "Item #400737",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400791,
+      "name": "Item #400791",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400805,
+      "name": "Item #400805",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400806,
+      "name": "Item #400806",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400807,
+      "name": "Item #400807",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400808,
+      "name": "Item #400808",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400809,
+      "name": "Item #400809",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400810,
+      "name": "Item #400810",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400811,
+      "name": "Item #400811",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400812,
+      "name": "Item #400812",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400813,
+      "name": "Item #400813",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400814,
+      "name": "Item #400814",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400815,
+      "name": "Item #400815",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400816,
+      "name": "Item #400816",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400817,
+      "name": "Item #400817",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400819,
+      "name": "Item #400819",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400820,
+      "name": "Item #400820",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400947,
+      "name": "Item #400947",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400959,
+      "name": "Item #400959",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400960,
+      "name": "Item #400960",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400961,
+      "name": "Item #400961",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 400962,
+      "name": "Item #400962",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 401086,
+      "name": "Item #401086",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 401237,
+      "name": "Item #401237",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 401265,
+      "name": "Item #401265",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 401266,
+      "name": "Item #401266",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 401267,
+      "name": "Item #401267",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 401268,
+      "name": "Item #401268",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 401269,
+      "name": "Item #401269",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 401270,
+      "name": "Item #401270",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 401271,
+      "name": "Item #401271",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 401272,
+      "name": "Item #401272",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 401273,
+      "name": "Item #401273",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 401274,
+      "name": "Item #401274",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 401275,
+      "name": "Item #401275",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 401276,
+      "name": "Item #401276",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 401277,
+      "name": "Item #401277",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 401278,
+      "name": "Item #401278",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 401279,
+      "name": "Item #401279",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 401280,
+      "name": "Item #401280",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 401281,
+      "name": "Item #401281",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 401282,
+      "name": "Item #401282",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 401390,
+      "name": "Item #401390",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 401483,
+      "name": "Item #401483",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Upper",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410134,
+      "name": "Item #410134",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410135,
+      "name": "Item #410135",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410153,
+      "name": "Item #410153",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410161,
+      "name": "Item #410161",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410162,
+      "name": "Item #410162",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410163,
+      "name": "Item #410163",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410164,
+      "name": "Item #410164",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410172,
+      "name": "Item #410172",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410173,
+      "name": "Item #410173",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410180,
+      "name": "Item #410180",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410181,
+      "name": "Item #410181",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410227,
+      "name": "Item #410227",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410237,
+      "name": "Item #410237",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410246,
+      "name": "Item #410246",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Middle",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410249,
+      "name": "Item #410249",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Middle",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410250,
+      "name": "Item #410250",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Middle",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410377,
+      "name": "Item #410377",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Middle",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410386,
+      "name": "Item #410386",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Middle",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410389,
+      "name": "Item #410389",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Middle",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410390,
+      "name": "Item #410390",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Middle",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410391,
+      "name": "Item #410391",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Middle",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410431,
+      "name": "Item #410431",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Middle",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410432,
+      "name": "Item #410432",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Middle",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410433,
+      "name": "Item #410433",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Middle",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410464,
+      "name": "Item #410464",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Middle",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410492,
+      "name": "Item #410492",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Middle",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410541,
+      "name": "Item #410541",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Middle",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410542,
+      "name": "Item #410542",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Middle",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410543,
+      "name": "Item #410543",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Middle",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410549,
+      "name": "Item #410549",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Middle",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410553,
+      "name": "Ancient Morroc Noble Jewelry-LT [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Middle",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410561,
+      "name": "Item #410561",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Middle",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410615,
+      "name": "Little Garden-LT",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Middle",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410616,
+      "name": "Floating Ball-LT",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Middle",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410643,
+      "name": "Item #410643",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Middle",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410644,
+      "name": "Item #410644",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Middle",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410657,
+      "name": "Eye of Necromancer [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Middle",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 410719,
+      "name": "Item #410719",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Middle",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420002,
+      "name": "Durahan's Mask",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 420142,
+      "name": "Item #420142",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420148,
+      "name": "Item #420148",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420157,
+      "name": "Item #420157",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420166,
+      "name": "Item #420166",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420167,
+      "name": "Item #420167",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420183,
+      "name": "Item #420183",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420184,
+      "name": "Item #420184",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420188,
+      "name": "Item #420188",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420189,
+      "name": "Item #420189",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420202,
+      "name": "Item #420202",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420203,
+      "name": "Item #420203",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420217,
+      "name": "Item #420217",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420229,
+      "name": "Item #420229",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Lower",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420328,
+      "name": "Item #420328",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Lower",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420330,
+      "name": "Item #420330",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Lower",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420331,
+      "name": "Item #420331",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Lower",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420332,
+      "name": "Item #420332",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Lower",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420361,
+      "name": "Item #420361",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Lower",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420362,
+      "name": "Item #420362",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Lower",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420363,
+      "name": "Item #420363",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Lower",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420364,
+      "name": "Item #420364",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Lower",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420378,
+      "name": "Item #420378",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Lower",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420379,
+      "name": "Item #420379",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Lower",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420387,
+      "name": "Item #420387",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420428,
+      "name": "Item #420428",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Lower",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420431,
+      "name": "Item #420431",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Lower",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420436,
+      "name": "Item #420436",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Lower",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420437,
+      "name": "Item #420437",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Lower",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420445,
+      "name": "[衣装] カラフルポンチョ",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 420510,
+      "name": "Item #420510",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Lower",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420601,
+      "name": "Item #420601",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Lower",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420603,
+      "name": "Item #420603",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Lower",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420693,
+      "name": "Item #420693",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Lower",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420759,
+      "name": "Item #420759",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Lower",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420797,
+      "name": "Item #420797",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Lower",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420798,
+      "name": "Item #420798",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Unknown",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420832,
+      "name": "Item #420832",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Lower",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420841,
+      "name": "Item #420841",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Lower",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420864,
+      "name": "Item #420864",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Lower",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420930,
+      "name": "Item #420930",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Lower",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420943,
+      "name": "Item #420943",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Lower",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 420978,
+      "name": "Item #420978",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Headgear",
+      "location": "Lower",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 440011,
+      "name": "Item #440011",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Costume Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 440021,
+      "name": "Item #440021",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Costume Headgear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 450157,
+      "name": "Released Cotton Shirt",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Armor",
+      "location": "Body",
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 450248,
+      "name": "Item #450248",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Armor",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 450253,
+      "name": "Item #450253",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Armor",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 450289,
+      "name": "Item #450289",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Armor",
+      "location": "Body",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 450290,
+      "name": "Item #450290",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Armor",
+      "location": "Body",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 450292,
+      "name": "Item #450292",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Armor",
+      "location": "Body",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 450352,
+      "name": "Item #450352",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Armor",
+      "location": "Body",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 450396,
+      "name": "Item #450396",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Armor",
+      "location": "Body",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 450397,
+      "name": "Item #450397",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Armor",
+      "location": "Body",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 450398,
+      "name": "Item #450398",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Armor",
+      "location": "Body",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 450399,
+      "name": "Item #450399",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Armor",
+      "location": "Body",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 450400,
+      "name": "Item #450400",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Armor",
+      "location": "Body",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 450435,
+      "name": "Item #450435",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Armor",
+      "location": "Body",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 450517,
+      "name": "Item #450517",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Armor",
+      "location": "Body",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 450589,
+      "name": "Item #450589",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Armor",
+      "location": "Body",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 450590,
+      "name": "Item #450590",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Armor",
+      "location": "Body",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 450591,
+      "name": "Item #450591",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Armor",
+      "location": "Body",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 450592,
+      "name": "Item #450592",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Armor",
+      "location": "Body",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460028,
+      "name": "Item #460028",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shield",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460033,
+      "name": "Item #460033",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shield",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460041,
+      "name": "Item #460041",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shield",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460051,
+      "name": "Item #460051",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shield",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460076,
+      "name": "Item #460076",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460081,
+      "name": "Guardian's Shield [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460082,
+      "name": "Item #460082",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460100,
+      "name": "Heavenly Oath [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460101,
+      "name": "Item #460101",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460102,
+      "name": "Item #460102",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460107,
+      "name": "Giant Shield [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460108,
+      "name": "Item #460108",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460109,
+      "name": "Item #460109",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460116,
+      "name": "Themis Libra-LT [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460121,
+      "name": "Melody Rose Shield [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460122,
+      "name": "Super Novice Shield [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460123,
+      "name": "Item #460123",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460124,
+      "name": "Item #460124",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460126,
+      "name": "Item #460126",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460127,
+      "name": "Item #460127",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460128,
+      "name": "Item #460128",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460135,
+      "name": "Item #460135",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460137,
+      "name": "Item #460137",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460142,
+      "name": "Punishment Chain Shield [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460143,
+      "name": "Valkyrie Angel Guard [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460144,
+      "name": "Item #460144",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460145,
+      "name": "Item #460145",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460150,
+      "name": "Sylvan Thorn Guard [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460151,
+      "name": "Item #460151",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460152,
+      "name": "Item #460152",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460171,
+      "name": "Soul Demon Shield [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460174,
+      "name": "Item #460174",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460175,
+      "name": "Robot Spark Shield [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460176,
+      "name": "Item #460176",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460178,
+      "name": "Ignis Flame Guard [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460179,
+      "name": "Item #460179",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460180,
+      "name": "Item #460180",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460184,
+      "name": "Item #460184",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 460186,
+      "name": "Item #460186",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shield",
+      "location": "Left Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 470124,
+      "name": "Item #470124",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shoes",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 470131,
+      "name": "Item #470131",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shoes",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 470132,
+      "name": "Item #470132",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shoes",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 470133,
+      "name": "Item #470133",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shoes",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 470134,
+      "name": "Item #470134",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shoes",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 470135,
+      "name": "Item #470135",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shoes",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 470136,
+      "name": "Item #470136",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shoes",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 470137,
+      "name": "Item #470137",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shoes",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 470138,
+      "name": "Item #470138",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shoes",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 470139,
+      "name": "Item #470139",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shoes",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 470140,
+      "name": "Item #470140",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shoes",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 470141,
+      "name": "Item #470141",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shoes",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 470142,
+      "name": "Item #470142",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shoes",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 470143,
+      "name": "Item #470143",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shoes",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 470144,
+      "name": "Item #470144",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shoes",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 470145,
+      "name": "Item #470145",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shoes",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 470146,
+      "name": "Item #470146",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shoes",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 470147,
+      "name": "Item #470147",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shoes",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 470148,
+      "name": "Item #470148",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shoes",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 470149,
+      "name": "Item #470149",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shoes",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 470150,
+      "name": "Item #470150",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shoes",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 470275,
+      "name": "Flame Whirlwind Shoes",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Shoes",
+      "location": "Shoes",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 470276,
+      "name": "Item #470276",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shoes",
+      "location": "Shoes",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 470424,
+      "name": "Item #470424",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shoes",
+      "location": "Shoes",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 470442,
+      "name": "Item #470442",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shoes",
+      "location": "Shoes",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 470456,
+      "name": "Item #470456",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shoes",
+      "location": "Shoes",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 470460,
+      "name": "Item #470460",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Shoes",
+      "location": "Shoes",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480162,
+      "name": "Item #480162",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Garment",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480173,
+      "name": "[NFS]Subject Cape(Melee)",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Garment",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480178,
+      "name": "Item #480178",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Garment",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480179,
+      "name": "Item #480179",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Garment",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480180,
+      "name": "Item #480180",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Garment",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480214,
+      "name": "[NFS]Subject Cape(Range)",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Garment",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480234,
+      "name": "[NFS]Subject Cape(Magic)",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Garment",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480253,
+      "name": "Item #480253",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Costume Garment",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480254,
+      "name": "Item #480254",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Costume Garment",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480255,
+      "name": "[NFS]Candy Bag Poring Pet Backpack (Range)",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Garment",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 480257,
+      "name": "Item #480257",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Garment",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480263,
+      "name": "[NFS]Candy Bag Poring Pet Backpack (Magic)",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Garment",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 480281,
+      "name": "Item #480281",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Garment",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480285,
+      "name": "Item #480285",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Garment",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480294,
+      "name": "Item #480294",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Garment",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480303,
+      "name": "Transformation Towel",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Garment",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480304,
+      "name": "Item #480304",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Garment",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480309,
+      "name": "Item #480309",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Garment",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480369,
+      "name": "Scarlet Hero Cape",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment",
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 480370,
+      "name": "Revolver Red Cape",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480371,
+      "name": "Item #480371",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480417,
+      "name": "Bear Aimed Bag [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480418,
+      "name": "Item #480418",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480424,
+      "name": "Item #480424",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480447,
+      "name": "Item #480447",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480465,
+      "name": "Melody Wing [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480466,
+      "name": "Item #480466",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480474,
+      "name": "Howling Tiger Pajama",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480475,
+      "name": "Item #480475",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480533,
+      "name": "Item #480533",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480534,
+      "name": "Item #480534",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480535,
+      "name": "Item #480535",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480583,
+      "name": "Angel Ribbon Wing (Red) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480584,
+      "name": "Angel Ribbon Wing (White) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480585,
+      "name": "Item #480585",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480586,
+      "name": "Item #480586",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480604,
+      "name": "Wings of Melody",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment",
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 480614,
+      "name": "Item #480614",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480640,
+      "name": "Item #480640",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480647,
+      "name": "Item #480647",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480650,
+      "name": "Avenger Cloak of Naght Sieger-LT [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Garment",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480651,
+      "name": "Spirit Cloak of Naght Sieger-LT [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Garment",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480709,
+      "name": "Item #480709",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480710,
+      "name": "Item #480710",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480760,
+      "name": "Item #480760",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480866,
+      "name": "의상 찬란한 스텔라 서클",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment (Costume)",
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 480867,
+      "name": "의상 빛나는 스텔라 서클",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment (Costume)",
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 480868,
+      "name": "의상 스텔라 서클",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment (Costume)",
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 480876,
+      "name": "Item #480876",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480908,
+      "name": "Item #480908",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480943,
+      "name": "Item #480943",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480946,
+      "name": "Item #480946",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 480947,
+      "name": "Item #480947",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Garment",
+      "location": "Garment",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490082,
+      "name": "Item #490082",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": "Accessory",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490212,
+      "name": "Item #490212",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490213,
+      "name": "Item #490213",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490224,
+      "name": "Item #490224",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490227,
+      "name": "Item #490227",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490228,
+      "name": "Item #490228",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490230,
+      "name": "Item #490230",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490247,
+      "name": "Item #490247",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490280,
+      "name": "Item #490280",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490298,
+      "name": "Item #490298",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490309,
+      "name": "Item #490309",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490310,
+      "name": "Secret Illusion Ring",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 490311,
+      "name": "Item #490311",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490317,
+      "name": "Item #490317",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490321,
+      "name": "Item #490321",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490322,
+      "name": "Item #490322",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490323,
+      "name": "Item #490323",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490324,
+      "name": "Item #490324",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490325,
+      "name": "Item #490325",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490326,
+      "name": "Item #490326",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490333,
+      "name": "Item #490333",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490338,
+      "name": "Item #490338",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490339,
+      "name": "Item #490339",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490345,
+      "name": "Necklace of Truth",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 490346,
+      "name": "Item #490346",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490347,
+      "name": "Item #490347",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490348,
+      "name": "Item #490348",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490349,
+      "name": "Item #490349",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490350,
+      "name": "Item #490350",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490353,
+      "name": "Item #490353",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490354,
+      "name": "Item #490354",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490358,
+      "name": "Item #490358",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490360,
+      "name": "Item #490360",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490361,
+      "name": "Item #490361",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490363,
+      "name": "Item #490363",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490490,
+      "name": "Avaricia Encyclopedia",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490530,
+      "name": "Item #490530",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": "Accessory",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490533,
+      "name": "Item #490533",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490550,
+      "name": "Phoenix Ring",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": "Accessory",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490551,
+      "name": "Item #490551",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": "Accessory",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490552,
+      "name": "Nebula Pendant",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Accessory (Left)",
+      "location": "Accessory (Left)",
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 490553,
+      "name": "Divine Bell [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": "Accessory",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490554,
+      "name": "Item #490554",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": "Accessory",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490562,
+      "name": "Item #490562",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": "Accessory",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490565,
+      "name": "Item #490565",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": "Accessory",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490614,
+      "name": "Memory Records of Nostalgia [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": "Accessory",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490615,
+      "name": "Memory Records of Reminiscences [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": "Accessory",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490624,
+      "name": "Surrection Ring",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490625,
+      "name": "Item #490625",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490680,
+      "name": "Volcano Hero Ring [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490701,
+      "name": "Dragon Order's Hero [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490702,
+      "name": "Hero Foot Stamp [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490703,
+      "name": "Item #490703",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": "Accessory",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490704,
+      "name": "Miracle Stone [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490713,
+      "name": "Item #490713",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490714,
+      "name": "Item #490714",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490715,
+      "name": "Item #490715",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490716,
+      "name": "Item #490716",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490719,
+      "name": "Item #490719",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": "Accessory",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490722,
+      "name": "Item #490722",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490723,
+      "name": "Item #490723",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490724,
+      "name": "Item #490724",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490725,
+      "name": "Item #490725",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490734,
+      "name": "Item #490734",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490735,
+      "name": "Item #490735",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490736,
+      "name": "Item #490736",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490737,
+      "name": "Item #490737",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490738,
+      "name": "Item #490738",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490739,
+      "name": "Item #490739",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490741,
+      "name": "Gentle Breeze Fan [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490742,
+      "name": "Poenitentia Ring (Spirit Handler)",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Accessory (Left)",
+      "location": "Accessory (Left)",
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 490743,
+      "name": "Regulus Ring",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Accessory (Right)",
+      "location": "Accessory (Right)",
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 490744,
+      "name": "Poenitentia Ring (Inquisitor)",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Accessory (Left)",
+      "location": "Accessory (Left)",
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 490747,
+      "name": "Hyper Novice Heart of Ice [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490748,
+      "name": "Poenitentia Ring (Hyper Novice) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490749,
+      "name": "Dual Coin",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 490750,
+      "name": "Poenitentia Ring (Night Watch) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490751,
+      "name": "Assassin Amulet [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490752,
+      "name": "Poenitentia Ring (Shadow Cross) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490753,
+      "name": "Fallen Seraphim Ring [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490754,
+      "name": "Poenitentia Ring (Imperial Guard) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490755,
+      "name": "Item #490755",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490756,
+      "name": "Item #490756",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490757,
+      "name": "Item #490757",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490758,
+      "name": "Item #490758",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490767,
+      "name": "Abyss Chaser Tail [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490768,
+      "name": "Poenitentia Ring (Abyss Chaser) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490769,
+      "name": "Machine Arm [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490770,
+      "name": "Poenitentia Ring (Meister) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490771,
+      "name": "Falcon Claw [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490772,
+      "name": "Poenitentia Ring (Wind Hawk) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490773,
+      "name": "Haze of Dragon Necklace [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490774,
+      "name": "Poenitentia Ring (Shinkiro&Shiranui) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490775,
+      "name": "Lumora of Claw Ring (Spirit Handler) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490776,
+      "name": "Aeternis of Claw Ring (Spirit Handler) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490777,
+      "name": "Lumora of Rain Ring (Troubadour & Trouvere) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490778,
+      "name": "Aeternis of Rain Ring (Troubadour & Trouvere) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490783,
+      "name": "Unknown Watch (Shadow Cross) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490784,
+      "name": "Unknown Watch (Hyper Novice Physical) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490785,
+      "name": "Unknown Watch (Abyss Chaser) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490786,
+      "name": "Laser Hero Ring [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490787,
+      "name": "Dragon Thorns Plant Hero [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490795,
+      "name": "Unknown Watch (Spirit Handler) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490796,
+      "name": "Unknown Watch (Troubadour&Trouvere) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490797,
+      "name": "Unknown Watch (Hyper Novice Magical) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490798,
+      "name": "Unknown Watch (Arch Mage) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490800,
+      "name": "Unknown Watch (Elemental Master) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490802,
+      "name": "Item #490802",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490807,
+      "name": "Ring of Evil (Cardinal) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490808,
+      "name": "Ring of Good (Windhawk) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490809,
+      "name": "Item #490809",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490812,
+      "name": "Ring of Evil (Dragon Knight) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490813,
+      "name": "Ring of Good (Imperial Guard) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490814,
+      "name": "Ring of Evil (Troubadour & Trouvere) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490815,
+      "name": "Ring of Evil (Windhawk) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490816,
+      "name": "Ring of Good (Cardinal) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490818,
+      "name": "Enhanced Restoration Ring-LT [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490837,
+      "name": "Item #490837",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490838,
+      "name": "Item #490838",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490839,
+      "name": "Item #490839",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490840,
+      "name": "Ring of Evil (Imperial Guard) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490841,
+      "name": "Ring of Good (Troubadour & Trouvere) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490843,
+      "name": "Ring of Good (Dragon Knight) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490844,
+      "name": "Ring of Evil (Elemental Master) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490849,
+      "name": "Ring of Evil (Inquisitor) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490850,
+      "name": "Ring of Good (Shinkiro & Shiranui) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490851,
+      "name": "Ring of Good (Abyss Chaser) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490852,
+      "name": "Ring of Evil (Shadow Cross) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490853,
+      "name": "Ring of Evil (Meister) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490856,
+      "name": "Ring of Evil (Spirit Handler) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490857,
+      "name": "Ring of Evil (Biolo) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490858,
+      "name": "Ring of Good (Night Watch) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490859,
+      "name": "Ring of Good (Night Watch II) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490860,
+      "name": "Item #490860",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490861,
+      "name": "Item #490861",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490862,
+      "name": "Ring of Good (Inquisitor) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490868,
+      "name": "Ring of Good (Soul Ascetic) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490869,
+      "name": "Ring of Evil (Sky Emperor) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490870,
+      "name": "Ring of Good (Biolo) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490871,
+      "name": "Ring of Good (Spirit Handler) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490872,
+      "name": "Ring of Evil (Night Watch) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490873,
+      "name": "Ring of Evil (Night Watch II) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490874,
+      "name": "Ring of Evil (Arch Mage) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490882,
+      "name": "Ring of Evil(Soul Ascetic) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490883,
+      "name": "Ring of Good (Sky Emperor) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490884,
+      "name": "Dim Glacier Ring of Resonance (Abyss Chaser) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490885,
+      "name": "Dim Glacier Ring of Resonance (Inquisitor) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490886,
+      "name": "Ring of Evil (Hyper Novice) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490887,
+      "name": "Ring of Good (Hyper Novice) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490888,
+      "name": "Ring of Good (Arch Mage) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490907,
+      "name": "Dim Glacier Ring of Resonance (Windhawk) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490908,
+      "name": "Dim Glacier Ring of Resonance (Cardinal) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490909,
+      "name": "Dim Glacier Ring of Resonance (Meister) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490910,
+      "name": "Dim Glacier Ring of Resonance (Troubadour & Trouvere)) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490941,
+      "name": "Dim Glacier Ring of Resonance (Arch Mage) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490942,
+      "name": "Dim Glacier Ring of Resonance (Dragon Knight) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490943,
+      "name": "Dim Glacier Ring of Resonance (Shadow Cross) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490944,
+      "name": "Dim Glacier Ring of Resonance (Shinkiro & Shiranui) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490947,
+      "name": "Item #490947",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": "Accessory",
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490966,
+      "name": "Item #490966",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490969,
+      "name": "Dim Glacier Ring of Resonance (Imperial Guard) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490970,
+      "name": "Dim Glacier Ring of Resonance (Hyper Novice)) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490971,
+      "name": "Dim Glacier Ring of Resonance (Sky Emperor) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 490972,
+      "name": "Dim Glacier Ring of Resonance (Elemental Master) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 491009,
+      "name": "Dim Glacier Ring of Resonance (Spirit Handler) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 491010,
+      "name": "Dim Glacier Ring of Resonance (Biolo) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 491011,
+      "name": "Dim Glacier Ring of Resonance (Night Watch) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 491012,
+      "name": "Dim Glacier Ring of Resonance (Soul Ascetic) [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 491049,
+      "name": "Item #491049",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 491050,
+      "name": "Item #491050",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 491051,
+      "name": "Item #491051",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 491063,
+      "name": "Item #491063",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 491064,
+      "name": "Item #491064",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 491065,
+      "name": "Item #491065",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 491066,
+      "name": "Item #491066",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 491067,
+      "name": "Item #491067",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 491068,
+      "name": "Item #491068",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 491069,
+      "name": "Item #491069",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 491070,
+      "name": "Item #491070",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 491074,
+      "name": "Item #491074",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 491075,
+      "name": "Item #491075",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 491076,
+      "name": "Item #491076",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 491077,
+      "name": "Item #491077",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 491078,
+      "name": "Item #491078",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 491079,
+      "name": "Item #491079",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 491086,
+      "name": "Item #491086",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 491088,
+      "name": "Item #491088",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 491089,
+      "name": "Item #491089",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 491090,
+      "name": "Item #491090",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 491091,
+      "name": "Item #491091",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 491092,
+      "name": "Item #491092",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 491096,
+      "name": "Item #491096",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 491097,
+      "name": "Item #491097",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 491098,
+      "name": "Item #491098",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 491099,
+      "name": "Item #491099",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 491100,
+      "name": "Item #491100",
+      "nameFrom": null,
+      "type": "Armor",
+      "subType": "Accessory",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 500079,
+      "name": "Item #500079",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Sword",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 500080,
+      "name": "[NFS]Blessed Knife",
+      "nameFrom": "thROG",
+      "type": "Weapon",
+      "subType": "Dagger",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 500139,
+      "name": "Item #500139",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Sword",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 500140,
+      "name": "Item #500140",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Sword",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 500141,
+      "name": "Item #500141",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Sword",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 510024,
+      "name": "Ancient Reinforced Knife",
+      "nameFrom": "thROG",
+      "type": "Weapon",
+      "subType": "Dagger",
+      "location": "Right Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 510025,
+      "name": "Released Reinforced Knife",
+      "nameFrom": "thROG",
+      "type": "Weapon",
+      "subType": "Dagger",
+      "location": "Right Hand",
+      "weaponLevel": null,
+      "isAvailableOnServer": true
+    },
+    {
+      "id": 510101,
+      "name": "Item #510101",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Dagger",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 510119,
+      "name": "Item #510119",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Dagger",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 510121,
+      "name": "Item #510121",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Dagger",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 510122,
+      "name": "Item #510122",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Dagger",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 510141,
+      "name": "Item #510141",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Dagger",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 510160,
+      "name": "Item #510160",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Dagger",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 510223,
+      "name": "Item #510223",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Dagger",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 520032,
+      "name": "Item #520032",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Axe",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 530048,
+      "name": "Item #530048",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Spear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 530083,
+      "name": "Item #530083",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Spear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 540076,
+      "name": "Item #540076",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Book",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 540128,
+      "name": "Item #540128",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Book",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 540129,
+      "name": "Item #540129",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Book",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 540130,
+      "name": "Item #540130",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Book",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 540131,
+      "name": "Item #540131",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Book",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 540132,
+      "name": "Item #540132",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Book",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 550078,
+      "name": "Item #550078",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Rod",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 550114,
+      "name": "Item #550114",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Rod",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 550121,
+      "name": "Item #550121",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Rod",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 550201,
+      "name": "Item #550201",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Rod",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 550202,
+      "name": "Item #550202",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Rod",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 550203,
+      "name": "Item #550203",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Rod",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 550204,
+      "name": "Item #550204",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Rod",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 550205,
+      "name": "Item #550205",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Rod",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 550206,
+      "name": "Item #550206",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Rod",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 550207,
+      "name": "Item #550207",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Rod",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 560049,
+      "name": "Item #560049",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Knuckle",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 560091,
+      "name": "Item #560091",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Knuckle",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 560092,
+      "name": "Item #560092",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Knuckle",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 570050,
+      "name": "Item #570050",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Musical Instrument",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 570051,
+      "name": "Item #570051",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Musical Instrument",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 570094,
+      "name": "Item #570094",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Musical Instrument",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 570095,
+      "name": "Item #570095",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Musical Instrument",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 580051,
+      "name": "Item #580051",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Whip",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 580052,
+      "name": "Item #580052",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Whip",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 580094,
+      "name": "Item #580094",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Whip",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 580095,
+      "name": "Item #580095",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Whip",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 590061,
+      "name": "Item #590061",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Mace",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 590065,
+      "name": "Item #590065",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Mace",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 590119,
+      "name": "Item #590119",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Mace",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 590120,
+      "name": "Item #590120",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Mace",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 590137,
+      "name": "Item #590137",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Mace",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 590138,
+      "name": "Item #590138",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Mace",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 600040,
+      "name": "Item #600040",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Two-handed Sword",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 600044,
+      "name": "Item #600044",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Two-handed Sword",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 600079,
+      "name": "Item #600079",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Two-handed Sword",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 610053,
+      "name": "Item #610053",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Katar",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 610056,
+      "name": "Item #610056",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Katar",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 610094,
+      "name": "Item #610094",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Katar",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 610095,
+      "name": "Item #610095",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Katar",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 620027,
+      "name": "Item #620027",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Two-handed Axe",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 620032,
+      "name": "Item #620032",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Two-handed Axe",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 620066,
+      "name": "Item #620066",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Two-handed Axe",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 630026,
+      "name": "Item #630026",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Two-handed Spear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 630033,
+      "name": "Item #630033",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Two-handed Spear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 630067,
+      "name": "Item #630067",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Two-handed Spear",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 640048,
+      "name": "Item #640048",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Two-handed Rod",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 640070,
+      "name": "Item #640070",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Two-handed Rod",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 650063,
+      "name": "Item #650063",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Unknown",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 650064,
+      "name": "Item #650064",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Unknown",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 700075,
+      "name": "Item #700075",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Bow",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 700079,
+      "name": "Item #700079",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Bow",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 700133,
+      "name": "Item #700133",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Bow",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 700134,
+      "name": "Item #700134",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Bow",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 700135,
+      "name": "Item #700135",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Bow",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 800050,
+      "name": "Item #800050",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Pistol",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 810036,
+      "name": "Item #810036",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Rifle",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 830048,
+      "name": "Item #830048",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Gatling Gun",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    },
+    {
+      "id": 840029,
+      "name": "Item #840029",
+      "nameFrom": null,
+      "type": "Weapon",
+      "subType": "Unknown",
+      "location": null,
+      "weaponLevel": null,
+      "isAvailableOnServer": false
+    }
+  ]
+}
