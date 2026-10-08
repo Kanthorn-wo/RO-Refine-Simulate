@@ -11,7 +11,12 @@ const STATUS_META = {
   pending:  { label: 'รออนุมัติ',  cls: 'bg-amber-500/15 text-amber-400' },
   denied:   { label: 'ซ่อนอยู่',   cls: 'bg-rose-500/15 text-rose-400' },
 }
-const SOURCE_LABEL = { manual: 'เพิ่มเอง', auto: 'ระบบหาเจอ' }
+const SOURCE_LABEL = { manual: 'เพิ่มเอง', auto: 'ระบบหาเจอ', index: 'รายชื่อหลัก' }
+const SOURCE_FILTERS = [
+  { id: 'all', label: 'ทุกที่มา' },
+  { id: 'extra', label: 'เสริม (เพิ่มเอง/ระบบหาเจอ)' },
+  { id: 'index', label: 'รายชื่อหลัก' },
+]
 const STATUS_FILTERS = [
   { id: 'all', label: 'ทั้งหมด' },
   { id: 'approved', label: 'อนุมัติแล้ว' },
@@ -119,6 +124,9 @@ export default function ItemsView({ session, scrollTo }) {
   const [confirmDeleteId, setConfirmDeleteId] = useState(null)
   const [statusFilter, setStatusFilter] = useState('all')
   const [query, setQuery] = useState('')
+  const [sourceFilter, setSourceFilter] = useState('all')
+  const [indexItems, setIndexItems] = useState([])   // รายชื่อหลัก refinableItems.json: [[id, label, armorLevel?]]
+  const [detail, setDetail] = useState(null)         // { id, loading?, data?, error? } — ดูรายละเอียดทีละชิ้น (ยิง API ทีละคำขอตามกติกา rate limit)
   const [shown, setShown] = useState(LIST_PAGE)
   // ฟอร์มเพิ่มเอง
   const [addId, setAddId] = useState('')
@@ -149,6 +157,7 @@ export default function ItemsView({ session, scrollTo }) {
     }
   }
   useEffect(() => { load() }, [authHeaders]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { import('../constants/refinableItems.json').then((m) => setIndexItems(m.default)) }, [])
 
   // เรียก action ของ /api/extra-items (POST, owner) — คืน JSON หรือ throw ข้อความ error
   const callApi = async (payload) => {
@@ -191,6 +200,22 @@ export default function ItemsView({ session, scrollTo }) {
     run(item.id, () => callApi({ action: 'setStatus', id: String(item.id), status }),
       status === 'approved' ? `อนุมัติ “${item.label}” แล้ว` : `ซ่อน “${item.label}” แล้ว`)
 
+  // ไอเทมจากรายชื่อหลักอยู่ในไฟล์ ลบไม่ได้ → "ซ่อน" = บันทึกแถว denied ลงตาราง (ลบแถวนี้ภายหลัง = กลับมาแสดงตามเดิม)
+  const hideIndexItem = (item) =>
+    run(item.id, () => callApi({ action: 'add', id: String(item.id), label: item.label, armorLevel: item.armor_level, status: 'denied' }),
+      `ซ่อน “${item.label}” แล้ว`)
+
+  // ดูข้อมูลดิบครบทุก field ของไอเทม (thROG + iRO) — ใช้ action lookup เดิม
+  const toggleDetail = async (item) => {
+    if (detail?.id === item.id) { setDetail(null); return }
+    setDetail({ id: item.id, loading: true })
+    try {
+      setDetail({ id: item.id, data: await callApi({ action: 'lookup', id: String(item.id) }) })
+    } catch (err) {
+      setDetail({ id: item.id, error: err.message })
+    }
+  }
+
   const removeItem = (item) => {
     setConfirmDeleteId(null)
     return run(item.id, () => callApi({ action: 'delete', id: String(item.id) }), `ลบ “${item.label}” ออกจากรายการแล้ว`)
@@ -217,12 +242,46 @@ export default function ItemsView({ session, scrollTo }) {
 
   const items = useMemo(() => data?.items || [], [data])
   const pending = useMemo(() => items.filter((x) => x.status === 'pending'), [items])
+  // ตารางเสริม + รายชื่อหลักที่ยังไม่มีแถวในตาราง (แถวในตารางทับรายชื่อหลักด้วย id เดียวกัน เช่น ถูกซ่อน)
+  const rows = useMemo(() => {
+    const extraIds = new Set(items.map((x) => x.id))
+    const indexRows = indexItems.filter(([id]) => !extraIds.has(id))
+      .map(([id, label, lvl]) => ({ id, label, armor_level: lvl === 2 ? 2 : 1, status: 'approved', source: 'index' }))
+    return [...items, ...indexRows]
+  }, [items, indexItems])
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return items.filter((x) => (statusFilter === 'all' || x.status === statusFilter)
+    return rows.filter((x) => (statusFilter === 'all' || x.status === statusFilter)
+      && (sourceFilter === 'all' || (sourceFilter === 'index' ? x.source === 'index' : x.source !== 'index'))
       && (!q || x.label.toLowerCase().includes(q) || String(x.id).includes(q)))
-  }, [items, statusFilter, query])
-  const counts = useMemo(() => items.reduce((acc, x) => ({ ...acc, [x.status]: (acc[x.status] || 0) + 1 }), {}), [items])
+  }, [rows, statusFilter, sourceFilter, query])
+  const counts = useMemo(() => rows.reduce((acc, x) => ({ ...acc, [x.status]: (acc[x.status] || 0) + 1 }), {}), [rows])
+
+  // ปุ่ม + กล่องรายละเอียดของแถว (ใช้ทั้งคิวรออนุมัติและรายการทั้งหมด)
+  const detailButton = (item) => (
+    <button className={btnNeutral} disabled={detail?.loading && detail.id !== item.id} onClick={() => toggleDetail(item)}>
+      {detail?.id === item.id ? 'ซ่อนรายละเอียด' : 'รายละเอียด'}
+    </button>
+  )
+  const detailBlock = (item) => {
+    if (detail?.id !== item.id) return null
+    return (
+      <div className="basis-full space-y-2">
+        {detail.loading && <p className="text-xs text-slate-500">กำลังดึงข้อมูลจาก Divine Pride (ทีละคำขอ อาจรอสักครู่)…</p>}
+        {detail.error && <p className="text-xs text-rose-400">{detail.error}</p>}
+        {detail.data && (
+          <>
+            <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
+              <span>{detail.data.type || '-'} / {detail.data.subType || '-'}</span>
+              <span>requiredLevel {detail.data.requiredLevel ?? '-'}</span>
+              {detail.data.levelUncertain && <UncertainBadge />}
+            </div>
+            <RawDetails key={detail.id} raw={detail.data.raw} />
+          </>
+        )}
+      </div>
+    )
+  }
 
   if (loading) return (
     <div className="space-y-6"><Skeleton h="h-24" /><Skeleton h="h-40" /><Skeleton h="h-56" /><Skeleton h="h-72" /></div>
@@ -283,9 +342,11 @@ export default function ItemsView({ session, scrollTo }) {
                   <p className="text-[11px] text-slate-500">#{item.id} · {SOURCE_LABEL[item.source] || item.source}</p>
                 </div>
                 <div className="flex shrink-0 gap-2">
+                  {detailButton(item)}
                   <button className={btnOk} disabled={busyId === item.id} onClick={() => setStatus(item, 'approved')}>อนุมัติ</button>
                   <button className={btnWarn} disabled={busyId === item.id} onClick={() => setStatus(item, 'denied')}>ปฏิเสธ</button>
                 </div>
+                {detailBlock(item)}
               </li>
             ))}
           </ul>
@@ -354,13 +415,21 @@ export default function ItemsView({ session, scrollTo }) {
       </Panel>
 
       {/* ── รายการทั้งหมด ── */}
-      <Panel id="items-all" title={`รายการทั้งหมด (${items.length})`} hint="ไอเทมเสริมที่จัดการจาก dashboard — “ซ่อนอยู่” = ไม่แสดงในช่องค้นหาแม้อยู่ในรายชื่อหลัก">
+      <Panel id="items-all" title={`รายการทั้งหมด (${rows.length})`} hint="รายชื่อหลัก (ไฟล์) + ไอเทมเสริมจาก dashboard — “ซ่อนอยู่” = ไม่แสดงในช่องค้นหา; รายชื่อหลักลบไม่ได้ ใช้ “ซ่อน” (ลบแถวที่ซ่อนไว้ = กลับมาแสดง)">
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <div className="flex gap-1 rounded-lg bg-white/[0.03] p-0.5">
             {STATUS_FILTERS.map((f) => (
               <button key={f.id} onClick={() => { setStatusFilter(f.id); setShown(LIST_PAGE) }}
                 className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${statusFilter === f.id ? 'bg-indigo-500/25 text-indigo-200' : 'text-slate-400 hover:text-slate-200'}`}>
                 {f.label}{f.id !== 'all' && counts[f.id] ? ` ${counts[f.id]}` : ''}
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-1 rounded-lg bg-white/[0.03] p-0.5">
+            {SOURCE_FILTERS.map((f) => (
+              <button key={f.id} onClick={() => { setSourceFilter(f.id); setShown(LIST_PAGE) }}
+                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${sourceFilter === f.id ? 'bg-indigo-500/25 text-indigo-200' : 'text-slate-400 hover:text-slate-200'}`}>
+                {f.label}
               </button>
             ))}
           </div>
@@ -389,6 +458,10 @@ export default function ItemsView({ session, scrollTo }) {
                   <p className="text-[11px] text-slate-500">#{item.id} · {SOURCE_LABEL[item.source] || item.source}</p>
                 </div>
                 <div className="flex shrink-0 gap-2">
+                  {detailButton(item)}
+                  {item.source === 'index' ? (
+                    <button className={btnWarn} disabled={busyId === item.id} onClick={() => hideIndexItem(item)}>ซ่อน</button>
+                  ) : (<>
                   {item.status !== 'approved' && <button className={btnOk} disabled={busyId === item.id} onClick={() => setStatus(item, 'approved')}>อนุมัติ</button>}
                   {item.status !== 'denied' && <button className={btnWarn} disabled={busyId === item.id} onClick={() => setStatus(item, 'denied')}>ซ่อน</button>}
                   {confirmDeleteId === item.id ? (
@@ -399,7 +472,9 @@ export default function ItemsView({ session, scrollTo }) {
                   ) : (
                     <button className={btnNeutral} disabled={busyId === item.id} onClick={() => setConfirmDeleteId(item.id)}>ลบ</button>
                   )}
+                  </>)}
                 </div>
+                {detailBlock(item)}
               </li>
             ))}
           </ul>
