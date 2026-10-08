@@ -22,7 +22,9 @@ import { recordRefine, recordAction, recordRefineDetail } from '../../utils/usag
 import UsageStats from '../UsageStats';
 import ItemSearch from '../ItemSearch';
 
-// ค้นไอเทมจาก ID ผ่าน serverless proxy /api/item (ซ่อน divine-pride API key ไว้ฝั่ง server)
+// ค้นไอเทมผ่าน serverless proxy /api/item (ซ่อน divine-pride API key ไว้ฝั่ง server)
+// ปิดโหมดค้นหาไอเทมชั่วคราว (ปุ่มกดไม่ได้ + แสดงข้อความปิดปรับปรุง เหลือเลือกประเภทเอง) — เปิดกลับโดยตั้งเป็น true
+const ITEM_SEARCH_ENABLED = false;
 
 // ── ระบบช่วงหิน Auto: กำแพงที่จุดเปลี่ยนแร่ ───────────────────────────────
 // กำแพงจุดเปลี่ยนแร่ (destination level): ทุก item เปลี่ยน low→high ที่ +11
@@ -884,16 +886,23 @@ const Container = () => {
               type="button"
               onClick={() => setInputMode('id')}
               aria-pressed={inputMode === 'id'}
-              className={`cursor-pointer rounded-lg px-3 py-1 text-xs font-semibold transition-all duration-150 ${
-                inputMode === 'id'
-                  ? 'bg-amber-400 font-bold text-slate-900 shadow-md shadow-black/40'
-                  : 'text-dim hover:-translate-y-px hover:bg-line-soft/70 hover:text-body active:translate-y-0 active:scale-95'
+              disabled={!ITEM_SEARCH_ENABLED}
+              title={ITEM_SEARCH_ENABLED ? undefined : t('item_search_maintenance')}
+              className={`rounded-lg px-3 py-1 text-xs font-semibold transition-all duration-150 ${
+                !ITEM_SEARCH_ENABLED
+                  ? 'cursor-not-allowed text-faint opacity-60'
+                  : inputMode === 'id'
+                    ? 'cursor-pointer bg-amber-400 font-bold text-slate-900 shadow-md shadow-black/40'
+                    : 'cursor-pointer text-dim hover:-translate-y-px hover:bg-line-soft/70 hover:text-body active:translate-y-0 active:scale-95'
               }`}
             >
               {t('search_by_id')}
             </button>
           </div>
         </div>
+        {!ITEM_SEARCH_ENABLED && (
+          <p className="mb-2 text-xs text-warn">{t('item_search_maintenance')}</p>
+        )}
 
         {inputMode === 'dropdown' ? (
           <div className="relative">
