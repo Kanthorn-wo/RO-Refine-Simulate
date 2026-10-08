@@ -11,12 +11,12 @@ export const StatusBadge = ({ status }) => {
 }
 
 export const UncertainBadge = () => (
-  <span title="ไม่มีข้อมูลเลเวลจาก API ระบบเดาเป็น Lv1/W1 — ตรวจเลเวลก่อนอนุมัติ" className={`${badgeCls} bg-amber-500/15 text-amber-300`}>เลเวลไม่แน่ใจ</span>
+  <span title="ไม่มีข้อมูลเลเวลจาก API ระบบเดาเป็น Lv1 — ตรวจเลเวลก่อนอนุมัติ" className={`${badgeCls} bg-amber-500/15 text-amber-300`}>เลเวลไม่แน่ใจ</span>
 )
 
-// ป้ายประเภท+เลเวล: อาวุธ W1–5 / เกราะ Lv1–2 (ไม่รู้ประเภท = ไม่แสดง)
+// ป้ายประเภท+เลเวล: อาวุธ Lv1–5 / เกราะ Lv1–2 (ไม่รู้ประเภท = ไม่แสดง)
 export const TypeBadge = ({ item }) => {
-  if (item.item_type === 'Weapon') return <span className={`${badgeCls} bg-sky-500/15 text-sky-300`}>อาวุธ W{item.weapon_level || '?'}</span>
+  if (item.item_type === 'Weapon') return <span className={`${badgeCls} bg-sky-500/15 text-sky-300`}>อาวุธ Lv{item.weapon_level || '?'}</span>
   if (item.item_type === 'Armor') return <span className={`${badgeCls} bg-indigo-500/15 text-indigo-300`}>เกราะ Lv{item.armor_level === 2 ? 2 : 1}</span>
   return null
 }
