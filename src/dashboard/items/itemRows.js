@@ -35,12 +35,35 @@ export function buildRows(extraItems, indexItems) {
   return [...extraItems, ...indexRows]
 }
 
-export function filterRows(rows, { status, type, source, query }) {
-  const q = query.trim().toLowerCase()
-  return rows.filter((x) => (status === 'all' || x.status === status)
-    && (type === 'all' || x.item_type === type)
-    && (source === 'all' || (source === 'index' ? x.source === 'index' : x.source !== 'index'))
-    && (!q || x.label.toLowerCase().includes(q) || String(x.id).includes(q)))
+const sourceKey = (x) => (x.source === 'index' ? 'index' : 'extra')
+
+// เงื่อนไขของแต่ละตัวกรอง (all = ผ่านทุกแถว) — ใช้ร่วมกันทั้งการกรองและการนับจำนวน
+const matchers = {
+  status: (x, v) => v === 'all' || x.status === v,
+  type: (x, v) => v === 'all' || x.item_type === v,
+  source: (x, v) => v === 'all' || sourceKey(x) === v,
+  query: (x, v) => {
+    const q = v.trim().toLowerCase()
+    return !q || x.label.toLowerCase().includes(q) || String(x.id).includes(q)
+  },
+}
+const FACETS = { status: (x) => x.status, type: (x) => x.item_type, source: sourceKey }
+
+export function filterRows(rows, filters) {
+  return rows.filter((x) => Object.keys(matchers).every((k) => matchers[k](x, filters[k])))
 }
 
-export const countByStatus = (rows) => rows.reduce((acc, x) => ({ ...acc, [x.status]: (acc[x.status] || 0) + 1 }), {})
+// จำนวนต่อตัวเลือกของแต่ละกลุ่มตัวกรอง โดยคิดตามตัวกรองกลุ่มอื่นที่เลือกอยู่ (ตัวเลขในวงเล็บ = จะเหลือกี่รายการถ้าเลือกตัวเลือกนั้น)
+// คืน { status: { all, approved, ... }, type: { all, Weapon, Armor }, source: { all, extra, index } }
+export function countFacets(rows, filters) {
+  const counts = { status: { all: 0 }, type: { all: 0 }, source: { all: 0 } }
+  for (const x of rows) {
+    for (const facet of Object.keys(FACETS)) {
+      if (!Object.keys(matchers).every((k) => k === facet || matchers[k](x, filters[k]))) continue
+      const key = FACETS[facet](x)
+      counts[facet].all++
+      if (key) counts[facet][key] = (counts[facet][key] || 0) + 1
+    }
+  }
+  return counts
+}

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Toggle from '../components/Toggle'
 import AddItemPanel from './items/AddItemPanel'
 import { ItemDetail } from './items/RawDetails'
-import { SOURCE_FILTERS, STATUS_FILTERS, TYPE_FILTERS, buildRows, countByStatus, filterRows } from './items/itemRows'
+import { SOURCE_FILTERS, STATUS_FILTERS, TYPE_FILTERS, buildRows, countFacets, filterRows } from './items/itemRows'
 import { btnNeutral, btnOk, btnWarn, inputCls } from './items/consts'
 import { EmptyNote, FilterTabs, ItemRow, Panel, Skeleton } from './items/ui'
 
@@ -115,7 +115,7 @@ export default function ItemsView({ session, scrollTo }) {
   const pending = useMemo(() => items.filter((x) => x.status === 'pending'), [items])
   const rows = useMemo(() => buildRows(items, indexItems), [items, indexItems])
   const filtered = useMemo(() => filterRows(rows, filters), [rows, filters])
-  const counts = useMemo(() => countByStatus(rows), [rows])
+  const counts = useMemo(() => countFacets(rows, filters), [rows, filters])
 
   if (loading) return (
     <div className="space-y-6"><Skeleton h="h-24" /><Skeleton h="h-40" /><Skeleton h="h-56" /><Skeleton h="h-72" /></div>
@@ -187,9 +187,9 @@ export default function ItemsView({ session, scrollTo }) {
       {/* ── รายการทั้งหมด ── */}
       <Panel id="items-all" title={`รายการทั้งหมด (${rows.length})`} hint="รายชื่อหลัก (ไฟล์) + ไอเทมเสริมจาก dashboard — “ซ่อนอยู่” = ไม่แสดงในช่องค้นหา; รายชื่อหลักลบไม่ได้ ใช้ “ซ่อน” (ลบแถวที่ซ่อนไว้ = กลับมาแสดง)">
         <div className="mb-3 flex flex-wrap items-center gap-2">
-          <FilterTabs options={STATUS_FILTERS} value={filters.status} onChange={setFilter('status')} counts={counts} />
-          <FilterTabs options={TYPE_FILTERS} value={filters.type} onChange={setFilter('type')} />
-          <FilterTabs options={SOURCE_FILTERS} value={filters.source} onChange={setFilter('source')} />
+          <FilterTabs options={STATUS_FILTERS} value={filters.status} onChange={setFilter('status')} counts={counts.status} />
+          <FilterTabs options={TYPE_FILTERS} value={filters.type} onChange={setFilter('type')} counts={counts.type} />
+          <FilterTabs options={SOURCE_FILTERS} value={filters.source} onChange={setFilter('source')} counts={counts.source} />
           <input
             value={filters.query}
             onChange={(e) => setFilter('query')(e.target.value)}

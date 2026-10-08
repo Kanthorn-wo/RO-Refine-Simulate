@@ -41,14 +41,14 @@ export const EmptyNote = ({ children }) => (
   <p className="rounded-xl border border-dashed border-white/10 px-4 py-6 text-center text-xs text-slate-500">{children}</p>
 )
 
-// กลุ่มปุ่มเลือกตัวกรอง (options: [{ id, label }], counts: จำนวนต่อ id ถ้าต้องโชว์)
+// กลุ่มปุ่มเลือกตัวกรอง (options: [{ id, label }], counts: จำนวนต่อ id — ถ้าส่งมาจะแสดง "ชื่อ (จำนวน)" ทุกตัวเลือก)
 export function FilterTabs({ options, value, onChange, counts }) {
   return (
     <div className="flex gap-1 rounded-lg bg-white/[0.03] p-0.5">
       {options.map((o) => (
         <button key={o.id} onClick={() => onChange(o.id)}
           className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${value === o.id ? 'bg-indigo-500/25 text-indigo-200' : 'text-slate-400 hover:text-slate-200'}`}>
-          {o.label}{counts && o.id !== 'all' && counts[o.id] ? ` ${counts[o.id]}` : ''}
+          {o.label}{counts ? ` (${(counts[o.id] || 0).toLocaleString('th-TH')})` : ''}
         </button>
       ))}
     </div>
