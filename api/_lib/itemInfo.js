@@ -4,6 +4,8 @@
 // ชื่อกลวงที่ divine-pride ตอบเมื่อไม่มีข้อมูลไอเทมบนเซิร์ฟนั้น เช่น "Item #460166"
 export const PLACEHOLDER_NAME = /^Item #\d+$/
 
+import { isHighTierRequiredLevel } from '../../src/constants/itemLevels.js'
+
 // ตัดรหัสสี ^RRGGBB ออกจาก description (เช่น "^777777Shield^000000")
 const stripColorCodes = (text) => String(text || '').replace(/\^[0-9A-Fa-f]{6}/g, '')
 
@@ -13,6 +15,12 @@ export function parseArmorLevel(description) {
   const match = String(description || '').match(/Armor Level\s*:\s*(?:\^[0-9A-Fa-f]{6})?(\d)/)
   const level = match ? Number(match[1]) : 1
   return level >= 2 ? 2 : 1
+}
+
+// เลเวลเกราะที่ใช้จริง: มีบรรทัด "Armor Level : N" ใน description → ใช้ค่านั้น; ไม่มี → requiredLevel เกิน 200 = Lv2 (กฎใน src/constants/itemLevels.js); ไม่เข้ากฎ = Lv1
+export function resolveArmorLevel(description, requiredLevel) {
+  if (/Armor Level\s*:/.test(String(description || ''))) return parseArmorLevel(description)
+  return isHighTierRequiredLevel(requiredLevel) ? 2 : 1
 }
 
 // description พูดถึง "refine" = สัญญาณว่าตีบวกได้ (เช่น "For every 2 refine level, ATK + 10")

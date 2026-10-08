@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseArmorLevel, mentionsRefine, buildLabel, isRefinableCandidate } from './itemInfo.js'
+import { parseArmorLevel, resolveArmorLevel, mentionsRefine, buildLabel, isRefinableCandidate } from './itemInfo.js'
 
 describe('parseArmorLevel', () => {
   it('อ่านเลเวลจากบรรทัด Armor Level (มีรหัสสี)', () => {
@@ -60,5 +60,25 @@ describe('isRefinableCandidate', () => {
   })
   it('ไม่พูดถึง refine = ไม่ใช่', () => {
     expect(isRefinableCandidate({ ...base, description: 'MaxHP + 10%' })).toBe(false)
+  })
+})
+
+describe('resolveArmorLevel — กฎ requiredLevel เกิน 200 = Lv2', () => {
+  it('requiredLevel เกิน 200 และไม่มีบรรทัด Armor Level = Lv2', () => {
+    expect(resolveArmorLevel('Type : Shield', 201)).toBe(2)
+    expect(resolveArmorLevel('', 250)).toBe(2)
+  })
+  it('ขอบเขต: 200 พอดีไม่เข้ากฎ (ต้อง "เกิน" 200)', () => {
+    expect(resolveArmorLevel('Type : Shield', 200)).toBe(1)
+    expect(resolveArmorLevel('Type : Shield', 190)).toBe(1)
+  })
+  it('requiredLevel ว่าง/ไม่ใช่ตัวเลข = Lv1', () => {
+    expect(resolveArmorLevel('Type : Shield', null)).toBe(1)
+    expect(resolveArmorLevel('Type : Shield', undefined)).toBe(1)
+    expect(resolveArmorLevel('Type : Shield', 'abc')).toBe(1)
+  })
+  it('ค่าที่ระบุชัดใน description ชนะกฎ (Armor Level : 1 + requiredLevel 250 = Lv1)', () => {
+    expect(resolveArmorLevel('Armor Level : ^7777771^000000', 250)).toBe(1)
+    expect(resolveArmorLevel('Armor Level : ^7777772^000000', 100)).toBe(2)
   })
 })

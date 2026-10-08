@@ -21,6 +21,7 @@ import { trackEvent } from '../../utils/analytics';
 import { recordRefine, recordAction, recordRefineDetail } from '../../utils/usageStats';
 import UsageStats from '../UsageStats';
 import ItemSearch from '../ItemSearch';
+import { isHighTierRequiredLevel } from '../../constants/itemLevels';
 
 // ค้นไอเทมผ่าน serverless proxy /api/item (ซ่อน divine-pride API key ไว้ฝั่ง server)
 // ปิดโหมดค้นหาไอเทมชั่วคราว (ปุ่มกดไม่ได้ + แสดงข้อความปิดปรับปรุง เหลือเลือกประเภทเอง) — เปิดกลับโดยตั้งเป็น true
@@ -669,11 +670,14 @@ const Container = () => {
       ) {
         lvl = 2;
       }
+      // ไม่มีระดับที่ระบุชัด + requiredLevel เกิน 200 = ระดับสูงสุด (อาวุธ W5 / เกราะ Lv2) — กฎใน constants/itemLevels.js
+      const highTier = isHighTierRequiredLevel(data.requiredLevel);
+      const explicitLvl = Number(data.itemLevel) || Number(data.weaponLevel) || 0;
       let mapped;
       if (data.itemTypeId === 1 || data.type === 'Weapon' || (data.itemTypeId == null && data.attack > 0)) {
-        mapped = `weapon${Math.min(Math.max(lvl, 1), 5)}`;
+        mapped = `weapon${Math.min(Math.max(explicitLvl || (highTier ? 5 : lvl), 1), 5)}`;
       } else if (data.itemTypeId === 2 || data.type === 'Armor' || (data.itemTypeId == null && data.defense > 0)) {
-        mapped = `armor${Math.min(Math.max(armorLevel || lvl, 1), 2)}`;
+        mapped = `armor${Math.min(Math.max(armorLevel || (highTier && !explicitLvl ? 2 : lvl), 1), 2)}`;
       } else {
         throw new Error(t('api_error_not_refinable'));
       }

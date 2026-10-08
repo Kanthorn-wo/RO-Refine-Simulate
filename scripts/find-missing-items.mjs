@@ -13,7 +13,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
 import { dpGet, dpWithBackoff, DivinePrideLimitError } from '../api/_lib/divinePride.js'
-import { PLACEHOLDER_NAME, parseArmorLevel, isRefinableCandidate, buildLabel } from '../api/_lib/itemInfo.js'
+import { PLACEHOLDER_NAME, resolveArmorLevel, isRefinableCandidate, buildLabel } from '../api/_lib/itemInfo.js'
 
 if (!process.env.DIVINE_PRIDE_API_KEY) throw new Error('DIVINE_PRIDE_API_KEY ยังไม่ได้ตั้ง')
 
@@ -102,7 +102,7 @@ for (const id of candidates) {
       found.push({
         id, name: label, nameFrom: named ? (named === d ? 'thROG' : 'iRO') : null, type: d.type, subType: d.subType || alt.subType || null,
         location: d.location || null, weaponLevel: d.weaponLevel || null, isAvailableOnServer: d.isAvailableOnServer === true,
-        refinable, armorLevel: d.type === 'Armor' ? parseArmorLevel(description) : 1,
+        refinable, armorLevel: d.type === 'Armor' ? resolveArmorLevel(description, d.requiredLevel ?? alt.requiredLevel) : 1,
       })
     }
   }

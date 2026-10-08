@@ -6,7 +6,7 @@
 // ENV: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_ANON_KEY, DASHBOARD_ALLOWED_EMAILS, DIVINE_PRIDE_API_KEY
 
 import { getUser, isOwner } from './_lib/auth.js'
-import { PLACEHOLDER_NAME, parseArmorLevel, isRefinableCandidate, buildLabel } from './_lib/itemInfo.js'
+import { PLACEHOLDER_NAME, resolveArmorLevel, isRefinableCandidate, buildLabel } from './_lib/itemInfo.js'
 import { dpItem, DivinePrideLimitError } from './_lib/divinePride.js'
 
 const STATUSES = ['approved', 'pending', 'denied']
@@ -53,10 +53,13 @@ async function lookupItem(id) {
   if (!named) return null
   const slots = (thai && thai.slots) || (global && global.slots) || 0
   const description = (global && global.description) || (thai && thai.description) || ''
+  // requiredLevel จากเซิร์ฟที่มีค่า (thROG ของไอเทมไทยบางชิ้นว่าง → ใช้ของ iRO)
+  const requiredLevel = (thai && thai.requiredLevel) ?? (global && global.requiredLevel) ?? null
   return {
     id: Number(id),
     label: buildLabel(named.displayName && /\[\d+\]$/.test(named.displayName) ? named.displayName : named.name, slots),
-    armorLevel: parseArmorLevel(description),
+    armorLevel: resolveArmorLevel(description, requiredLevel),
+    requiredLevel,
     type: named.type || null,
     subType: named.subType || null,
     // บอกแนวโน้มเฉยๆ (API ไม่ระบุว่าตีบวกได้หรือไม่) ให้คนตัดสินใจเอง
