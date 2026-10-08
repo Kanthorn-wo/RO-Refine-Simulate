@@ -1,0 +1,67 @@
+name: Item Index Gaps
+
+# หาอาวุธ/เกราะของเซิร์ฟไทยที่ยังไม่อยู่ใน index ค้นหาไอเทม → รายงานใน reports/item-gaps/ ให้คนคัดเลือกเติม scripts/extra-items.json
+# ต้องตั้ง secret DIVINE_PRIDE_API_KEY ใน repo settings ก่อน
+
+on:
+  schedule:
+    - cron: "0 21 * * 0" # สัปดาห์ละครั้ง (อาทิตย์ 21:00 UTC = จันทร์ 04:00 ไทย) ดูเฉพาะ 45 วันล่าสุด
+  workflow_dispatch:
+    inputs:
+      since:
+        description: "ไล่ไอเทมตั้งแต่วันที่ (YYYY-MM-DD) — ค่าเริ่มต้น 2008-01-01 = ทั้งหมด (ใช้เวลาหลายชั่วโมง)"
+        default: "2008-01-01"
+        required: false
+
+permissions:
+  contents: write # push report กลับเข้า repo
+
+concurrency:
+  group: item-gaps
+  cancel-in-progress: false
+
+jobs:
+  find-gaps:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Find missing items
+        env:
+          DIVINE_PRIDE_API_KEY: ${{ secrets.DIVINE_PRIDE_API_KEY }}
+          INPUT_SINCE: ${{ github.event.inputs.since }}
+        run: |
+          if [ -n "$INPUT_SINCE" ]; then
+            SINCE="$INPUT_SINCE"
+          else
+            SINCE=$(date -u -d '45 days ago' +%Y-%m-%d)
+          fi
+          node scripts/find-missing-items.mjs --since="$SINCE"
+
+      - name: Commit report
+        run: |
+          git config --local user.email "kanthorn.wo@gmail.com"
+          git config --local user.name "Kanthorn-wo"
+          git add reports/item-gaps/
+          if git diff --staged --quiet; then
+            echo "ไม่มีรายงานใหม่ — ข้ามการ commit"
+          else
+            git commit -m "chore(items): item gap report $(date -u +%Y-%m-%d)"
+            for i in 1 2 3 4 5; do
+              git rebase --abort 2>/dev/null || true
+              git pull --rebase origin master && git push && { echo "commit report สำเร็จ"; exit 0; }
+              echo "push ชน remote — rebase แล้วลองใหม่ ($i/5)"
+              sleep 5
+            done
+            echo "push report ไม่สำเร็จหลังลอง 5 ครั้ง"
+            exit 1
+          fi
