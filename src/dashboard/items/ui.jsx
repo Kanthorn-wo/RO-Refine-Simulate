@@ -55,7 +55,7 @@ export function FilterTabs({ options, value, onChange, counts }) {
   )
 }
 
-// แถวไอเทม: ไอคอน + ชื่อ + ป้าย + ปุ่ม (actions) + กล่องรายละเอียดท้ายแถว (children); variant card = คิวรออนุมัติ, row = รายการทั้งหมด
+// แถวไอเทม: ไอคอน + ชื่อ + ป้าย + คอลัมน์สถานะ (showStatus) + ปุ่ม (actions) + กล่องรายละเอียดท้ายแถว (children); variant card = คิวรออนุมัติ, row = รายการทั้งหมด
 export function ItemRow({ item, variant = 'row', showStatus = false, actions, children }) {
   const card = variant === 'card'
   return (
@@ -66,11 +66,11 @@ export function ItemRow({ item, variant = 'row', showStatus = false, actions, ch
           <span className={`truncate text-sm text-slate-200 ${card ? 'font-medium' : ''}`}>{item.label}</span>
           <TypeBadge item={item} />
           {item.level_uncertain && <UncertainBadge />}
-          {showStatus && <StatusBadge status={item.status} />}
         </div>
         <p className="text-[11px] text-slate-500">#{item.id} · {SOURCE_LABEL[item.source] || item.source}</p>
       </div>
-      <div className="flex shrink-0 gap-2">{actions}</div>
+      {showStatus && <div className="w-24 shrink-0"><StatusBadge status={item.status} /></div>}
+      <div className={`flex shrink-0 gap-2 ${card ? '' : 'sm:w-72 sm:justify-end'}`}>{actions}</div>
       {children}
     </li>
   )
