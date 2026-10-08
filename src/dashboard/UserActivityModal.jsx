@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import EventDetailModal, { DetailBadge } from './EventDetailModal'
+import ItemTypeBadge from './ItemTypeBadge'
+import { ITEM_TYPE_LABEL } from '../constants/itemTypes'
 
 // รวม log กิจกรรมของผู้ใช้ 1 คน (vid) จาก 2 แหล่ง: usage_events (visit/auto/simulate) + refine_log (ตีบวกรายครั้ง)
 // ทั้งสองตารางเก็บทุกแถว (ไม่ตัดแล้ว) — ไล่โหลดทีละหน้าจนครบทุกรายการของ vid นี้
@@ -44,7 +46,6 @@ const RESULT_META = {
   lost:    { label: 'ไอเทมหาย', color: '#fb7185', bg: '#fb718520' },
 }
 const STONE_LABEL = { normal: 'หินปกติ', enriched: 'Enriched', hd: 'HD' }
-const TYPE_SHORT = { weapon1: 'W1', weapon2: 'W2', weapon3: 'W3', weapon4: 'W4', weapon5: 'W5', armor1: 'A1', armor2: 'A2' }
 const EVENT_META = {
   auto:     { label: 'รัน Auto', dot: '#fbbf24' },
   simulate: { label: 'รันจำลอง',   dot: '#34d399' },
@@ -70,8 +71,8 @@ function RefineRow({ r, now }) {
     <div className="flex items-center gap-2.5 rounded-lg border border-white/5 bg-white/[0.02] p-2 text-sm">
       <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: '#818cf8' }} />
       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
-        <span className="truncate font-medium text-slate-200">{r.item_name || TYPE_SHORT[r.item_type] || r.item_type}</span>
-        <span className="shrink-0 rounded bg-white/5 px-1.5 py-0.5 text-[10px] text-slate-400">{TYPE_SHORT[r.item_type] || r.item_type}</span>
+        <span className="truncate font-medium text-slate-200">{r.item_name || ITEM_TYPE_LABEL[r.item_type] || r.item_type}</span>
+        <ItemTypeBadge type={r.item_type} />
         {/* badge โชว์ระดับปลายทาง (r.level เก็บเป็นระดับ "ก่อน" ตี) — ให้ตรงกับกราฟ "ภาพรวมการตีบวก" */}
         <span className="shrink-0 rounded bg-indigo-500/15 px-1.5 py-0.5 text-[10px] font-medium tabular-nums text-indigo-300">+{r.level + 1}</span>
         <span className="shrink-0 rounded bg-white/5 px-1.5 py-0.5 text-[10px] text-slate-300">{STONE_LABEL[r.stone] || r.stone}</span>

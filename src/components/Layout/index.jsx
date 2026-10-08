@@ -670,7 +670,7 @@ const Container = () => {
       ) {
         lvl = 2;
       }
-      // ไม่มีระดับที่ระบุชัด + requiredLevel เกิน 200 = ระดับสูงสุด (อาวุธ W5 / เกราะ Lv2) — กฎใน constants/itemLevels.js
+      // ไม่มีระดับที่ระบุชัด + requiredLevel เกิน 200 = ระดับสูงสุด (อาวุธ Lv.5 / เกราะ Lv.2) — กฎใน constants/itemLevels.js
       const highTier = isHighTierRequiredLevel(data.requiredLevel);
       const explicitLvl = Number(data.itemLevel) || Number(data.weaponLevel) || 0;
       let mapped;

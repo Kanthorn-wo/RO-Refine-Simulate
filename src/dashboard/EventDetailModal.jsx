@@ -1,13 +1,10 @@
 import { getOreName, ORE_COLORS, ORE_IMAGES } from '../constants/ores'
 import ItemIcon from './ItemIcon'
+import { ITEM_TYPE_LABEL } from '../constants/itemTypes'
 
 // รายละเอียดกิจกรรม "รันจำลอง" / "Auto" จาก usage_events.meta (server whitelist ใน api/stats.js)
 // เปิดจาก DetailBadge ใน ActivityFeed (DashboardView) และ UserActivityModal — แถวใน list ไม่ต้องอัดข้อมูล
 
-const TYPE_LABEL = {
-  weapon1: 'อาวุธ Lv.1', weapon2: 'อาวุธ Lv.2', weapon3: 'อาวุธ Lv.3', weapon4: 'อาวุธ Lv.4', weapon5: 'อาวุธ Lv.5',
-  armor1: 'เกราะ Lv.1', armor2: 'เกราะ Lv.2',
-}
 const STONE_LABEL = { normal: 'หินปกติ', enriched: 'Enriched', hd: 'HD' }
 const AUTO_REASON = {
   target:  { label: 'ถึงเป้าหมาย',                         cls: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300' },
@@ -98,8 +95,8 @@ function ItemHeader({ m }) {
     <div className="flex items-center gap-3">
       <ItemIcon id={m.item_id || null} type={m.item_type} size={40} />
       <div className="min-w-0">
-        <div className="truncate font-medium text-slate-100">{m.item_name || TYPE_LABEL[m.item_type] || 'ไม่ระบุไอเทม'}</div>
-        <div className="text-xs text-slate-500">{TYPE_LABEL[m.item_type] || m.item_type}{m.item_name ? '' : ' (ไม่ได้เลือกไอเทมเฉพาะ)'}</div>
+        <div className="truncate font-medium text-slate-100">{m.item_name || ITEM_TYPE_LABEL[m.item_type] || 'ไม่ระบุไอเทม'}</div>
+        <div className="text-xs text-slate-500">{ITEM_TYPE_LABEL[m.item_type] || m.item_type}{m.item_name ? '' : ' (ไม่ได้เลือกไอเทมเฉพาะ)'}</div>
       </div>
     </div>
   )

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell, LabelList } from 'recharts'
+import { ITEM_TYPE_LABEL } from '../constants/itemTypes'
 
 // หน้า "ภาพรวม" — สรุปว่าผู้เข้าชมทั้งหมดทำอะไรบ้าง จาก GET /api/stats?overview=1 (RPC overview_stats ใน docs/sql/overview-stats.sql)
 // ทุก panel บอก "ฐานข้อมูล" ของตัวเอง (prop basis) เพราะแต่ละแหล่งเริ่มเก็บคนละวัน:
@@ -16,10 +17,6 @@ const RESULTS = [
   { key: 'drop',    label: 'ล้ม — ลดระดับ',              color: '#fbbf24', ink: 'text-slate-950' },
   { key: 'lost',    label: 'ล้ม — ไอเทมหาย',             color: '#fb7185', ink: 'text-slate-950' },
 ]
-const TYPE_LABEL = {
-  weapon1: 'อาวุธ Lv.1', weapon2: 'อาวุธ Lv.2', weapon3: 'อาวุธ Lv.3', weapon4: 'อาวุธ Lv.4', weapon5: 'อาวุธ Lv.5',
-  armor1: 'เกราะ Lv.1', armor2: 'เกราะ Lv.2',
-}
 
 const fmt = (n) => (typeof n === 'number' ? n.toLocaleString('th-TH') : '—')
 const pct = (part, whole) => (whole > 0 ? (part / whole) * 100 : 0)
@@ -263,8 +260,8 @@ export default function OverviewView({ session, scrollTo }) {
     { label: '8 วันขึ้นไป', count: v.days_8p || 0 },
   ].map((d) => ({ ...d, pct: pct(d.count, total) }))
 
-  const items = Object.keys(TYPE_LABEL)
-    .map((k) => ({ label: TYPE_LABEL[k], data: o[`item:${k}`] }))
+  const items = Object.keys(ITEM_TYPE_LABEL)
+    .map((k) => ({ label: ITEM_TYPE_LABEL[k], data: o[`item:${k}`] }))
     .sort((x, y) => sumResults(y.data) - sumResults(x.data))
   const topItem = items[0]
   const autoP = pct(sumResults(o['mode:auto']), logged)

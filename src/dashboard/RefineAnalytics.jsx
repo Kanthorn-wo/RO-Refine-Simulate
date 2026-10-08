@@ -7,19 +7,14 @@ import { getRate } from '../constants/refineRates'
 import { supabase } from '../lib/supabase'
 import UserActivityModal from './UserActivityModal'
 import ItemIcon from './ItemIcon'
+import ItemTypeBadge from './ItemTypeBadge'
+import { ITEM_TYPE_LABEL } from '../constants/itemTypes'
 import { useItemNames } from './useItemNames'
 
 /* ── helpers ── */
 const fmt = (n) => Number(n || 0).toLocaleString('th-TH')
 const pct = (a, b) => (b ? Math.round((a / b) * 100) : 0)
 
-const TYPE_LABEL = {
-  weapon1: 'W1 อาวุธ Lv.1', weapon2: 'W2 อาวุธ Lv.2', weapon3: 'W3 อาวุธ Lv.3',
-  weapon4: 'W4 อาวุธ Lv.4', weapon5: 'W5 อาวุธ Lv.5',
-  armor1: 'A1 เกราะ Lv.1', armor2: 'A2 เกราะ Lv.2',
-}
-const TYPE_SHORT = { weapon1: 'W1', weapon2: 'W2', weapon3: 'W3', weapon4: 'W4', weapon5: 'W5', armor1: 'A1', armor2: 'A2' }
-const isWeapon = (t) => typeof t === 'string' && t.startsWith('weapon')
 
 const RESULT_META = {
   success: { label: 'สำเร็จ',    color: '#34d399', bg: '#34d39920' },
@@ -430,7 +425,7 @@ export default function RefineAnalytics({ session, scrollTo }) {
   const itemLabel = (r) => {
     if (r.item_name) return r.item_name
     if (r.item_id && names[r.item_id]) return names[r.item_id].name
-    return TYPE_LABEL[r.item_type] || r.item_type
+    return ITEM_TYPE_LABEL[r.item_type] || r.item_type
   }
 
   if (!data) return <RefineSkeleton error={error} />
@@ -539,7 +534,7 @@ export default function RefineAnalytics({ session, scrollTo }) {
         ) : (() => {
           const renderLbRow = (r, i) => {
             const sr = pct(r.success, r.attempts)
-            const name = r.item_id && names[r.item_id] ? names[r.item_id].name : TYPE_LABEL[r.item_type] || r.item_type
+            const name = r.item_id && names[r.item_id] ? names[r.item_id].name : ITEM_TYPE_LABEL[r.item_type] || r.item_type
             return (
               <div key={`${r.item_type}-${r.item_id}`}
                 className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/[0.02] p-2.5">
@@ -548,9 +543,7 @@ export default function RefineAnalytics({ session, scrollTo }) {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
                     <span className="truncate text-sm font-medium text-slate-200">{name}</span>
-                    <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${isWeapon(r.item_type) ? 'bg-rose-500/15 text-rose-300' : 'bg-sky-500/15 text-sky-300'}`}>
-                      {TYPE_SHORT[r.item_type] || ''}
-                    </span>
+                    <ItemTypeBadge type={r.item_type} />
                   </div>
                   <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/5">
                     <div className="h-full rounded-full bg-emerald-500/70" style={{ width: `${sr}%` }} />
@@ -679,7 +672,7 @@ export default function RefineAnalytics({ session, scrollTo }) {
                     <ItemIcon id={r.item_id || null} type={r.item_type} size={26} />
                     <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
                       <span className="truncate font-medium text-slate-200">{itemLabel(r)}</span>
-                      <span className="shrink-0 rounded bg-white/5 px-1.5 py-0.5 text-[10px] text-slate-400">{TYPE_SHORT[r.item_type] || r.item_type}</span>
+                      <ItemTypeBadge type={r.item_type} />
                       {/* badge โชว์ "ก่อน -> ปลายทาง" กันงงว่าทำไม r.level (ก่อนตี) เดียวแสดงเป็นเลขปลายทาง */}
                       <span className="shrink-0 rounded bg-indigo-500/15 px-1.5 py-0.5 text-[10px] font-medium tabular-nums text-indigo-300">+{r.level} → +{r.level + 1}</span>
                       {/* ชื่อแร่จริง */}

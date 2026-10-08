@@ -1,4 +1,6 @@
 import ItemIcon from '../ItemIcon'
+import ItemTypeBadge from '../ItemTypeBadge'
+import { itemTypeId } from '../../constants/itemTypes'
 import { SOURCE_LABEL, STATUS_META } from './consts'
 
 // ชิ้นส่วน UI ร่วมของแท็บ "ไอเทม" (ป้าย, ปุ่ม, กลุ่มตัวกรอง, แถวไอเทม, Panel)
@@ -11,15 +13,13 @@ export const StatusBadge = ({ status }) => {
 }
 
 export const UncertainBadge = () => (
-  <span title="ไม่มีข้อมูลเลเวลจาก API ระบบเดาเป็น Lv1 — ตรวจเลเวลก่อนอนุมัติ" className={`${badgeCls} bg-amber-500/15 text-amber-300`}>เลเวลไม่แน่ใจ</span>
+  <span title="ไม่มีข้อมูลเลเวลจาก API ระบบเดาเป็น Lv.1 — ตรวจเลเวลก่อนอนุมัติ" className={`${badgeCls} bg-amber-500/15 text-amber-300`}>เลเวลไม่แน่ใจ</span>
 )
 
-// ป้ายประเภท+เลเวล: อาวุธ Lv1–5 / เกราะ Lv1–2 (ไม่รู้ประเภท = ไม่แสดง)
-export const TypeBadge = ({ item }) => {
-  if (item.item_type === 'Weapon') return <span className={`${badgeCls} bg-sky-500/15 text-sky-300`}>อาวุธ Lv{item.weapon_level || '?'}</span>
-  if (item.item_type === 'Armor') return <span className={`${badgeCls} bg-indigo-500/15 text-indigo-300`}>เกราะ Lv{item.armor_level === 2 ? 2 : 1}</span>
-  return null
-}
+// ป้ายประเภท+เลเวลของแถว: อาวุธ Lv.1–5 / เกราะ Lv.1–2 (ไม่รู้ประเภท = ไม่แสดง)
+export const TypeBadge = ({ item }) => (
+  <ItemTypeBadge kind={item.item_type} type={itemTypeId(item.item_type, item.item_type === 'Weapon' ? item.weapon_level : item.armor_level)} />
+)
 
 export function Skeleton({ h = 'h-40' }) {
   return <div className={`animate-pulse rounded-2xl bg-white/[0.04] ${h}`} />
