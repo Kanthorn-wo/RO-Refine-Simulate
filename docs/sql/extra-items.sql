@@ -54,3 +54,7 @@ from (values
   (480651, 'Spirit Cloak of Naght Sieger-LT [1]', 2)
 ) as v(id, label, armor_level)
 on conflict (id) do nothing;
+
+-- เลเวลไม่แน่ใจ: ไม่มีทั้ง Armor Level ใน description / weaponLevel จาก API / requiredLevel เกิน 200 (ระบบเดาเป็น 1)
+-- Action ใส่ true → ไอเทมเข้าคิว pending เสมอแม้เปิดโหมดผ่านอัตโนมัติ; อนุมัติ/เพิ่มด้วยมือแล้วเคลียร์เป็น false
+alter table public.extra_items add column if not exists level_uncertain boolean not null default false;

@@ -23,6 +23,14 @@ export function resolveArmorLevel(description, requiredLevel) {
   return isHighTierRequiredLevel(requiredLevel) ? 2 : 1
 }
 
+// เลเวลที่ระบบ "เดา" (ไม่มีหลักฐาน): เกราะ = ไม่มีบรรทัด Armor Level, อาวุธ = ไม่มี weaponLevel จาก API — และ requiredLevel ไม่เกิน 200
+// ใช้ให้ Action ส่งไอเทมเข้าคิวรออนุมัติเสมอ + dashboard ติดป้ายให้คนตรวจ
+export function isLevelUncertain({ type, description, requiredLevel, weaponLevel }) {
+  if (isHighTierRequiredLevel(requiredLevel)) return false
+  if (type === 'Weapon') return !(Number(weaponLevel) > 0)
+  return !/Armor Level\s*:/.test(String(description || ''))
+}
+
 // description พูดถึง "refine" = สัญญาณว่าตีบวกได้ (เช่น "For every 2 refine level, ATK + 10")
 export const mentionsRefine = (description) => /refine/i.test(stripColorCodes(description))
 

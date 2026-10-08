@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseArmorLevel, resolveArmorLevel, mentionsRefine, buildLabel, isRefinableCandidate } from './itemInfo.js'
+import { parseArmorLevel, resolveArmorLevel, isLevelUncertain, mentionsRefine, buildLabel, isRefinableCandidate } from './itemInfo.js'
 
 describe('parseArmorLevel', () => {
   it('อ่านเลเวลจากบรรทัด Armor Level (มีรหัสสี)', () => {
@@ -80,5 +80,21 @@ describe('resolveArmorLevel — กฎ requiredLevel เกิน 200 = Lv2', ()
   it('ค่าที่ระบุชัดใน description ชนะกฎ (Armor Level : 1 + requiredLevel 250 = Lv1)', () => {
     expect(resolveArmorLevel('Armor Level : ^7777771^000000', 250)).toBe(1)
     expect(resolveArmorLevel('Armor Level : ^7777772^000000', 100)).toBe(2)
+  })
+})
+
+describe('isLevelUncertain — เลเวลที่ระบบเดา', () => {
+  it('เกราะ: มีบรรทัด Armor Level = แน่ใจ / ไม่มี = ไม่แน่ใจ', () => {
+    expect(isLevelUncertain({ type: 'Armor', description: 'Armor Level : ^7777771^000000', requiredLevel: 100 })).toBe(false)
+    expect(isLevelUncertain({ type: 'Armor', description: 'Type : Shield', requiredLevel: 100 })).toBe(true)
+  })
+  it('อาวุธ: มี weaponLevel = แน่ใจ / ไม่มี = ไม่แน่ใจ', () => {
+    expect(isLevelUncertain({ type: 'Weapon', description: '', requiredLevel: 100, weaponLevel: 4 })).toBe(false)
+    expect(isLevelUncertain({ type: 'Weapon', description: '', requiredLevel: 100, weaponLevel: 0 })).toBe(true)
+  })
+  it('requiredLevel เกิน 200 = เข้ากฎ จึงแน่ใจเสมอ', () => {
+    expect(isLevelUncertain({ type: 'Armor', description: '', requiredLevel: 201 })).toBe(false)
+    expect(isLevelUncertain({ type: 'Weapon', description: '', requiredLevel: 250 })).toBe(false)
+    expect(isLevelUncertain({ type: 'Armor', description: '', requiredLevel: 200 })).toBe(true)
   })
 })

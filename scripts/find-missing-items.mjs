@@ -13,7 +13,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
 import { dpGet, dpWithBackoff, DivinePrideLimitError } from '../api/_lib/divinePride.js'
-import { PLACEHOLDER_NAME, resolveArmorLevel, isRefinableCandidate, buildLabel } from '../api/_lib/itemInfo.js'
+import { PLACEHOLDER_NAME, resolveArmorLevel, isLevelUncertain, isRefinableCandidate, buildLabel } from '../api/_lib/itemInfo.js'
 
 if (!process.env.DIVINE_PRIDE_API_KEY) throw new Error('DIVINE_PRIDE_API_KEY ยังไม่ได้ตั้ง')
 
@@ -102,7 +102,8 @@ for (const id of candidates) {
       found.push({
         id, name: label, nameFrom: named ? (named === d ? 'thROG' : 'iRO') : null, type: d.type, subType: d.subType || alt.subType || null,
         location: d.location || null, weaponLevel: d.weaponLevel || null, isAvailableOnServer: d.isAvailableOnServer === true,
-        refinable, armorLevel: d.type === 'Armor' ? resolveArmorLevel(description, d.requiredLevel ?? alt.requiredLevel) : 1,
+        refinable, levelUncertain: isLevelUncertain({ type: d.type, description, requiredLevel: d.requiredLevel ?? alt.requiredLevel, weaponLevel: d.weaponLevel || alt.weaponLevel }),
+        armorLevel: d.type === 'Armor' ? resolveArmorLevel(description, d.requiredLevel ?? alt.requiredLevel) : 1,
       })
     }
   }
@@ -111,11 +112,16 @@ for (const id of candidates) {
 
 // 4) เติมเข้า extra_items (เติมอย่างเดียว ไม่ทับแถวเดิม)
 const toAdd = found.filter(x => x.refinable)
-const rows = toAdd.map((x, i) => ({
-  id: x.id, label: x.name, armor_level: x.armorLevel === 2 ? 2 : 1, source: 'auto',
-  status: autoApprove && i < MAX_AUTO_APPROVE ? 'approved' : 'pending',
-}))
-if (autoApprove && toAdd.length > MAX_AUTO_APPROVE) console.warn(`เกินเพดาน ${MAX_AUTO_APPROVE} รายการ — ${toAdd.length - MAX_AUTO_APPROVE} รายการที่เกินเข้าคิว "รออนุมัติ" แทน`)
+// เลเวลไม่แน่ใจ → pending เสมอ (แม้โหมดอัตโนมัติ) ให้คนตรวจ; ที่เหลือผ่านอัตโนมัติได้ไม่เกินเพดาน
+let autoApprovedCount = 0
+const rows = toAdd.map(x => {
+  const canAuto = autoApprove && !x.levelUncertain && autoApprovedCount < MAX_AUTO_APPROVE
+  if (canAuto) autoApprovedCount++
+  return { id: x.id, label: x.name, armor_level: x.armorLevel === 2 ? 2 : 1, level_uncertain: x.levelUncertain, source: 'auto', status: canAuto ? 'approved' : 'pending' }
+})
+const uncertainCount = toAdd.filter(x => x.levelUncertain).length
+console.log(`เลเวลไม่แน่ใจ ${uncertainCount} รายการ → เข้าคิวรออนุมัติ`)
+if (autoApprove && toAdd.length - uncertainCount > MAX_AUTO_APPROVE) console.warn(`เกินเพดาน ${MAX_AUTO_APPROVE} รายการ — ส่วนที่เกินเข้าคิว "รออนุมัติ" แทน`)
 let inserted = 0
 if (rows.length && supabaseReady && !dryRun) {
   const res = await sb('extra_items?on_conflict=id', {
@@ -131,7 +137,7 @@ console.log(dryRun ? `dry-run: จะเติม ${rows.length} รายกา
 const report = {
   generatedAt: new Date().toISOString(), since, server: 'thROG', dryRun,
   mode: autoApprove ? 'auto' : 'manual', thIds: thIds.size, candidates: candidates.length, found: found.length,
-  refinable: toAdd.length, inserted,
+  refinable: toAdd.length, levelUncertain: uncertainCount, inserted,
   note: 'refinable = description พูดถึง refine + ไม่ใช่เครื่องประดับ/Costume/NFS (API ไม่บอกตรง ๆ ว่าตีบวกได้) — รายการ refinable ถูกเติมเข้าตาราง extra_items (โหมดอัตโนมัติ = approved, ไม่งั้น pending ให้อนุมัติใน dashboard); รายการที่ refinable=false ดูเองได้ในรายงานนี้',
   items: found,
 }

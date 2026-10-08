@@ -44,6 +44,10 @@ const StatusBadge = ({ status }) => {
   return <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${meta.cls}`}>{meta.label}</span>
 }
 
+const UncertainBadge = () => (
+  <span title="ไม่มีข้อมูลเลเวลจาก API ระบบเดาเป็น Lv1/W1 — ตรวจเลเวลก่อนอนุมัติ" className="shrink-0 rounded-full bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-300">เลเวลไม่แน่ใจ</span>
+)
+
 const LevelBadge = ({ level }) => (
   <span className="shrink-0 rounded-full bg-indigo-500/15 px-1.5 py-0.5 text-[10px] font-medium text-indigo-300">เกราะ Lv{level}</span>
 )
@@ -274,6 +278,7 @@ export default function ItemsView({ session, scrollTo }) {
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="truncate text-sm font-medium text-slate-200">{item.label}</span>
                     {item.armor_level === 2 && <LevelBadge level={2} />}
+                    {item.level_uncertain && <UncertainBadge />}
                   </div>
                   <p className="text-[11px] text-slate-500">#{item.id} · {SOURCE_LABEL[item.source] || item.source}</p>
                 </div>
@@ -320,6 +325,7 @@ export default function ItemsView({ session, scrollTo }) {
               <span className={`rounded-full px-2 py-0.5 ${lookup.refinableGuess ? 'bg-emerald-500/15 text-emerald-400' : 'bg-amber-500/15 text-amber-400'}`}>
                 {lookup.refinableGuess ? 'คำอธิบายพูดถึง refine (น่าจะตีบวกได้)' : 'ไม่พบสัญญาณว่าตีบวกได้ — ตรวจเองก่อน'}
               </span>
+              {lookup.levelUncertain && <UncertainBadge />}
               <span className={`rounded-full px-2 py-0.5 ${lookup.availableOnThai ? 'bg-emerald-500/15 text-emerald-400' : 'bg-white/5 text-slate-400'}`}>
                 {lookup.availableOnThai ? 'มีบนเซิร์ฟไทย' : 'API ไม่ยืนยันว่ามีบนเซิร์ฟไทย'}
               </span>
@@ -377,6 +383,7 @@ export default function ItemsView({ session, scrollTo }) {
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="truncate text-sm text-slate-200">{item.label}</span>
                     {item.armor_level === 2 && <LevelBadge level={2} />}
+                    {item.level_uncertain && <UncertainBadge />}
                     <StatusBadge status={item.status} />
                   </div>
                   <p className="text-[11px] text-slate-500">#{item.id} · {SOURCE_LABEL[item.source] || item.source}</p>

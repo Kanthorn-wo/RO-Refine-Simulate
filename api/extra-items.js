@@ -6,7 +6,7 @@
 // ENV: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_ANON_KEY, DASHBOARD_ALLOWED_EMAILS, DIVINE_PRIDE_API_KEY
 
 import { getUser, isOwner } from './_lib/auth.js'
-import { PLACEHOLDER_NAME, resolveArmorLevel, isRefinableCandidate, buildLabel } from './_lib/itemInfo.js'
+import { PLACEHOLDER_NAME, resolveArmorLevel, isLevelUncertain, isRefinableCandidate, buildLabel } from './_lib/itemInfo.js'
 import { dpItem, DivinePrideLimitError } from './_lib/divinePride.js'
 
 const STATUSES = ['approved', 'pending', 'denied']
@@ -60,6 +60,7 @@ async function lookupItem(id) {
     label: buildLabel(named.displayName && /\[\d+\]$/.test(named.displayName) ? named.displayName : named.name, slots),
     armorLevel: resolveArmorLevel(description, requiredLevel),
     requiredLevel,
+    levelUncertain: isLevelUncertain({ type: named.type, description, requiredLevel, weaponLevel: (thai && thai.weaponLevel) || (global && global.weaponLevel) }),
     type: named.type || null,
     subType: named.subType || null,
     // บอกแนวโน้มเฉยๆ (API ไม่ระบุว่าตีบวกได้หรือไม่) ให้คนตัดสินใจเอง
@@ -87,7 +88,7 @@ export default async function handler(req, res) {
       if (!isOwner(user)) return res.status(403).json({ error: 'ไม่มีสิทธิ์เข้าถึง' })
       try {
         const [itemsRes, settingRes] = await Promise.all([
-          sbFetch(`extra_items?select=id,label,armor_level,status,source,created_at,updated_at&order=updated_at.desc&limit=${MAX_ROWS}`),
+          sbFetch(`extra_items?select=id,label,armor_level,level_uncertain,status,source,created_at,updated_at&order=updated_at.desc&limit=${MAX_ROWS}`),
           sbFetch('site_settings?select=value&key=eq.item_auto_approve'),
         ])
         if (!itemsRes.ok || !settingRes.ok) return res.status(502).json({ error: 'read failed' })
@@ -152,7 +153,7 @@ export default async function handler(req, res) {
         const r = await sbFetch('extra_items?on_conflict=id', {
           method: 'POST',
           headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-          body: JSON.stringify({ id: Number(id), label, armor_level: armorLevel, status, source: 'manual', updated_at: new Date().toISOString() }),
+          body: JSON.stringify({ id: Number(id), label, armor_level: armorLevel, status, source: 'manual', level_uncertain: false, updated_at: new Date().toISOString() }),
         })
         if (!r.ok) return res.status(502).json({ error: 'write failed' })
         return res.status(200).json({ ok: true })
@@ -164,7 +165,8 @@ export default async function handler(req, res) {
         const r = await sbFetch(`extra_items?id=eq.${id}`, {
           method: 'PATCH',
           headers: { Prefer: 'return=minimal' },
-          body: JSON.stringify({ status, updated_at: new Date().toISOString() }),
+          // อนุมัติ = คนตรวจเลเวลแล้ว → เคลียร์ป้ายไม่แน่ใจ
+          body: JSON.stringify({ status, ...(status === 'approved' ? { level_uncertain: false } : {}), updated_at: new Date().toISOString() }),
         })
         if (!r.ok) return res.status(502).json({ error: 'write failed' })
         return res.status(200).json({ ok: true })
