@@ -7,6 +7,7 @@ import { getRate } from '../constants/refineRates'
 import { supabase } from '../lib/supabase'
 import UserActivityModal from './UserActivityModal'
 import ItemIcon from './ItemIcon'
+import { useItemNames } from './useItemNames'
 
 /* ── helpers ── */
 const fmt = (n) => Number(n || 0).toLocaleString('th-TH')
@@ -187,29 +188,6 @@ function RefineSkeleton({ error }) {
       </div>
     </div>
   )
-}
-
-function useItemNames(ids) {
-  const [map, setMap] = useState({})
-  const cache = useRef({})
-  useEffect(() => {
-    let cancelled = false
-    const todo = ids.filter((id) => id && !(id in cache.current))
-    if (!todo.length) return
-    todo.forEach((id) => { cache.current[id] = null })
-    Promise.all(
-      todo.map(async (id) => {
-        try {
-          const r = await fetch(`/api/item?id=${id}`)
-          if (!r.ok) return
-          const d = await r.json()
-          cache.current[id] = { name: d.name }
-        } catch { /* ignore */ }
-      })
-    ).then(() => { if (!cancelled) setMap({ ...cache.current }) })
-    return () => { cancelled = true }
-  }, [ids])
-  return map
 }
 
 function relTime(iso, now) {
@@ -404,7 +382,7 @@ export default function RefineAnalytics({ session, scrollTo }) {
   const total         = data?.total || 0
   const totalPages    = Math.max(1, Math.ceil(total / pageSize))
 
-  // resolve ชื่อ item จาก divine-pride
+  // resolve ชื่อ item จากรายชื่อของเราเอง (ไม่ยิง divine-pride)
   const ids = useMemo(() => {
     const s = new Set()
     for (const r of leaderboard) if (r.item_id) s.add(r.item_id)
