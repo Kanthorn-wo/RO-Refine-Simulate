@@ -1,10 +1,13 @@
-// Vercel Serverless: ตั้งค่าเว็บ (feature flags) — เฉพาะเจ้าของเว็บเขียนได้
+// Vercel Serverless: ตั้งค่าเว็บ (feature flags) — เฉพาะผู้มีสิทธิ์ edit เขียนได้
 //   POST { key, value } → เซ็ตค่าใน site_settings (ตอนนี้รองรับ key 'show_stats')
 // อ่าน flag ปัจจุบันให้ใช้ GET /api/stats (คืน showStats มาด้วยแล้ว)
-// verify Supabase token + เช็ค email ใน DASHBOARD_ALLOWED_EMAILS (เหมือน api/ga.js)
+// verify Supabase token + เช็คสิทธิ์ต่อ key (items-mode:edit / usage-settings:edit — api/_lib/auth.js)
 // ENV: SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, DASHBOARD_ALLOWED_EMAILS
 
-import { getUser, isOwner } from './_lib/auth.js'
+import { getUser, canAny } from './_lib/auth.js'
+
+// สิทธิ์ที่ต้องมีต่อ key: โหมดอนุมัติไอเทมอยู่หน้า "ไอเทม" ที่เหลืออยู่หน้า Usage
+const permForKey = (key) => (key === 'item_auto_approve' ? 'items-mode:edit' : 'usage-settings:edit')
 
 const ALLOWED_KEYS = ['show_stats', 'show_online', 'track_online', 'item_auto_approve', 'item_search_enabled']
 
@@ -24,8 +27,6 @@ export default async function handler(req, res) {
 
   const user = await getUser(req)
   if (!user) return res.status(401).json({ error: 'unauthorized' })
-  if (!isOwner(user)) return res.status(403).json({ error: 'ไม่มีสิทธิ์ (เฉพาะเจ้าของเว็บ)' })
-
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return res.status(500).json({ error: 'supabase env not set' })
   }
@@ -33,6 +34,7 @@ export default async function handler(req, res) {
   const body = await readBody(req)
   const key = String(body.key || '')
   if (!ALLOWED_KEYS.includes(key)) return res.status(400).json({ error: 'invalid key' })
+  if (!(await canAny(user, [permForKey(key)]))) return res.status(403).json({ error: 'ไม่มีสิทธิ์แก้ไขการตั้งค่านี้' })
   const value = Boolean(body.value)
 
   try {

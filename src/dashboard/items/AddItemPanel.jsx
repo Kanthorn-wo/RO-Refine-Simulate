@@ -7,7 +7,8 @@ import { Panel, Spinner, UncertainBadge } from './ui'
 // เพิ่ม/ซ่อนไอเทมด้วย Item ID: ค้นข้อมูลจาก divine-pride (action lookup) → ตรวจ/แก้ชื่อ+เลเวล → บันทึก
 // lookupItem(id) → ผล lookup (null = parent เมินเพราะมีคำขอค้างอยู่, throw = error); lookupBusy = มีคำขอ lookup ค้างอยู่ (จากปุ่มไหนก็ตาม)
 // onSave(payload, successMsg) บันทึกผ่าน parent (โหลดรายการใหม่ + แจ้งผล); onError(msg)
-export default function AddItemPanel({ lookupItem, lookupBusy, onSave, onError, saving }) {
+// readOnly = มีสิทธิ์ดู section นี้แต่ไม่มีสิทธิ์แก้ไข → ซ่อนช่องกรอก/ปุ่มบันทึก (API บังคับซ้ำอีกชั้น)
+export default function AddItemPanel({ lookupItem, lookupBusy, onSave, onError, saving, readOnly }) {
   const [addId, setAddId] = useState('')
   const [lookup, setLookup] = useState(null) // ผล lookup ที่แก้ได้ { id, label, armorLevel, weaponLevel, type, ... }
   const [looking, setLooking] = useState(false)
@@ -41,6 +42,7 @@ export default function AddItemPanel({ lookupItem, lookupBusy, onSave, onError, 
 
   return (
     <Panel id="items-add" title="เพิ่ม/ซ่อนไอเทมเอง" hint="กรอก Item ID แล้วระบบดึงชื่อ ประเภท และเลเวลมาให้ตรวจก่อนบันทึก (“ซ่อน” ใช้กับไอเทมที่อยู่ในรายชื่อหลักอยู่แล้ว)">
+      {readOnly && <p className="mb-3 text-[11px] text-slate-500">คุณมีสิทธิ์ดูส่วนนี้อย่างเดียว (ไม่มีสิทธิ์แก้ไข)</p>}
       <div className="flex flex-wrap gap-2">
         <input
           value={addId}
@@ -48,9 +50,10 @@ export default function AddItemPanel({ lookupItem, lookupBusy, onSave, onError, 
           onKeyDown={(e) => { if (e.key === 'Enter') doLookup() }}
           inputMode="numeric"
           placeholder="Item ID เช่น 460166"
-          className={`${inputCls} min-w-0 flex-1 px-3 py-2 text-sm`}
+          disabled={readOnly}
+          className={`${inputCls} min-w-0 flex-1 px-3 py-2 text-sm disabled:opacity-40`}
         />
-        <button className={`${btnNeutral} inline-flex min-w-[5.5rem] items-center justify-center`} onClick={doLookup} disabled={lookupBusy || !addId.trim()}
+        <button className={`${btnNeutral} inline-flex min-w-[5.5rem] items-center justify-center`} onClick={doLookup} disabled={readOnly || lookupBusy || !addId.trim()}
           aria-busy={looking} aria-label={looking ? 'กำลังค้น' : undefined}>{looking ? <Spinner /> : 'ค้นข้อมูล'}</button>
       </div>
 
@@ -92,8 +95,8 @@ export default function AddItemPanel({ lookupItem, lookupBusy, onSave, onError, 
             <span className="text-slate-600">{isWeapon ? '(จาก weaponLevel ของ API)' : '(จากบรรทัด Armor Level ในคำอธิบาย / requiredLevel เกิน 200 = 2; ไม่มี = 1)'}</span>
           </label>
           <div className="flex flex-wrap gap-2">
-            <button className={btnOk} disabled={saving || !lookup.label.trim()} onClick={() => save('approved')}>เพิ่มเข้าช่องค้นหา</button>
-            <button className={btnWarn} disabled={saving || !lookup.label.trim()} onClick={() => save('denied')}>ซ่อนจากช่องค้นหา</button>
+            <button className={btnOk} disabled={readOnly || saving || !lookup.label.trim()} onClick={() => save('approved')}>เพิ่มเข้าช่องค้นหา</button>
+            <button className={btnWarn} disabled={readOnly || saving || !lookup.label.trim()} onClick={() => save('denied')}>ซ่อนจากช่องค้นหา</button>
             <button className={btnNeutral} onClick={() => setLookup(null)}>ยกเลิก</button>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { BetaAnalyticsDataClient } from '@google-analytics/data'
-import { getUser, isOwner } from './_lib/auth.js'
+import { getUser, getAccess, pageViewPerms } from './_lib/auth.js'
+import { filterForUser } from './_lib/sectionAccess.js'
 
 // Vercel Serverless Function: ดึงข้อมูลสรุปจาก GA4 Data API
 // ป้องกันด้วยการ verify Supabase access token ก่อน (ต้อง login ถึงเรียกได้)
@@ -32,7 +33,8 @@ const num = (v) => Number(v || 0)
 export default async function handler(req, res) {
   const user = await getUser(req)
   if (!user) return res.status(401).json({ error: 'unauthorized' })
-  if (!isOwner(user)) return res.status(403).json({ error: 'ไม่มีสิทธิ์เข้าถึง (เฉพาะเจ้าของเว็บ)' })
+  const access = await getAccess(user)
+  if (!pageViewPerms('analytics').some((p) => access.perms.includes(p))) return res.status(403).json({ error: 'ไม่มีสิทธิ์เข้าถึง' })
 
   const { GA_PROPERTY_ID, GA_CLIENT_EMAIL, GA_PRIVATE_KEY } = process.env
   if (!GA_PROPERTY_ID || !GA_CLIENT_EMAIL || !GA_PRIVATE_KEY) {
@@ -233,8 +235,9 @@ export default async function handler(req, res) {
       .map((r) => ({ city: r.dimensionValues?.[0]?.value, users: num(r.metricValues?.[0]?.value) }))
       .filter((c) => c.city && c.city !== '(not set)')
 
-    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600')
-    return res.status(200).json({
+    // response ต่างกันตามสิทธิ์ผู้ใช้ — ห้าม cache ร่วมที่ CDN (เดิม s-maxage) ไม่งั้นคนสิทธิ์น้อยอาจได้ของคนสิทธิ์เยอะ
+    res.setHeader('Cache-Control', 'private, no-store')
+    return res.status(200).json(filterForUser('analytics', {
       range: { startDate: firstDate, endDate: 'today' },
       totals,
       timeseries,
@@ -246,7 +249,7 @@ export default async function handler(req, res) {
       channels,
       audience,
       events,
-    })
+    }, access))
   } catch (err) {
     return res.status(500).json({ error: err?.message || 'GA report failed' })
   }

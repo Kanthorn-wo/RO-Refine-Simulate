@@ -9,6 +9,8 @@ import { bkkToday, bkkDaysAgo } from '../utils/date'
 import MonitorView from './MonitorView'
 import OverviewView from './OverviewView'
 import ItemsView from './ItemsView'
+import UsersView from './UsersView'
+import { USERS_PERM, can, canSeePage, hiddenSectionIds } from './permissions'
 import RefineAnalytics from './RefineAnalytics'
 import Toggle from '../components/Toggle'
 import UserActivityModal from './UserActivityModal'
@@ -54,6 +56,11 @@ const NavIc = {
       <path d="M21 8l-9-5-9 5v8l9 5 9-5V8z" /><path d="M3 8l9 5 9-5M12 13v8" />
     </svg>
   ),
+  users: (p) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" /><circle cx="10" cy="7" r="4" /><path d="M21 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  ),
   menu: (p) => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
       <path d="M4 6h16M4 12h16M4 18h16" />
@@ -72,6 +79,7 @@ const NAV_ITEMS = [
   { id: 'usage',     label: 'Usage',     sub: 'สถิติการใช้งานรวม', icon: NavIc.usage },
   { id: 'items',     label: 'ไอเทม',     sub: 'จัดการรายชื่อไอเทมในช่องค้นหา', icon: NavIc.items },
   { id: 'monitor',   label: 'Monitor',   sub: 'สุขภาพเว็บไซต์',  icon: NavIc.monitor },
+  { id: 'users',     label: 'ผู้ใช้',     sub: 'จัดการสิทธิ์เข้า dashboard', icon: NavIc.users },
 ]
 
 // submenu anchor ต่อหน้า — คลิกแล้วเลื่อนไปหา section (usage บาง section ต้องสลับ sub-tab ก่อนด้วย)
@@ -108,6 +116,11 @@ const NAV_SECTIONS = {
     { id: 'items-pending', label: 'รออนุมัติ' },
     { id: 'items-add',     label: 'เพิ่ม/ซ่อนไอเทม' },
     { id: 'items-all',     label: 'รายการทั้งหมด' },
+  ],
+  users: [
+    { id: 'users-add',  label: 'เพิ่มผู้ใช้' },
+    { id: 'users-list', label: 'ผู้ใช้ทั้งหมด' },
+    { id: 'users-audit', label: 'ประวัติการเปลี่ยนแปลง' },
   ],
   monitor: [
     { id: 'monitor-kpi',        label: 'ภาพรวม (KPI)' },
@@ -813,10 +826,11 @@ const TRAFFIC_METRICS = [
   { id: 'simulate',         label: 'รันจำลอง',   color: '#4ade80' },
 ]
 
+// sections = id ของ section ในแต่ละ sub-tab (ตรงกับ permissions.js) — ไม่มีสิทธิ์ดูสักอัน = ซ่อน sub-tab นั้น
 const USAGE_SUB_TABS = [
-  { id: 'traffic',  label: 'ทราฟฟิก',    sub: 'ผู้เข้าชม / กิจกรรม' },
-  { id: 'refine',   label: 'การตีบวก',   sub: 'สถิติ / ประวัติ' },
-  { id: 'settings', label: 'ตั้งค่า',    sub: 'การแสดงผลหน้าเว็บ' },
+  { id: 'traffic',  label: 'ทราฟฟิก',    sub: 'ผู้เข้าชม / กิจกรรม', sections: ['usage-traffic-kpi', 'usage-traffic-trend', 'usage-traffic-activity'] },
+  { id: 'refine',   label: 'การตีบวก',   sub: 'สถิติ / ประวัติ', sections: ['refine-kpi', 'refine-overview', 'refine-leaderboard', 'refine-log'] },
+  { id: 'settings', label: 'ตั้งค่า',    sub: 'การแสดงผลหน้าเว็บ', sections: ['usage-settings'] },
 ]
 
 const usageToday = bkkToday
@@ -854,7 +868,10 @@ function OnlineBadge({ trackOnline }) {
   )
 }
 
-function UsageContent({ session, usageTab, setUsageTab, scrollTo, onTrackOnlineChange }) {
+function UsageContent({ session, perms, usageTab: requestedTab, setUsageTab, scrollTo, onTrackOnlineChange }) {
+  const visibleSubTabs = USAGE_SUB_TABS.filter((t) => t.sections.some((id) => can(perms, id)))
+  const usageTab = visibleSubTabs.some((t) => t.id === requestedTab) ? requestedTab : visibleSubTabs[0]?.id // sub-tab ที่ขอมาไม่มีสิทธิ์ → ใช้อันแรกที่เข้าได้
+  const canEditSettings = can(perms, 'usage-settings', 'edit')
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -952,7 +969,7 @@ function UsageContent({ session, usageTab, setUsageTab, scrollTo, onTrackOnlineC
   // sub-tab pills
   const subTabs = (
     <div className="inline-flex rounded-xl border border-white/10 bg-white/[0.03] p-1 gap-0.5">
-      {USAGE_SUB_TABS.map((t) => (
+      {visibleSubTabs.map((t) => (
         <button key={t.id} onClick={() => setUsageTab(t.id)}
           className={`rounded-lg px-3.5 py-2 text-left transition-all ${
             usageTab === t.id
@@ -1054,7 +1071,7 @@ function UsageContent({ session, usageTab, setUsageTab, scrollTo, onTrackOnlineC
               </Panel>
 
               <div id="usage-traffic-activity" className="scroll-mt-20">
-                <ActivityFeed session={session} />
+                {can(perms, 'usage-traffic-activity') && <ActivityFeed session={session} />}
               </div>
             </>
           )}
@@ -1094,7 +1111,7 @@ function UsageContent({ session, usageTab, setUsageTab, scrollTo, onTrackOnlineC
                         <p className="mt-0.5 text-xs text-slate-500">{s.desc}</p>
                       </div>
                     </div>
-                    <Toggle checked={on} onChange={() => toggleSetting(s.key, s.field)} disabled={savingKey === s.key} activeColor="bg-emerald-500" ariaLabel={s.title} />
+                    <Toggle checked={on} onChange={() => toggleSetting(s.key, s.field)} disabled={savingKey === s.key || !canEditSettings} activeColor="bg-emerald-500" ariaLabel={s.title} />
                   </div>
                 )
               })}
@@ -1131,7 +1148,7 @@ function UsageContent({ session, usageTab, setUsageTab, scrollTo, onTrackOnlineC
                         </div>
                         <p className="mt-0.5 text-xs text-slate-500">{locked ? 'ต้องเปิด “ระบบนับ” ด้านบนก่อน' : s.desc}</p>
                       </div>
-                      <Toggle checked={effectiveOn} onChange={() => toggleSetting(s.key, s.field)} disabled={savingKey === s.key || locked} activeColor="bg-emerald-500" ariaLabel={s.title} />
+                      <Toggle checked={effectiveOn} onChange={() => toggleSetting(s.key, s.field)} disabled={savingKey === s.key || locked || !canEditSettings} activeColor="bg-emerald-500" ariaLabel={s.title} />
                     </div>
                   )
                 })}
@@ -1158,6 +1175,18 @@ export default function DashboardView({ session }) {
   const [usageTab, setUsageTab] = useState('traffic') // ยกมาจาก UsageContent ให้ side nav สลับ sub-tab ได้
   const [scrollTo, setScrollTo] = useState(null)      // { id, ts } — anchor เป้าหมายจาก submenu
   const [trackOnline, setTrackOnline] = useState(null) // flag ระบบนับออนไลน์ สำหรับ badge บน header (null = กำลังโหลด)
+  const [me, setMe] = useState(null)                   // { email, role, perms } จาก /api/users?me=1 (null = กำลังโหลด)
+  const token = session?.access_token
+
+  // โหลด role/permission ของผู้ใช้ที่ login — ใช้ซ่อนเมนู/ปิดปุ่มแก้ไข (การบังคับสิทธิ์จริงอยู่ที่ API)
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/users?me=1', { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+      .then((r) => (r.ok ? r.json() : { role: null, perms: [], apiError: true }))
+      .catch(() => ({ role: null, perms: [], apiError: true })) // API ไม่ตอบ/ไม่ใช่ JSON (เช่นรัน vite เฉย ๆ ที่ไม่มี /api) ≠ ไม่มีสิทธิ์
+      .then((json) => { if (!cancelled) setMe(json) })
+    return () => { cancelled = true }
+  }, [token])
 
   // โหลด flag ระบบนับครั้งแรก (ทุกหน้า) — หน้า Usage sync ค่าซ้ำตอนโหลด/กด toggle ผ่าน onTrackOnlineChange
   useEffect(() => {
@@ -1183,7 +1212,12 @@ export default function DashboardView({ session }) {
     }
   }, [activeTab])
 
-  const activeItem = NAV_ITEMS.find(n => n.id === activeTab)
+  const perms = me?.perms || []
+  // หน้าที่เข้าได้: ผู้ใช้ = เฉพาะ owner (users:manage), หน้าอื่น = มีสิทธิ์ดูอย่างน้อย 1 section
+  const navItems = NAV_ITEMS.filter((n) => (n.id === 'users' ? perms.includes(USERS_PERM) : canSeePage(perms, n.id)))
+  const currentTab = navItems.some((n) => n.id === activeTab) ? activeTab : navItems[0]?.id // tab จาก URL ที่ไม่มีสิทธิ์ → หน้าแรกที่เข้าได้
+  const activeItem = NAV_ITEMS.find(n => n.id === currentTab)
+  const hiddenIds = hiddenSectionIds(perms) // section ที่ไม่มีสิทธิ์ดู (ซ่อนด้วย CSS ด้านล่าง)
 
   // คลิก submenu — สลับหน้า/sub-tab ให้ตรง section แล้วสั่งเลื่อนไปหา (ts กันคลิกซ้ำ id เดิมไม่เลื่อน)
   const goToSection = (topId, section) => {
@@ -1193,11 +1227,31 @@ export default function DashboardView({ session }) {
     setScrollTo({ id: section.id, ts: Date.now() })
   }
 
+  if (!me) return <div className="min-h-screen w-full bg-slate-950" />
+  if (!me.role || navItems.length === 0) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center bg-slate-950 px-4">
+        <div className="max-w-md text-center text-slate-300">
+          <h1 className="text-lg font-bold mb-2 text-slate-100">{me.apiError ? 'โหลดสิทธิ์ไม่สำเร็จ' : 'ไม่มีสิทธิ์เข้าใช้ dashboard'}</h1>
+          <p className="text-sm text-slate-400">
+            {me.apiError
+              ? 'เรียก /api/users ไม่ได้ — ถ้ารันในเครื่องด้วย vite เฉย ๆ จะไม่มี /api ให้ใช้ vercel dev หรือเปิดบนเว็บที่ deploy แล้ว'
+              : <>บัญชี {session?.user?.email} ยังไม่ได้รับสิทธิ์ ติดต่อเจ้าของเว็บเพื่อขอสิทธิ์</>}
+          </p>
+          <button onClick={() => supabase.auth.signOut()} className="mt-4 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-white/[0.08]">ออกจากระบบ</button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="dashboard-root min-h-screen w-full bg-slate-950 text-slate-100 flex">
       {/* glow */}
       <div className="pointer-events-none fixed inset-0 opacity-60"
         style={{ background: 'radial-gradient(800px 400px at 20% -5%, rgba(99,102,241,0.18), transparent), radial-gradient(700px 400px at 100% 0%, rgba(16,185,129,0.10), transparent)' }} />
+
+      {/* ซ่อน section ที่ไม่มีสิทธิ์ดู (ระดับ UI — ข้อมูลของหน้าที่มาจาก endpoint เดียวยังถูกส่งมา; ดู permissions.js) */}
+      {hiddenIds.length > 0 && <style>{hiddenIds.map((id) => `#${id}{display:none}`).join('')}</style>}
 
       {/* overlay backdrop (mobile only) */}
       {sideOpen && (
@@ -1220,9 +1274,9 @@ export default function DashboardView({ session }) {
 
         {/* nav items */}
         <nav className="flex-1 overflow-y-auto px-2 py-4 space-y-0.5">
-          {NAV_ITEMS.map(item => {
-            const active = activeTab === item.id
-            const sections = NAV_SECTIONS[item.id] || []
+          {navItems.map(item => {
+            const active = currentTab === item.id
+            const sections = (NAV_SECTIONS[item.id] || []).filter((sec) => item.id === 'users' || can(perms, sec.id))
             return (
               <div key={item.id}>
                 <button onClick={() => { setActiveTab(item.id); setSideOpen(false) }}
@@ -1265,6 +1319,7 @@ export default function DashboardView({ session }) {
             </span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-xs text-slate-300">{session?.user?.email}</span>
+              <span className="block text-[10px] text-slate-500">{me.role}</span>
             </span>
           </div>
           <button onClick={() => supabase.auth.signOut()}
@@ -1297,11 +1352,12 @@ export default function DashboardView({ session }) {
 
         {/* page content */}
         <main className="px-4 py-6 sm:px-6 sm:py-8">
-          {activeTab === 'overview'  && <OverviewView     session={session} scrollTo={scrollTo} />}
-          {activeTab === 'analytics' && <AnalyticsContent session={session} scrollTo={scrollTo} />}
-          {activeTab === 'usage'     && <UsageContent     session={session} scrollTo={scrollTo} usageTab={usageTab} setUsageTab={setUsageTab} onTrackOnlineChange={setTrackOnline} />}
-          {activeTab === 'items'     && <ItemsView        session={session} scrollTo={scrollTo} />}
-          {activeTab === 'monitor'   && <MonitorView      session={session} scrollTo={scrollTo} />}
+          {currentTab === 'overview'  && <OverviewView     session={session} scrollTo={scrollTo} />}
+          {currentTab === 'analytics' && <AnalyticsContent session={session} scrollTo={scrollTo} />}
+          {currentTab === 'usage'     && <UsageContent     session={session} perms={perms} scrollTo={scrollTo} usageTab={usageTab} setUsageTab={setUsageTab} onTrackOnlineChange={setTrackOnline} />}
+          {currentTab === 'items'     && <ItemsView        session={session} perms={perms} scrollTo={scrollTo} />}
+          {currentTab === 'users'     && perms.includes(USERS_PERM) && <UsersView session={session} selfEmail={(me.email || '').toLowerCase()} scrollTo={scrollTo} />}
+          {currentTab === 'monitor'   && <MonitorView      session={session} scrollTo={scrollTo} />}
         </main>
       </div>
     </div>

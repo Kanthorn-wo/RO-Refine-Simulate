@@ -1,5 +1,6 @@
 import { isBotUA } from '../src/constants/botUA.js'
-import { getUser, isOwner } from './_lib/auth.js'
+import { getUser, canAny, getAccess, pageViewPerms } from './_lib/auth.js'
+import { filterForUser } from './_lib/sectionAccess.js'
 import { bkkToday } from '../src/utils/date.js'
 import { POST_BATCH_CAP } from '../src/constants/limits.js'
 import { ORE_COLORS } from '../src/constants/ores.js'
@@ -200,7 +201,7 @@ export default async function handler(req, res) {
       if (evN) {
         const user = await getUser(req)
         if (!user) return res.status(401).json({ error: 'unauthorized' })
-        if (!isOwner(user)) return res.status(403).json({ error: 'ไม่มีสิทธิ์เข้าถึง' })
+        if (!(await canAny(user, ['usage-traffic-activity:view']))) return res.status(403).json({ error: 'ไม่มีสิทธิ์เข้าถึง' })
       }
 
       // หน้าถัดไปของ feed (?before=<id>) / feed ของผู้ใช้คนเดียว (?vid=) → ส่งเฉพาะ events ไม่ดึงตัวเลขรวมซ้ำ
@@ -222,11 +223,12 @@ export default async function handler(req, res) {
       if (q('overview')) {
         const user = await getUser(req)
         if (!user) return res.status(401).json({ error: 'unauthorized' })
-        if (!isOwner(user)) return res.status(403).json({ error: 'ไม่มีสิทธิ์เข้าถึง' })
+        const access = await getAccess(user)
+        if (!pageViewPerms('overview').some((p) => access.perms.includes(p))) return res.status(403).json({ error: 'ไม่มีสิทธิ์เข้าถึง' })
         const r = await sbFetch('rpc/overview_stats', { method: 'POST', body: '{}' })
         if (!r.ok) return res.status(502).json({ error: 'overview failed' })
         res.setHeader('cache-control', 'no-store')
-        return res.status(200).json(await r.json())
+        return res.status(200).json(filterForUser('overview', await r.json(), access)) // ส่งเฉพาะส่วนที่ผู้ใช้มีสิทธิ์ดู
       }
 
       const reqs = [

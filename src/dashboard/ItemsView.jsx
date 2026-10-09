@@ -5,6 +5,7 @@ import { ItemDetail } from './items/RawDetails'
 import { DEFAULT_FILTERS, SOURCE_FILTERS, STATUS_FILTERS, TYPE_FILTERS, buildRows, countFacets, filterRows } from './items/itemRows'
 import { btnNeutral, btnOk, btnWarn, inputCls } from './items/consts'
 import { EmptyNote, FilterTabs, ItemRow, Panel, Skeleton, Spinner } from './items/ui'
+import { can } from './permissions'
 
 // แท็บ "ไอเทม": จัดการรายชื่อไอเทมของช่องค้นหาไอเทม (ตาราง extra_items ผ่าน /api/extra-items + รายชื่อหลัก refinableItems.json)
 //   - โหมดอนุมัติ (item_auto_approve ผ่าน /api/settings): ผ่านอัตโนมัติ หรือรอกดอนุมัติเอง
@@ -14,7 +15,8 @@ import { EmptyNote, FilterTabs, ItemRow, Panel, Skeleton, Spinner } from './item
 const LIST_PAGE = 50
 const jsonPost = (url, headers, payload) => fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', ...headers }, body: JSON.stringify(payload) })
 
-export default function ItemsView({ session, scrollTo }) {
+// perms = สิทธิ์ของผู้ใช้ (permissions.js): แต่ละ Panel แสดงเมื่อมี 'ดู' ของ section นั้น, ปุ่มแก้ไข/ลบแสดงเมื่อมี edit/delete (API บังคับซ้ำอีกชั้น)
+export default function ItemsView({ session, perms, scrollTo }) {
   const [data, setData] = useState(null) // { items, autoApprove }
   const [indexItems, setIndexItems] = useState([]) // รายชื่อหลัก [[id, label, armorLevel?]]
   const [loading, setLoading] = useState(true)
@@ -26,6 +28,11 @@ export default function ItemsView({ session, scrollTo }) {
   const [filters, setFilters] = useState(DEFAULT_FILTERS)
   const [shown, setShown] = useState(LIST_PAGE)
   const [lookupBusy, setLookupBusy] = useState(false) // มีคำขอ lookup (ยิง Divine Pride) ค้างอยู่ → ปิดทุกปุ่มที่ยิง API นี้
+  const editMode = can(perms, 'items-mode', 'edit')
+  const editPending = can(perms, 'items-pending', 'edit')
+  const editAdd = can(perms, 'items-add', 'edit')
+  const editAll = can(perms, 'items-all', 'edit')
+  const deleteAll = can(perms, 'items-all', 'delete')
   const lookupLock = useRef(false)                  // กันกดซ้ำที่เร็วกว่าการ render (state อัปเดตไม่ทัน)
 
   const token = session?.access_token
@@ -182,7 +189,7 @@ export default function ItemsView({ session, scrollTo }) {
                 : 'ไอเทมที่หาเจอจะเข้าคิว “รออนุมัติ” ด้านล่าง จนกว่าจะกดอนุมัติ'}
             </p>
           </div>
-          <Toggle checked={autoApprove} onChange={toggleAutoApprove} disabled={busyId === 'mode'} activeColor="bg-emerald-500" ariaLabel="ผ่านอัตโนมัติ" />
+          <Toggle checked={autoApprove} onChange={toggleAutoApprove} disabled={busyId === 'mode' || !editMode} activeColor="bg-emerald-500" ariaLabel="ผ่านอัตโนมัติ" />
         </div>
       </Panel>
 
@@ -193,8 +200,10 @@ export default function ItemsView({ session, scrollTo }) {
             {pending.map((item) => (
               <ItemRow key={item.id} item={item} variant="card" actions={<>
                 {detailButton(item)}
-                <button className={btnOk} disabled={busyId === item.id} onClick={() => setStatus(item, 'approved')}>อนุมัติ</button>
-                <button className={btnWarn} disabled={busyId === item.id} onClick={() => setStatus(item, 'denied')}>ปฏิเสธ</button>
+                {editPending && <>
+                  <button className={btnOk} disabled={busyId === item.id} onClick={() => setStatus(item, 'approved')}>อนุมัติ</button>
+                  <button className={btnWarn} disabled={busyId === item.id} onClick={() => setStatus(item, 'denied')}>ปฏิเสธ</button>
+                </>}
               </>}>
                 {detailBox(item)}
               </ItemRow>
@@ -204,7 +213,7 @@ export default function ItemsView({ session, scrollTo }) {
       </Panel>
 
       {/* ── เพิ่มเอง ── */}
-      <AddItemPanel lookupItem={lookupItem} lookupBusy={lookupBusy} onSave={save} onError={setError} saving={busyId === 'add'} />
+      {can(perms, 'items-add') && <AddItemPanel lookupItem={lookupItem} lookupBusy={lookupBusy} onSave={save} onError={setError} saving={busyId === 'add'} readOnly={!editAdd} />}
 
       {/* ── รายการทั้งหมด ── */}
       <Panel id="items-all" title={`รายการทั้งหมด (${rows.length})`} hint="รายชื่อหลัก (ไฟล์) + ไอเทมเสริมจาก dashboard — “ซ่อนอยู่” = ไม่แสดงในช่องค้นหา; รายชื่อหลักลบไม่ได้ ใช้ “ซ่อน” (ลบแถวที่ซ่อนไว้ = กลับมาแสดง)">
@@ -232,16 +241,16 @@ export default function ItemsView({ session, scrollTo }) {
               <ItemRow key={item.id} item={item} showStatus actions={<>
                 {detailButton(item)}
                 {item.source === 'index' ? (
-                  <button className={btnWarn} disabled={busyId === item.id} onClick={() => hideIndexItem(item)}>ซ่อน</button>
+                  editAll && <button className={btnWarn} disabled={busyId === item.id} onClick={() => hideIndexItem(item)}>ซ่อน</button>
                 ) : (<>
-                  {item.status !== 'approved' && <button className={btnOk} disabled={busyId === item.id} onClick={() => setStatus(item, 'approved')}>อนุมัติ</button>}
-                  {item.status !== 'denied' && <button className={btnWarn} disabled={busyId === item.id} onClick={() => setStatus(item, 'denied')}>ซ่อน</button>}
-                  {confirmDeleteId === item.id ? (<>
+                  {editAll && item.status !== 'approved' && <button className={btnOk} disabled={busyId === item.id} onClick={() => setStatus(item, 'approved')}>อนุมัติ</button>}
+                  {editAll && item.status !== 'denied' && <button className={btnWarn} disabled={busyId === item.id} onClick={() => setStatus(item, 'denied')}>ซ่อน</button>}
+                  {deleteAll && (confirmDeleteId === item.id ? (<>
                     <button className={btnWarn} disabled={busyId === item.id} onClick={() => removeItem(item)}>ยืนยันลบ</button>
                     <button className={btnNeutral} onClick={() => setConfirmDeleteId(null)}>ยกเลิก</button>
                   </>) : (
                     <button className={btnNeutral} disabled={busyId === item.id} onClick={() => setConfirmDeleteId(item.id)}>ลบ</button>
-                  )}
+                  ))}
                 </>)}
               </>}>
                 {detailBox(item)}

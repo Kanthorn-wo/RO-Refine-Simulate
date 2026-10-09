@@ -1,12 +1,12 @@
 // Vercel Serverless: รายชื่อไอเทมเสริมสำหรับช่องค้นหาไอเทม (ตาราง extra_items) — จัดการผ่าน dashboard แท็บ "ไอเทม"
 //   GET            → public: { add: [[id,label,armorLevel?]], deny: [id] }  (approved = เพิ่มเข้าช่องค้นหา, denied = ซ่อน)
 //   GET ?flag=1    → public: { searchEnabled } สวิตช์เปิดช่องค้นหาหน้าเว็บ (default false) — no-store เพื่อให้ปิดแล้วมีผลทันที (ใช้กับ useItemSearchFlag)
-//   GET ?all=1     → owner : ทุกแถว + โหมดอนุมัติ (autoApprove) — no-store
-//   POST (owner)   → { action: 'lookup' | 'add' | 'setStatus' | 'delete', ... }
+//   GET ?all=1     → items:view: ทุกแถว + โหมดอนุมัติ (autoApprove) — no-store
+//   POST (edit/delete)→ { action: 'lookup' | 'add' | 'setStatus' | 'delete', ... }
 // โหมดอนุมัติ (item_auto_approve) เขียนผ่าน /api/settings; Action (scripts/find-missing-items.mjs) เขียนตารางตรง
 // ENV: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_ANON_KEY, DASHBOARD_ALLOWED_EMAILS, DIVINE_PRIDE_API_KEY
 
-import { getUser, isOwner } from './_lib/auth.js'
+import { getUser, canAny, getAccess, pageViewPerms } from './_lib/auth.js'
 import { describeItem, normalizeItemKind } from './_lib/itemInfo.js'
 import { dpItem, DivinePrideLimitError } from './_lib/divinePride.js'
 
@@ -73,11 +73,11 @@ export default async function handler(req, res) {
       }
     }
 
-    // owner: ทุกแถว + โหมดอนุมัติ
+    // view (viewer ขึ้นไป): ทุกแถว + โหมดอนุมัติ
     if (url.searchParams.get('all') === '1') {
       const user = await getUser(req)
       if (!user) return res.status(401).json({ error: 'unauthorized' })
-      if (!isOwner(user)) return res.status(403).json({ error: 'ไม่มีสิทธิ์เข้าถึง' })
+      if (!(await canAny(user, pageViewPerms('items')))) return res.status(403).json({ error: 'ไม่มีสิทธิ์เข้าถึง' })
       try {
         const [itemsRes, settingRes] = await Promise.all([
           sbFetch(`extra_items?select=id,label,armor_level,item_type,weapon_level,level_uncertain,status,source,created_at,updated_at&order=updated_at.desc&limit=${MAX_ROWS}`),
@@ -107,14 +107,26 @@ export default async function handler(req, res) {
     }
   }
 
-  // ── POST (owner) ──
+  // ── POST (items:edit / items:delete ตาม action) ──
   if (req.method === 'POST') {
     const user = await getUser(req)
     if (!user) return res.status(401).json({ error: 'unauthorized' })
-    if (!isOwner(user)) return res.status(403).json({ error: 'ไม่มีสิทธิ์เข้าถึง' })
+    const access = await getAccess(user)
+    const has = (...perms) => perms.some((p) => access.perms.includes(p))
 
     const body = await readBody(req)
     const action = String(body.action || '')
+    // สิทธิ์ต่อ action: lookup = อ่านอย่างเดียว (ปุ่ม "รายละเอียด" ทุก section) | add = เพิ่มเอง หรือ "ซ่อน" ไอเทมรายชื่อหลัก |
+    // setStatus = อนุมัติ/ปฏิเสธ/ซ่อน | delete = ลบ (เฉพาะรายการทั้งหมด)
+    const actionPerms = {
+      lookup: () => has(...pageViewPerms('items')),
+      add: () => has('items-add:edit', 'items-all:edit'),
+      setStatus: () => has('items-pending:edit', 'items-all:edit'),
+      delete: () => has('items-all:delete'),
+    }
+    const allowed = Object.hasOwn(actionPerms, action) ? actionPerms[action] : null
+    if (!allowed) return res.status(400).json({ error: 'invalid action' })
+    if (!allowed()) return res.status(403).json({ error: 'ไม่มีสิทธิ์ทำรายการนี้' })
     const id = String(body.id ?? '').trim()
     if (!ID_PATTERN.test(id)) return res.status(400).json({ error: 'invalid id' })
 

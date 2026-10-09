@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
-import { getUser, isOwner } from './_lib/auth.js'
+import { getUser, getAccess, pageViewPerms } from './_lib/auth.js'
+import { filterForUser } from './_lib/sectionAccess.js'
 
 // Vercel Serverless Function: ดึงข้อมูล monitoring จาก Supabase
 // ป้องกันด้วย verify Supabase access token + email allowlist เหมือน api/ga.js
@@ -10,7 +11,8 @@ import { getUser, isOwner } from './_lib/auth.js'
 export default async function handler(req, res) {
   const user = await getUser(req)
   if (!user) return res.status(401).json({ error: 'unauthorized' })
-  if (!isOwner(user)) return res.status(403).json({ error: 'ไม่มีสิทธิ์เข้าถึง' })
+  const access = await getAccess(user)
+  if (!pageViewPerms('monitor').some((p) => access.perms.includes(p))) return res.status(403).json({ error: 'ไม่มีสิทธิ์เข้าถึง' })
 
   const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = process.env
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
@@ -90,7 +92,7 @@ export default async function handler(req, res) {
       avgMs: v.count ? Math.round(v.total / v.count) : null,
     }))
 
-    return res.status(200).json({
+    return res.status(200).json(filterForUser('monitor', {
       runs: runsRes.data ?? [],
       uptimeTrend: uptimeRes.data ?? [],
       lighthouseTrend: lhTrendRes.data ?? [],
@@ -98,7 +100,7 @@ export default async function handler(req, res) {
       latestRun,
       latestPages,
       latestLighthouse,
-    })
+    }, access))
   } catch (err) {
     console.error('api/monitor error:', err)
     return res.status(500).json({ error: err.message })

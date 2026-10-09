@@ -35,8 +35,8 @@
           gtag('consent', 'update', { analytics_storage: 'granted' });
         }
       } catch (e) { /* ignore */ }
-      // หน้าแอดมิน (/dashboard ใช้ index.html นี้ผ่าน rewrite) ไม่ส่ง GA — กันเจ้าของเว็บปนในสถิติผู้เล่น
-      if (!/^\/(dashboard|login)(\/|$)/.test(location.pathname)) {
+      // หน้าแอดมิน (/dashboard, /create-password, /forgot-password ใช้ index.html นี้ผ่าน rewrite) ไม่ส่ง GA — กันเจ้าของเว็บ/ผู้ใช้ dashboard ปนในสถิติผู้เล่น
+      if (!/^\/(dashboard|login|create-password|forgot-password)(\/|$)/.test(location.pathname)) {
         gtag('config', 'G-52LVZ4FK1T');
       }
     </script>

@@ -1,11 +1,15 @@
 {
   "rewrites": [
     { "source": "/dashboard", "destination": "/index.html" },
-    { "source": "/dashboard/(.*)", "destination": "/index.html" }
+    { "source": "/dashboard/(.*)", "destination": "/index.html" },
+    { "source": "/create-password", "destination": "/index.html" },
+    { "source": "/forgot-password", "destination": "/index.html" }
   ],
   "headers": [
     { "source": "/dashboard", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }] },
     { "source": "/dashboard/(.*)", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }] },
+    { "source": "/create-password", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }] },
+    { "source": "/forgot-password", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }] },
     {
       "source": "/(.*)",
       "headers": [

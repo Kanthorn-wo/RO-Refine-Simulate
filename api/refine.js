@@ -5,8 +5,12 @@
 
 import { getRate } from '../src/constants/refineRates.js'
 import { BSB_REQUIRED_NORMAL, BSB_REQUIRED_EVENT, isBsbLevel } from '../src/constants/refineConfig.js'
-import { getUser, isOwner } from './_lib/auth.js'
+import { getUser, getAccess } from './_lib/auth.js'
+import { filterForUser } from './_lib/sectionAccess.js'
 import { POST_BATCH_CAP } from '../src/constants/limits.js'
+
+// หน้า "การตีบวก" ใน Usage (4 section) ใช้ GET นี้ตัวเดียว — มีสิทธิ์ดู section ไหนก็ได้ = อ่านได้
+const REFINE_VIEW_PERMS = ['refine-kpi:view', 'refine-overview:view', 'refine-leaderboard:view', 'refine-log:view']
 
 const ITEM_TYPES = ['weapon1', 'weapon2', 'weapon3', 'weapon4', 'weapon5', 'armor1', 'armor2']
 const STONES = ['normal', 'enriched', 'hd']
@@ -128,10 +132,13 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     const user = await getUser(req)
     if (!user) return res.status(401).json({ error: 'unauthorized' })
-    if (!isOwner(user)) return res.status(403).json({ error: 'ไม่มีสิทธิ์เข้าถึง' })
+    const access = await getAccess(user)
+    const url = new URL(req.url || '/', `http://x`)
+    // ?vid= (modal กิจกรรมรายคนจากฟีด activity) ผู้ที่ดูฟีดได้ก็เปิดได้ แม้ไม่มีสิทธิ์ section ตีบวก
+    const needAny = url.searchParams.get('vid') ? [...REFINE_VIEW_PERMS, 'usage-traffic-activity:view'] : REFINE_VIEW_PERMS
+    if (!needAny.some((p) => access.perms.includes(p))) return res.status(403).json({ error: 'ไม่มีสิทธิ์เข้าถึง' })
 
     // pagination + filter params
-    const url = new URL(req.url || '/', `http://x`)
     const page  = Math.max(1, parseInt(url.searchParams.get('page')  || '1', 10))
     const limit = Math.min(1000, Math.max(10, parseInt(url.searchParams.get('limit') || '50', 10)))
     const filterResult    = url.searchParams.get('result') || ''
@@ -210,7 +217,11 @@ export default async function handler(req, res) {
       const levelResult = Object.values(lrMap).sort((a, b) => a.level - b.level)
 
       res.setHeader('cache-control', 'no-store')
-      return res.status(200).json({ leaderboard, breakdown, log, total, page, limit, levelResult, stoneUsage, stoneUsageTotal })
+      const payload = { leaderboard, breakdown, log, total, page, limit, levelResult, stoneUsage, stoneUsageTotal }
+      // ?vid= โดยผู้มีสิทธิ์ฟีด activity ต้องได้ log ของคนนั้นเสมอ (modal กิจกรรมรายคน) — ที่เหลือกรองตามสิทธิ์ section ปกติ
+      const filtered = filterForUser('refine', payload, access)
+      const feedVid = filterVid && access.perms.includes('usage-traffic-activity:view')
+      return res.status(200).json(feedVid ? { ...filtered, log, total } : filtered)
     } catch {
       return res.status(502).json({ error: 'read failed' })
     }
