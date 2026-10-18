@@ -1,0 +1,260 @@
+{
+  "generatedAt": "2026-10-18T22:50:48.222Z",
+  "since": "2026-09-03",
+  "server": "thROG",
+  "dryRun": false,
+  "mode": "manual",
+  "thIds": 198,
+  "candidates": 106,
+  "found": 27,
+  "refinable": 0,
+  "levelUncertain": 0,
+  "inserted": 0,
+  "note": "refinable = description พูดถึง refine + ไม่ใช่เครื่องประดับ/Costume/NFS (API ไม่บอกตรง ๆ ว่าตีบวกได้) — รายการ refinable ถูกเติมเข้าตาราง extra_items (โหมดอัตโนมัติ = approved, ไม่งั้น pending ให้อนุมัติใน dashboard); รายการที่ refinable=false ดูเองได้ในรายงานนี้",
+  "items": [
+    {
+      "id": 410719,
+      "location": "Middle",
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 420328,
+      "location": "Lower",
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 420330,
+      "location": "Lower",
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 420331,
+      "location": "Lower",
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 420332,
+      "location": "Lower",
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 420978,
+      "location": "Lower",
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 460186,
+      "location": "Left Hand",
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 460188,
+      "location": "Left Hand",
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 460189,
+      "location": "Left Hand",
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 480866,
+      "location": "Garment (Costume)",
+      "isAvailableOnServer": true,
+      "label": "의상 찬란한 스텔라 서클",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Garment",
+      "requiredLevel": null,
+      "weaponLevel": null,
+      "armorLevel": 1,
+      "levelUncertain": true,
+      "refinable": false,
+      "availableOnThai": true
+    },
+    {
+      "id": 480867,
+      "location": "Garment (Costume)",
+      "isAvailableOnServer": true,
+      "label": "의상 빛나는 스텔라 서클",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Garment",
+      "requiredLevel": null,
+      "weaponLevel": null,
+      "armorLevel": 1,
+      "levelUncertain": true,
+      "refinable": false,
+      "availableOnThai": true
+    },
+    {
+      "id": 480868,
+      "location": "Garment (Costume)",
+      "isAvailableOnServer": true,
+      "label": "의상 스텔라 서클",
+      "nameFrom": "thROG",
+      "type": "Armor",
+      "subType": "Garment",
+      "requiredLevel": null,
+      "weaponLevel": null,
+      "armorLevel": 1,
+      "levelUncertain": true,
+      "refinable": false,
+      "availableOnThai": true
+    },
+    {
+      "id": 480943,
+      "location": "Garment",
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 480946,
+      "location": "Garment",
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 480947,
+      "location": "Garment",
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 480969,
+      "location": "Garment",
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 490704,
+      "location": null,
+      "isAvailableOnServer": false,
+      "label": "Miracle Stone [1]",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Accessory",
+      "requiredLevel": null,
+      "weaponLevel": null,
+      "armorLevel": 2,
+      "levelUncertain": false,
+      "refinable": false,
+      "availableOnThai": false
+    },
+    {
+      "id": 491096,
+      "location": null,
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 491097,
+      "location": null,
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 491098,
+      "location": null,
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 491099,
+      "location": null,
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 491100,
+      "location": null,
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 491107,
+      "location": null,
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 491108,
+      "location": null,
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 491109,
+      "location": null,
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 590137,
+      "location": null,
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Weapon",
+      "refinable": false
+    },
+    {
+      "id": 590138,
+      "location": null,
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Weapon",
+      "refinable": false
+    }
+  ]
+}
