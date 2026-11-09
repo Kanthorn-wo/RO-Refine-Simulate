@@ -1,0 +1,151 @@
+{
+  "generatedAt": "2026-11-09T00:37:07.855Z",
+  "since": "2026-09-25",
+  "server": "thROG",
+  "dryRun": false,
+  "mode": "manual",
+  "thIds": 152,
+  "candidates": 79,
+  "found": 16,
+  "refinable": 0,
+  "levelUncertain": 0,
+  "inserted": 0,
+  "note": "refinable = description พูดถึง refine + ไม่ใช่เครื่องประดับ/Costume/NFS (API ไม่บอกตรง ๆ ว่าตีบวกได้) — รายการ refinable ถูกเติมเข้าตาราง extra_items (โหมดอัตโนมัติ = approved, ไม่งั้น pending ให้อนุมัติใน dashboard); รายการที่ refinable=false ดูเองได้ในรายงานนี้",
+  "items": [
+    {
+      "id": 420328,
+      "location": "Lower",
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 420330,
+      "location": "Lower",
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 420331,
+      "location": "Lower",
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 420332,
+      "location": "Lower",
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 420842,
+      "location": null,
+      "isAvailableOnServer": false,
+      "label": "[Costume] Water Deity",
+      "nameFrom": "iRO",
+      "type": "Armor",
+      "subType": "Headgear",
+      "requiredLevel": 1,
+      "weaponLevel": null,
+      "armorLevel": 1,
+      "levelUncertain": true,
+      "refinable": false,
+      "availableOnThai": false
+    },
+    {
+      "id": 460188,
+      "location": "Left Hand",
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 460189,
+      "location": "Left Hand",
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 480969,
+      "location": "Garment",
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 480993,
+      "location": "Garment",
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 491107,
+      "location": null,
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 491108,
+      "location": null,
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 491109,
+      "location": null,
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 491130,
+      "location": null,
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 491131,
+      "location": null,
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 491132,
+      "location": null,
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    },
+    {
+      "id": 491133,
+      "location": "Accessory",
+      "isAvailableOnServer": false,
+      "label": null,
+      "type": "Armor",
+      "refinable": false
+    }
+  ]
+}
